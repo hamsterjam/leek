@@ -59,15 +59,24 @@ int main(int argc, char** argv) {
         // Test out of range indexing
         cout << "Testing out of range indexes... \t";
 
-        bool pass = false;
+        bool pass1 = false;
         try {
-            testMem[1 << 16] = 0;
+            testMem[1L << 16] = 0;
         }
         catch(std::out_of_range e) {
-            pass = true;
+            pass1 = true;
         }
 
-        if (pass) {
+        bool pass2 = false;
+        try {
+            unsigned int data[] = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10};
+            testMem.setRange(0xfff9, data, 10);
+        }
+        catch(std::out_of_range e) {
+            pass2 = true;
+        }
+
+        if (pass1 && pass2) {
             cout << "OK!" << endl;
         }
         else {
