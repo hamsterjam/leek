@@ -49,6 +49,8 @@ int main(int argc, char** argv) {
     // instruction to be 0 (such as the destination for flag operations), this
     // actually tests some isntructions that are technically undefined.
 
+    cout << "Move and set opCodes:" << endl;
+
     cout << "Testing NOP...   \t";
     testShortOp(0x0, Operation::NOP);
 
@@ -60,6 +62,10 @@ int main(int argc, char** argv) {
 
     cout << "Testing LSET...  \t";
     testLongOp(0x2, Operation::LSET);
+
+
+    cout << endl;
+    cout << "Arithmetic opCodes:" << endl;
 
     cout << "Testing ADD...   \t";
     testLongOp(0x3, Operation::ADD);
@@ -82,6 +88,10 @@ int main(int argc, char** argv) {
     cout << "Testing ROTi...  \t";
     testLongOp(0x9, Operation::ROTi);
 
+
+    cout << endl;
+    cout << "Logic opCodes:" << endl;
+
     cout << "Testing OR...    \t";
     testLongOp(0xa, Operation::OR);
 
@@ -94,6 +104,10 @@ int main(int argc, char** argv) {
     cout << "Testing NOT...   \t";
     testShortOp(0x2, Operation::NOT);
 
+
+    cout << endl;
+    cout << "Memory opCodes:" << endl;
+
     cout << "Testing STORE... \t";
     testShortOp(0x3, Operation::STORE);
 
@@ -105,6 +119,10 @@ int main(int argc, char** argv) {
 
     cout << "Testing POP...   \t";
     testShortOp(0x6, Operation::POP);
+
+
+    cout << endl;
+    cout << "Jump and flag opCodes:" << endl;
 
     cout << "Testing JMP...   \t";
     testLongOp(0xd, Operation::JMP);
@@ -120,5 +138,45 @@ int main(int argc, char** argv) {
 
     cout << "Testing FTOG...  \t";
     testShortOp(0x9, Operation::FTOG);
+
+
+    cout << endl;
+    cout << "Other tests:" << endl;
+
+    cout << "Testing uniqueness... \t";
+    {
+        // This is a big chain of comparisons, this is sufficent to ensure that
+        // these variables are pairwise unique
+        bool unique = true;
+        unique = unique && Operation::NOP   != Operation::MOV;
+        unique = unique && Operation::MOV   != Operation::HSET;
+        unique = unique && Operation::HSET  != Operation::LSET;
+        unique = unique && Operation::LSET  != Operation::ADD;
+        unique = unique && Operation::ADD   != Operation::ADDi;
+        unique = unique && Operation::ADDi  != Operation::SUB;
+        unique = unique && Operation::SUB   != Operation::SUBi;
+        unique = unique && Operation::MUL   != Operation::ROT;
+        unique = unique && Operation::ROT   != Operation::ROTi;
+        unique = unique && Operation::ROTi  != Operation::OR;
+        unique = unique && Operation::OR    != Operation::AND;
+        unique = unique && Operation::AND   != Operation::XOR;
+        unique = unique && Operation::XOR   != Operation::NOT;
+        unique = unique && Operation::NOT   != Operation::STORE;
+        unique = unique && Operation::STORE != Operation::LOAD;
+        unique = unique && Operation::LOAD  != Operation::PUSH;
+        unique = unique && Operation::PUSH  != Operation::POP;
+        unique = unique && Operation::POP   != Operation::JMP;
+        unique = unique && Operation::JMP   != Operation::FJMP;
+        unique = unique && Operation::FJMP  != Operation::FSET;
+        unique = unique && Operation::FSET  != Operation::FCLR;
+        unique = unique && Operation::FCLR  != Operation::FTOG;
+
+        if (unique) {
+            cout << "OK!" << endl;
+        }
+        else {
+            cout << "Failed" << endl;
+        }
+    }
     return 0;
 }
