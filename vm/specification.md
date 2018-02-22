@@ -141,7 +141,7 @@ LOAD: RR type
 Stores the value at address ad in rD.
 
 PUSH: RR type
-0000 0101 [rA] 0000
+0000 0101 [rA] 1110
 Stores rA at the address in STACK, then increments STACK.
 
 POP: RR type
@@ -149,21 +149,21 @@ POP: RR type
 Stores the value at address STACK in rD, then decrements STACK.
 
 JMP: RIR type
-1101 [rA] [iB] 0000
+1101 [rA] [iB] 1111
 Unconditional jump. Sets PC to rA + iB
 
 FJMP: RIR type
-1110 [rA] [iB] 0000
+1110 [rA] [iB] 1111
 If the iB'th bit of FLAG is set, sets PC to the value of rA.
 
 FSET: IR type
-0000 0111 [iA] 0000
+0000 0111 [iA] 1101
 Sets the iA'th bit of FLAG
 
 FCLR: IR type
-0000 1000 [iA] 0000
+0000 1000 [iA] 1101
 Clears the iA'th bit of FLAG
 
 FTOG: IR type
-0000 1001 [iA] 0000
+0000 1001 [iA] 1101
 Toggles the iA'th bit of FLAG

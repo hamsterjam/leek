@@ -2,7 +2,6 @@
 
 #include <cstdlib>
 #include <cstring>
-
 #include <stdexcept>
 
 Memory::Memory(std::size_t words) {
