@@ -9,8 +9,8 @@
  *
  * -- Callum Nicholson
  */
-#ifndef KOTO_OPERATION_H_DEFINED
-#define KOTO_OPERATION_H_DEFINED
+#ifndef KOTO_VM_OPERATION_H_DEFINED
+#define KOTO_VM_OPERATION_H_DEFINED
 
 class Operation {
     public:

@@ -8,8 +8,8 @@
  *
  * -- Callum Nicholson
  */
-#ifndef KOTO_MEMORY_H_DEFINED
-#define KOTO_MEMORY_H_DEFINED
+#ifndef KOTO_VM_MEMORY_H_DEFINED
+#define KOTO_VM_MEMORY_H_DEFINED
 
 #include <cstdlib> // for size_t
 
