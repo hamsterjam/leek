@@ -1,5 +1,5 @@
 /*
- * Memory.hpp
+ * MemoryManager.hpp
  *
  * For now this just allocates a "big" 64k array to store data. Note that the
  * byte size of this machine is 16 bits though, so it's 128k of physical system
@@ -13,10 +13,10 @@
 
 #include <cstdlib> // for size_t
 
-class Memory {
+class MemoryManager {
     public:
-        Memory(std::size_t words);
-        ~Memory();
+        MemoryManager(std::size_t words);
+        ~MemoryManager();
 
         void setRange(std::size_t index, unsigned int* values, std::size_t length);
 

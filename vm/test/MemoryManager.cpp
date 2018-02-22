@@ -1,4 +1,4 @@
-#include <Memory.hpp>
+#include <MemoryManager.hpp>
 #include <iostream>
 #include <stdexcept>
 
@@ -7,7 +7,7 @@ using namespace std;
 int main(int argc, char** argv) {
 
     size_t words = 1L << 16;
-    Memory testMem(words);
+    MemoryManager testMem(words);
 
     {
         // I'm just going to store the numbers 0 ~ 2^16-1 in the array as a test.
