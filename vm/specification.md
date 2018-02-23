@@ -50,7 +50,7 @@ There are 16 registers. All are 16 bits in length. There are 6 special purpose r
 0  = OBLIVION
 11 = ARITH1
 12 = ARITH2
-13 = FLAG
+13 = FLAGS
 14 = STACK
 15 = PC
 
@@ -154,16 +154,16 @@ Unconditional jump. Sets PC to rA + iB
 
 FJMP: RIR type
 1110 [rA] [iB] 1111
-If the iB'th bit of FLAG is set, sets PC to the value of rA.
+If the iB'th bit of FLAGS is set, sets PC to the value of rA.
 
 FSET: IR type
 0000 0111 [iA] 1101
-Sets the iA'th bit of FLAG
+Sets the iA'th bit of FLAGS
 
 FCLR: IR type
 0000 1000 [iA] 1101
-Clears the iA'th bit of FLAG
+Clears the iA'th bit of FLAGS
 
 FTOG: IR type
 0000 1001 [iA] 1101
-Toggles the iA'th bit of FLAG
+Toggles the iA'th bit of FLAGS
