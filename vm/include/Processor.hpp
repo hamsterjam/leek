@@ -14,10 +14,13 @@
 
 class Processor {
     public:
+        Processor(size_t memWords);
+
+        void run(unsigned int instruction);
+        void tick();
+    private:
         MemoryManager mem;
         RegisterManager reg;
-        Processor(size_t memWords);
-    private:
 };
 
 #endif
