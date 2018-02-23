@@ -160,7 +160,6 @@ int main(int argc, char** argv) {
 
         uint8_t val1Hi = 0x00;
         uint8_t val2Hi = 0x00;
-
         do {
             do {
                 test.run(0x080d);               // FCLR 0
@@ -172,8 +171,8 @@ int main(int argc, char** argv) {
                 test.run(0x3123);               // ADD 1 2 3
 
                 // Make sure the value is right
-                uint32_t longRes = ((uint32_t) val1Hi + val2Hi) << 8;
                 uint16_t corrRes = (val1Hi + val2Hi) << 8;
+                uint32_t longRes = ((uint32_t) val1Hi + val2Hi) << 8;
                 if (test.inspect(3) != corrRes) {
                     pass = false;
                     break;
@@ -189,8 +188,8 @@ int main(int argc, char** argv) {
                 int16_t signVal1 = (* (int16_t*) &val1Hi) << 8;
                 int16_t signVal2 = (* (int16_t*) &val2Hi) << 8;
 
-                int32_t signLongRes = signVal1 + signVal2;
                 int16_t signCorrRes = signVal1 + signVal2;
+                int32_t signLongRes = signVal1 + signVal2;
 
                 // This confusing condition just means:
                 // "If they have different sign and we have no overflow flag"
@@ -200,6 +199,139 @@ int main(int argc, char** argv) {
                 }
             } while (++val2Hi != 0);
         } while (++val1Hi != 0 && pass);
+
+        if (pass) {
+            cout << "OK!" << endl;
+        }
+        else {
+            cout << "Fail" << endl;
+        }
+    }
+
+    {
+        // Test SUB in the same way we test ADD
+        cout << "Testing SUB... \t\t\t";
+
+        bool pass = true;
+
+        uint8_t val1Hi = 0;
+        uint8_t val2Hi = 0;
+        do {
+            do {
+                test.run(0x080d);               // FCLR 0
+                test.run(0x081d);               // FCLR 1
+                test.run(0x0101);               // MOV 0 1
+                test.run(0x1001 | val1Hi << 4); // HSET val1Hi 1
+                test.run(0x0102);               // MOV 0 2
+                test.run(0x1002 | val2Hi << 4); // HSET val2Hi 2
+                test.run(0x5123);               // SUB 1 2 3
+
+                // Check the results!
+                uint16_t corrRes = (val1Hi - val2Hi) << 8;
+                uint32_t longRes = ((uint32_t) val1Hi - val2Hi) << 8;
+
+                if (test.inspect(3) != corrRes) {
+                    pass = false;
+                    break;
+                }
+
+                if (longRes != corrRes && !(test.inspect(13) & 1)) {
+                    pass = false;
+                    break;
+                }
+
+                // Signed arithmetic stuff
+                int16_t sVal1 = (* (int16_t*) &val1Hi) << 8;
+                int16_t sVal2 = (* (int16_t*) &val2Hi) << 8;
+
+                int16_t sCorrRes = sVal1 - sVal2;
+                int32_t sLongRes = (int32_t) sVal1 - sVal2;
+
+                // This means: "If sLongRes and sCorrRes have different signs,
+                // and the overflow flag is not set"
+                if (!(sLongRes > 0) != !(sCorrRes > 0) && !(test.inspect(13) & 2)) {
+                    pass = false;
+                    break;
+                }
+            } while (++val2Hi != 0);
+        } while (++val1Hi != 0 && pass);
+
+        if (pass) {
+            cout << "OK!" << endl;
+        }
+        else {
+            cout << "Fail" << endl;
+        }
+    }
+
+    {
+        // Testing only the high or low portion of a number will yield
+        // unintersting results, instead im going to shift my 8 bit numbers 4
+        // bits so they straddle the center of the 16 bit number
+        cout << "Testing MUL... \t\t\t";
+
+        bool pass = true;
+
+        uint8_t val1 = 0;
+        uint8_t val2 = 0;
+        do {
+            uint8_t val1Lo = val1 << 4;
+            uint8_t val1Hi = val1 >> 4;
+            do {
+                uint8_t val2Lo = val2 << 4;
+                uint8_t val2Hi = val2 >> 4;
+
+                test.run(0x1001 | val1Hi << 4); // HSET val1Hi 1
+                test.run(0x2001 | val1Lo << 4); // LSET val1Lo 1
+                test.run(0x1002 | val2Hi << 4); // HSET val2Hi 2
+                test.run(0x2002 | val2Lo << 4); // LSET val2Lo 2
+                test.run(0x7123);               // MUL 1 2 3
+
+                uint32_t corrRes = ((uint32_t) val1 * val2) << 8;
+                uint32_t testRes = ((uint32_t) test.inspect(11) << 16) | test.inspect(3);
+
+                if (corrRes != testRes) {
+                    pass = false;
+                    break;
+                }
+            } while (++val2 != 0);
+        } while (++val1 != 0 && pass);
+
+        if (pass) {
+            cout << "OK!" << endl;
+        }
+        else {
+            cout << "Fail" << endl;
+        }
+    }
+
+    {
+        // Testing ROT by testing all rotations of all possible values
+        cout << "Testing ROT... \t\t\t";
+
+        bool pass = true;
+
+        uint8_t valLo = 0;
+        uint8_t valHi = 0;
+        do {
+            do {
+                uint16_t val = valHi << 8 | valLo;
+                for (uint8_t rot = 0; rot < 16; ++rot) {
+                    test.run(0x1001 | valHi << 4); // HSET valHi 1
+                    test.run(0x2001 | valLo << 4); // LSET valLo 1
+                    test.run(0x0102);              // MOV 0 2
+                    test.run(0x2002 | rot << 4);   // LSET rot 2
+                    test.run(0x8123);              // ROT 1 2 3
+
+                    uint16_t corrRes = val << rot | val >> (16 - rot);
+
+                    if (test.inspect(3) != corrRes) {
+                        pass = false;
+                        break;
+                    }
+                }
+            } while (++valLo != 0 && pass);
+        } while (++valHi != 0 && pass);
 
         if (pass) {
             cout << "OK!" << endl;
