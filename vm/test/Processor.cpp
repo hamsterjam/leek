@@ -340,5 +340,129 @@ int main(int argc, char** argv) {
             cout << "Fail" << endl;
         }
     }
+
+    {
+        // Testing Logic operations by testing them on all possible 8 bit values
+        cout << "Testing logic operations... \t";
+
+        bool pass = true;
+
+        uint8_t val1 = 0;
+        uint8_t val2 = 0;
+        do {
+            test.run(0x0101);             // MOV 0 1
+            test.run(0x2001 | val1 << 4); // LSET val1 1
+            test.run(0x0216);             // NOT 1 6
+
+            uint16_t corrNot = ~((uint16_t) val1);
+            if (test.inspect(6) != corrNot) {
+                pass = false;
+                break;
+            }
+
+            do {
+                test.run(0x0102);             // MOV 0 2
+                test.run(0x2002 | val2 << 4); // LSET val2 2
+                test.run(0xa123);             // OR  1 2 3
+                test.run(0xb124);             // AND 1 2 4
+                test.run(0xc125);             // XOR 1 2 5
+
+                uint16_t corrOr  = val1 | val2;
+                uint16_t corrAnd = val1 & val2;
+                uint16_t corrXor = val1 ^ val2;
+
+                if (test.inspect(3) != corrOr  ||
+                    test.inspect(4) != corrAnd ||
+                    test.inspect(5) != corrXor)
+                {
+                    pass = false;
+                    break;
+                }
+            } while (++val2 != 0);
+        } while (++val1 != 0 && pass);
+
+        if (pass) {
+            cout << "OK!" << endl;
+        }
+        else {
+            cout << "Fail" << endl;
+        }
+    }
+
+    {
+        // I'm just going to store the address in the place in memory. There is
+        // no doubt better tests but this is simple
+        cout << "Testing STORE/LOAD... \t\t";
+
+        bool pass = true;
+
+        uint8_t addrLo = 0;
+        uint8_t addrHi = 0;
+        do {
+            do {
+                test.run(0x1001 | addrHi << 4); // HSET addrHi 1
+                test.run(0x2001 | addrLo << 4); // LSET addrLo 1
+                test.run(0x0311);               // STORE 1 1
+            } while (++addrLo != 0);
+        } while (++addrHi != 0);
+
+        addrLo = 0;
+        addrHi = 0;
+        do {
+            do {
+                test.run(0x1001 | addrHi << 4); // HSET addrHi 1
+                test.run(0x2001 | addrLo << 4); // LSET addrLo 1
+                test.run(0x0412);               // LOAD 1 2
+
+                uint16_t addr = addrHi << 8 | addrLo;
+                if (test.inspect(2) != addr) {
+                    pass = false;
+                    break;
+                }
+            } while (++addrLo != 0);
+        } while (++addrHi != 0 && pass);
+
+        if (pass) {
+            cout << "OK!" << endl;
+        }
+        else {
+            cout << "Fail" << endl;
+        }
+    }
+
+    {
+        // Just going to push the numbers 0x0000 to 0xffff and pop them back.
+        cout << "Testing PUSH/POP... \t\t";
+
+        bool pass = true;
+
+        test.run(0x010e); // MOV 0 STACK
+
+        uint8_t countLo = 0;
+        uint8_t countHi = 0;
+        do {
+            do {
+                test.run(0x1001 | countHi << 4); // HSET countHi 1
+                test.run(0x2001 | countLo << 4); // LSET countLo 1
+                test.run(0x051e);                // PUSH 1
+            } while (++countLo != 0);
+        } while (++countHi != 0);
+
+        uint16_t count = 0xffff;
+        do {
+            test.run(0x06e1); // POP 1
+            if (test.inspect(1) != count) {
+                pass = false;
+                break;
+            }
+        } while (--count != 0xffff);
+
+        if (pass) {
+            cout << "OK!" << endl;
+        }
+        else {
+            cout << "Fail" << endl;
+        }
+    }
     return 0;
 }

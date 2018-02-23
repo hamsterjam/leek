@@ -11,6 +11,10 @@ Processor::Processor(size_t memWords): mem(memWords) {
 void Processor::run(uint16_t instruction) {
     Operation& op = Operation::fromInstruction(instruction);
 
+    // We need to decrease the stack pointer before resolving inputs if the
+    // operation is POP
+    if (op == Operation::POP) reg.stack -= 1;
+
     uint8_t mask = (1 << 4) - 1;
 
     // Break the instruction into 4 bit chunks
@@ -47,7 +51,7 @@ void Processor::run(uint16_t instruction) {
 
     // For some operations inB is an address in memory
     if (op == Operation::LOAD || op == Operation::POP) {
-        inB = mem[inB];
+        inA = mem[inA];
     }
 
     // Compute the result
@@ -170,7 +174,7 @@ void Processor::run(uint16_t instruction) {
     }
     else if (op == Operation::POP) {
         res = inA;
-        reg.stack -= 1;
+        // Stack pointer is decremented before resolving inputs
     }
 
     //
