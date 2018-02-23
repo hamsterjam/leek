@@ -16,6 +16,7 @@ class RegisterManager {
 
         bool getBit(size_t index, size_t bit);
         void setBit(size_t index, size_t bit, bool value);
+        void togBit(size_t index, size_t bit);
 
         unsigned int& arith1 = registers[11];
         unsigned int& arith2 = registers[12];

@@ -36,3 +36,13 @@ void RegisterManager::setBit(size_t index, size_t bit, bool value) {
         regVal &= ~(1 << bit);
     }
 }
+
+void RegisterManager::togBit(size_t index, size_t bit) {
+    if (bit >= 16) {
+        throw std::out_of_range("RegisterManager::togBit");
+    }
+
+    unsigned int& regVal = (*this)[index];
+
+    regVal ^= 1 << bit;
+}
