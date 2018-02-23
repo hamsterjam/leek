@@ -1,14 +1,16 @@
-#include <Operation.hpp>
+#include "Operation.hpp"
+
 #include <iostream>
+#include <cstdint>
 
 using namespace std;
 
-void testShortOp(unsigned int opCode, Operation& op) {
+void testShortOp(uint16_t opCode, Operation& op) {
     bool succ = true;
 
-    unsigned int instrHi = opCode << 8;
-    for (unsigned int instrLo = 0; instrLo <= 0xff; ++instrLo) {
-        unsigned int instr = instrHi | instrLo;
+    uint16_t instrHi = opCode << 8;
+    for (uint16_t instrLo = 0; instrLo <= 0xff; ++instrLo) {
+        uint16_t instr = instrHi | instrLo;
         if (Operation::fromInstruction(instr) != op) {
             succ = false;
             break;
@@ -23,12 +25,12 @@ void testShortOp(unsigned int opCode, Operation& op) {
     }
 }
 
-void testLongOp(unsigned int opCode, Operation& op) {
+void testLongOp(uint16_t opCode, Operation& op) {
     bool succ = true;
 
-    unsigned int instrHi = opCode << 12;
-    for (unsigned int instrLo = 0; instrLo <= 0xfff; ++instrLo) {
-        unsigned int instr = instrHi | instrLo;
+    uint16_t instrHi = opCode << 12;
+    for (uint16_t instrLo = 0; instrLo <= 0xfff; ++instrLo) {
+        uint16_t instr = instrHi | instrLo;
         if (Operation::fromInstruction(instr) != op) {
             succ = false;
             break;

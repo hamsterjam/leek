@@ -1,6 +1,8 @@
-#include <MemoryManager.hpp>
+#include "MemoryManager.hpp"
+
 #include <iostream>
 #include <stdexcept>
+#include <cstdint>
 
 using namespace std;
 
@@ -36,7 +38,7 @@ int main(int argc, char** argv) {
     {
         // Test setRange
         cout << "Testing setRange... \t\t\t";
-        unsigned int data[] = {2, 3, 5, 7, 11, 13, 17, 19, 23, 26};
+        uint16_t data[] = {2, 3, 5, 7, 11, 13, 17, 19, 23, 26};
         testMem.setRange(0x1337, data, 10);
 
         bool pass = true;
@@ -69,7 +71,7 @@ int main(int argc, char** argv) {
 
         bool pass2 = false;
         try {
-            unsigned int data[] = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10};
+            uint16_t data[] = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10};
             testMem.setRange(0xfff9, data, 10);
         }
         catch(std::out_of_range e) {

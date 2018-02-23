@@ -1,7 +1,8 @@
-#include <Operation.hpp>
+#include "Operation.hpp"
 #include <assert.h>
+#include <cstdint>
 
-Operation::Operation(unsigned char opCode, Operation::Mode mode) {
+Operation::Operation(uint8_t opCode, Operation::Mode mode) {
     this->opCode = opCode;
     this->mode   = mode;
 
@@ -13,13 +14,13 @@ Operation::Operation(unsigned char opCode, Operation::Mode mode) {
     }
 }
 
-Operation& Operation::fromInstruction(unsigned int instruction) {
+Operation& Operation::fromInstruction(uint16_t instruction) {
     // Get top most 8 bits
-    unsigned int top8 = instruction >> 8;
+    uint16_t top8 = instruction >> 8;
 
     // Split that into its top and low 4 bits
-    unsigned int opLo = top8 & ((1 << 4) - 1);
-    unsigned int opHi = top8 >> 4;
+    uint16_t opLo = top8 & ((1 << 4) - 1);
+    uint16_t opHi = top8 >> 4;
 
     // These should be at most 4 bits long (< 2^4)
     assert(opLo < 16);

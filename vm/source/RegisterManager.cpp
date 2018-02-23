@@ -1,9 +1,10 @@
-#include <RegisterManager.hpp>
+#include "RegisterManager.hpp"
 
 #include <stdexcept>
 #include <cstdlib>
+#include <cstdint>
 
-unsigned int& RegisterManager::operator[](size_t index) {
+uint16_t& RegisterManager::operator[](size_t index) {
     if (index >= 16) {
         throw std::out_of_range("RegisterManager::operator[]");
     }
@@ -18,7 +19,7 @@ bool RegisterManager::getBit(size_t index, size_t bit) {
         throw std::out_of_range("RegisterManager::getBit");
     }
 
-    unsigned int regVal = (*this)[index];
+    uint16_t regVal = (*this)[index];
     return regVal & (1 << bit);
 }
 
@@ -27,7 +28,7 @@ void RegisterManager::setBit(size_t index, size_t bit, bool value) {
         throw std::out_of_range("RegisterManager::setBit");
     }
 
-    unsigned int& regVal = (*this)[index];
+    uint16_t& regVal = (*this)[index];
 
     if (value) {
         regVal |= 1 << bit;
@@ -42,7 +43,7 @@ void RegisterManager::togBit(size_t index, size_t bit) {
         throw std::out_of_range("RegisterManager::togBit");
     }
 
-    unsigned int& regVal = (*this)[index];
+    uint16_t& regVal = (*this)[index];
 
     regVal ^= 1 << bit;
 }

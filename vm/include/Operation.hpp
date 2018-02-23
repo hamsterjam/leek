@@ -12,6 +12,8 @@
 #ifndef KOTO_VM_OPERATION_H_DEFINED
 #define KOTO_VM_OPERATION_H_DEFINED
 
+#include <cstdint>
+
 class Operation {
     public:
         enum Mode {
@@ -22,7 +24,7 @@ class Operation {
             RR,
         };
 
-        static Operation& fromInstruction(unsigned int instruction);
+        static Operation& fromInstruction(uint16_t instruction);
         Mode getMode();
 
         // Move and set operations
@@ -37,8 +39,8 @@ class Operation {
         static Operation JMP, FJMP, FSET, FCLR, FTOG;
 
     private:
-        unsigned char opCode;
-        Mode          mode;
+        uint8_t opCode;
+        Mode    mode;
 
         Operation(Operation const&)      = delete;
         void operator=(Operation const&) = delete;
@@ -46,7 +48,7 @@ class Operation {
         static Operation* shortOps[16];
         static Operation* longOps[16];
 
-        Operation(unsigned char opCode, Mode mode);
+        Operation(uint8_t opCode, Mode mode);
 };
 
 bool operator==(Operation& lhs, Operation& rhs);

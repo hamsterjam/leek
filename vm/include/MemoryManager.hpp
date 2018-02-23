@@ -12,18 +12,19 @@
 #define KOTO_VM_MEMORY_H_DEFINED
 
 #include <cstdlib> // for size_t
+#include <cstdint>
 
 class MemoryManager {
     public:
         MemoryManager(std::size_t words);
         ~MemoryManager();
 
-        void setRange(std::size_t index, unsigned int* values, std::size_t length);
+        void setRange(std::size_t index, uint16_t* values, std::size_t length);
 
-        unsigned int& operator[](std::size_t index);
+        uint16_t& operator[](std::size_t index);
     private:
         std::size_t words;
-        unsigned int* data;
+        uint16_t* data;
 };
 
 #endif
