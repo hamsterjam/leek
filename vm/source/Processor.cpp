@@ -1,25 +1,26 @@
-#include <Processor.hpp>
-#include <Operation.hpp>
+#include "Processor.hpp"
+#include "Operation.hpp"
 #include <cstdlib>
+#include <cstdint>
 #include <stdexcept>
 
 Processor::Processor(size_t memWords): mem(memWords) {
     // Do nothing
 }
 
-void Processor::run(unsigned int instruction) {
+void Processor::run(uint16_t instruction) {
     Operation& op = Operation::fromInstruction(instruction);
 
-    unsigned char mask = (1 << 4) - 1;
+    uint8_t mask = (1 << 4) - 1;
 
     // Break the instruction into 4 bit chunks
-    unsigned char litA = (instruction >> 8) & mask;
-    unsigned char litB = (instruction >> 4) & mask;
-    unsigned char litC = (instruction >> 0) & mask;
+    uint8_t litA = (instruction >> 8) & mask;
+    uint8_t litB = (instruction >> 4) & mask;
+    uint8_t litC = (instruction >> 0) & mask;
 
     // Figure out the inputs based on the mode
-    unsigned int inA;
-    unsigned int inB;
+    uint16_t inA;
+    uint16_t inB;
 
     switch (op.getMode()) {
         case (Operation::IIR):
@@ -35,12 +36,12 @@ void Processor::run(unsigned int instruction) {
             inB = reg[litB];
             break;
         case (Operation::IR):
-            inA = 0;
-            inB = litB;
+            inA = litB;
+            inB = reg[litC];
             break;
         case (Operation::RR):
-            inA = 0;
-            inB = reg[litB];
+            inA = reg[litB];
+            inB = reg[litC];
             break;
     }
 
@@ -52,7 +53,9 @@ void Processor::run(unsigned int instruction) {
     // Compute the result
     // Some operations write to memory, most write to a register
     // Yes, I do have to do this with the ?: operator
-    unsigned int& res = (op == Operation::STORE || op == Operation::PUSH) ? mem[reg[litC]] : reg[litC];
+    uint16_t& res = (op == Operation::STORE || op == Operation::PUSH) ? mem[reg[litC]] : reg[litC];
+
+    bool setStateFlags = false;
 
     //
     // Move and Set
@@ -61,7 +64,7 @@ void Processor::run(unsigned int instruction) {
         res = 0;
     }
     else if (op == Operation::MOV) {
-        res = inB;
+        res = inA;
     }
     else if (op == Operation::HSET) {
         res = inB;
@@ -84,15 +87,31 @@ void Processor::run(unsigned int instruction) {
     else if (op == Operation::ADD || op == Operation::ADDi) {
         res = inA + inB;
 
-        // Set the carry flag if we overflow
+        setStateFlags = true;
+        // Set the carry flag if we need to carry
         if (res < inA) reg.setBit(13, 0, true);
 
-        //TODO// Figure out overflow flag
+        // Set the overflow flag if we overflow
+        if (inA <  0x8000 && inB <  0x8000 && res >= 0x8000 ||
+            inA >= 0x8000 && inB >= 0x8000 && res <  0x8000)
+        {
+            reg.setBit(13, 1, true);
+        }
     }
     else if (op == Operation::SUB || op == Operation::SUBi) {
         res = inA - inB;
 
-        //TODO// Figure out overflow flag
+        setStateFlags = true;
+
+        // If this is going to be a negative result, flag carry (borrow)
+        if (inB > inA) reg.setBit(13, 0, true);
+
+        // Set the overflow flag if we overflow
+        if (inA <  0x8000 && inB >= 0x8000 && res >= 0x8000 ||
+            inA >= 0x8000 && inB <  0x8000 && res <  0x8000)
+        {
+            reg.setBit(13, 1, true);
+        }
     }
     else if (op == Operation::MUL) {
         unsigned long longRes = (unsigned long) inA * inB;
@@ -102,6 +121,8 @@ void Processor::run(unsigned int instruction) {
 
         // Lower byte is returned
         res = longRes & ((1 << 16) - 1);
+
+        setStateFlags = true;
     }
     else if (op == Operation::ROT || op == Operation::ROTi) {
         inB %= 16;
@@ -109,6 +130,8 @@ void Processor::run(unsigned int instruction) {
         res = inA << inB;
         // Make sure it wraps
         res |= inA >> (16 - inB);
+
+        setStateFlags = true;
     }
 
     //
@@ -116,29 +139,37 @@ void Processor::run(unsigned int instruction) {
     //
     else if (op == Operation::OR) {
         res = inA | inB;
+
+        setStateFlags = true;
     }
     else if (op == Operation::AND) {
         res = inA & inB;
+
+        setStateFlags = true;
     }
     else if (op == Operation::XOR) {
         res = inA ^ inB;
+
+        setStateFlags = true;
     }
     else if (op == Operation::NOT) {
-        res = ~inB;
+        res = ~inA;
+
+        setStateFlags = true;
     }
 
     //
     // Memory
     //
     else if (op == Operation::STORE || op == Operation::LOAD) {
-        res = inB;
+        res = inA;
     }
     else if (op == Operation::PUSH) {
-        res = inB;
+        res = inA;
         reg.stack += 1;
     }
     else if (op == Operation::POP) {
-        res = inB;
+        res = inA;
         reg.stack -= 1;
     }
 
@@ -154,22 +185,28 @@ void Processor::run(unsigned int instruction) {
         }
     }
     else if (op == Operation::FSET) {
-        reg.setBit(13, inB, true);
+        res = inB | (1 << inA);
     }
     else if (op == Operation::FCLR) {
-        reg.setBit(13, inB, false);
+        res = inB & ~(1 << inA);
     }
     else if (op == Operation::FTOG) {
-        reg.togBit(13, inB);
+        res = inB ^ (1 << inA);
     }
 
     // Set zero and negative flags
-    reg.setBit(13, 2, res == 0);
-    reg.setBit(13, 3, res >= (1 << 15));
+    if (setStateFlags) {
+        reg.setBit(13, 2, res == 0);
+        reg.setBit(13, 3, res >= (1 << 15));
+    }
 }
 
 void Processor::tick() {
-    unsigned int& pc = this->reg.pc;
+    uint16_t& pc = this->reg.pc;
     ++pc;
     run(this->mem[pc]);
+}
+
+uint16_t Processor::inspect(size_t index) {
+    return reg[index];
 }
