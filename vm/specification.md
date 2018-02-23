@@ -54,7 +54,7 @@ There are 16 registers. All are 16 bits in length. There are 6 special purpose r
 14 = STACK
 15 = PC
 
-The bits in the FLAG register correspond to flags set by operations. Any flag without a designation should be treated as reserved.
+The bits in the FLAGS register correspond to flags set by operations. Any flag without a designation should be treated as reserved.
 
 +---------+---------+---------+---------+---------+---------+---------+---------+
 |    0    |    1    |    2    |    3    |    4    |    5    |    6    |    7    |
@@ -72,6 +72,9 @@ The bits in the FLAG register correspond to flags set by operations. Any flag wi
 Operations
 ==========
 
+Move and Set
+------------
+
 NOP: RR type
 0000 0000 0000 0000
 Does nothing for 1 CPU cycle
@@ -87,6 +90,9 @@ Stores the immediate iVal in the upper 8 bits of register rD
 LSET: IIR type
 0010 [  iVal ] [rD]
 Stores the immediate iVal in the lower 8 bits of register rD
+
+Arithmetic
+----------
 
 ADD: RRR type
 0011 [rA] [rB] [rD]
@@ -116,6 +122,9 @@ ROTi: RIR type
 1001 [rA] [iB] [rD]
 Shifts rA to the left iB places (with wrapping) and stores the result in rD.
 
+Logic
+-----
+
 OR: RRR type
 1010 [rA] [rB] [rD]
 Performs a bitwise OR on rA and rB and stores the result in rD. Sets the zero flag.
@@ -132,6 +141,9 @@ NOT: RR type
 0000 0010 [rA] [rD]
 Performs a bitwse NOT on rA and stores the result in rD. Sets the zero flag.
 
+Memory
+------
+
 STORE: RR type
 0000 0011 [rA] [ad]
 Stores rA in the address ad in memory.
@@ -145,8 +157,11 @@ PUSH: RR type
 Stores rA at the address in STACK, then increments STACK.
 
 POP: RR type
-0000 0110 0000 [rD]
+0000 0110 1110 [rD]
 Stores the value at address STACK in rD, then decrements STACK.
+
+Jump and Flags
+--------------
 
 JMP: RIR type
 1101 [rA] [iB] 1111
