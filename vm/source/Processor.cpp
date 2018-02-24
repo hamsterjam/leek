@@ -180,12 +180,15 @@ void Processor::run(uint16_t instruction) {
     //
     // Jump and Flags
     //
-    else if (op == Operation::JMP) {
-        res = inA + inB;
+    else if (op == Operation::JMPf) {
+        res = inB + inA;
+    }
+    else if (op == Operation::JMPb) {
+        res = inB - inA;
     }
     else if (op == Operation::FJMP) {
-        if (reg.getBit(13, inB)) {
-            res = inA;
+        if (reg.getBit(13, inA)) {
+            res = inB + 1;
         }
     }
     else if (op == Operation::FSET) {
@@ -212,9 +215,9 @@ void Processor::push(uint16_t instruction) {
 }
 
 void Processor::tick() {
-    uint16_t& pc = this->reg.pc;
-    ++pc;
-    run(this->mem[pc]);
+    uint16_t pc = reg.pc;
+    reg.pc += 1;
+    run(mem[pc]);
 }
 
 uint16_t Processor::inspect(size_t index) {

@@ -113,7 +113,7 @@ int main(int argc, char** argv) {
 
                     test.run(0x100d | valHi << 4); // HSET valHi FLAGS
                     test.run(0x200d | valLo << 4); // LSET valLo FLAGS
-                    test.run(0x070d | bit << 4);   // FSET bit
+                    test.run(0x080d | bit << 4);   // FSET bit
 
                     corrVal = val | (1 << bit);
                     if (test.inspect(13) != corrVal) {
@@ -123,7 +123,7 @@ int main(int argc, char** argv) {
 
                     test.run(0x100d | valHi << 4); // HSET valHi FLAGS
                     test.run(0x200d | valLo << 4); // LSET valLo FLAGS
-                    test.run(0x080d | bit << 4);   // FCLR bit
+                    test.run(0x090d | bit << 4);   // FCLR bit
 
                     corrVal = val & ~(1 << bit);
                     if (test.inspect(13) != corrVal) {
@@ -133,7 +133,7 @@ int main(int argc, char** argv) {
 
                     test.run(0x100d | valHi << 4); // HSET valHi FLAGS
                     test.run(0x200d | valLo << 4); // LSET valLo FLAGS
-                    test.run(0x090d | bit << 4);   // FTOG bit
+                    test.run(0x0a0d | bit << 4);   // FTOG bit
 
                     corrVal = val ^ (1 << bit);
                     if (test.inspect(13) != corrVal) {
@@ -466,47 +466,80 @@ int main(int argc, char** argv) {
     }
 
     {
-        // Test JMP by attempting to jump to every possible address
-        // Similarly, test FJMP by jumping conditional to every flag
-        cout << "Testing JMP/FJMP... \t\t";
+        // Test JMP by attempting to jump from every address with every offset
+        cout << "Testing JMP+/JMP-... \t\t";
+
+        bool pass = true;
+
+        uint8_t addrHi = 0;
+        uint8_t addrLo = 0;
+        uint8_t offset = 0;
+        do {
+            do {
+                uint16_t addr = addrHi << 8 | addrLo;
+                do {
+                    uint16_t corrAddr;
+                    test.run(0x100f | addrHi << 4); // HSET addrHi PC
+                    test.run(0x200f | addrLo << 4); // LSET addrLo PC
+                    test.run(0xd00f | offset << 4); // JMP+ offset
+
+                    corrAddr = addr + offset;
+                    if (test.inspect(15) != corrAddr) {
+                        pass = false;
+                        break;
+                    }
+
+                    test.run(0x100f | addrHi << 4); // HSET addrHi PC
+                    test.run(0x200f | addrLo << 4); // LSET addrLo PC
+                    test.run(0xe00f | offset << 4); // JMP- offset
+
+                    corrAddr = addr - offset;
+                    if (test.inspect(15) != corrAddr) {
+                        pass = false;
+                        break;
+                    }
+                } while (++offset != 0);
+            } while (++addrLo != 0 && pass);
+        } while (++addrHi != 0 && pass);
+
+        if (pass) {
+            cout << "OK!" << endl;
+        }
+        else {
+            cout << "Fail" << endl;
+        }
+    }
+
+    {
+        // Just make sure it works with every flag in both positions
+        cout << "Testing FJMP... \t\t";
 
         bool pass = true;
 
         uint8_t addrLo = 0;
         uint8_t addrHi = 0;
+
+        // Need to precalculate this as the NOT command will set some flags
+        test.run(0x0201); // NOT 0 1
         do {
             do {
                 uint16_t addr = addrHi << 8 | addrLo;
-                // Test JMP
-                test.run(0x1001 | addrHi << 4); // HSET addrHi 1
-                test.run(0x2001 | addrLo << 4); // LSET addrLo 1
-                for (uint8_t off = 0; off < 0x10; ++off) {
-                    test.run(0xd10f | off << 4); // JMP 1 off
-                    uint16_t corrAddr = addr + off;
-                    if (test.inspect(15) != corrAddr) {
-                        pass = false;
-                        break;
-                    }
-                }
-
-                // Test FJMP
-                test.run(0x0202); // NOT 0 2
                 for (uint8_t flag = 0; flag < 16; ++flag) {
-                    test.run(0x010f);             // MOV 0 PC
-                    test.run(0x010d);             // MOV 0 FLAGS
-                    test.run(0xe10f | flag << 4); // FJMP 1 flag
-
-                    if (test.inspect(15) != 0) {
-                        pass = false;
-                        break;
-                    }
-
-                    test.run(0x012d);             // MOV 2 FLAGS
-                    test.run(0xe10f | flag << 4); // FJMP 1 flag
-                    // NOT 0 FLAGS
-                    // Won't work, because that will set the 0 and negative flags
+                    test.run(0x100f | addrHi << 4); // HSET addrHi PC
+                    test.run(0x200f | addrLo << 4); // LSET addrLo PC
+                    test.run(0x010d);               // MOV 0 FLAGS
+                    test.run(0x070f | flag << 4);   // FJMP flag
 
                     if (test.inspect(15) != addr) {
+                        pass = false;
+                        break;
+                    }
+
+                    test.run(0x011d);             // MOV 1 FLAGS
+                    test.run(0x070f | flag << 4); // FJMP flag
+
+                    uint16_t corrAddr = addr + 1;
+                    if (test.inspect(15) != corrAddr) {
                         pass = false;
                         break;
                     }
@@ -520,36 +553,33 @@ int main(int argc, char** argv) {
         else {
             cout << "Fail" << endl;
         }
+    }
 
-        {
-            // Test it running an actual program (calculating fibonacci numbers)
-            cout << "Fibonacci test... \t\t";
-            test.run(0x01fe); // MOV PC STACK
-            test.run(0x4e1e); // ADDi STACK $1 STACK
+    {
+        // Test it running an actual program (calculating fibonacci numbers)
+        cout << "Fibonacci test... \t\t";
+        test.run(0x01fe); // MOV PC STACK
 
-            test.push(0x0101); // MOV 0 1
-            test.push(0x0102); // MOV 0 2
-            test.push(0x2012); // LSET $1 2
-            test.push(0x3121); // ADD 1 2 1
-            test.push(0x3122); // ADD 1 2 2
-            test.push(0x01f3); // MOV PC 3
-            test.push(0x6333); // SUBi 3 $3 3
-            test.push(0xd30f); // JMP 3 $0
+        test.push(0x0101); // MOV 0 1
+        test.push(0x0102); // MOV 0 2
+        test.push(0x2012); // LSET $1 2
+        test.push(0x3121); // ADD 1 2 1
+        test.push(0x3122); // ADD 1 2 2
+        test.push(0xe03f); // JMP- $3
 
-            // tick 3 times to do the initial data set up, every 5 ticks after
-            // that will calculate the next 2 fibonacci numbers. After n loops
-            // we should have reg[1] = F_{2n} and reg[2] = F={2n + 1}.
-            // The largest fibonacci number that fits into 16 bits is F_24 = 46368
-            // This will require 12 loops and the initial 3 ticks = 63 ticks.
+        // tick 3 times to do the initial data set up, every 3 ticks after that
+        // will calculate the next 2 fibonacci numbers. After n loops we should
+        // have reg[1] = F_{2n} and reg[2] = F={2n + 1}. The largest fibonacci
+        // number that fits into 16 bits is F_24 = 46368. This will require 12
+        // loops plus the initial 3 ticks = 39 ticks.
 
-            for (int i = 0; i < 63; ++i) test.tick();
+        for (int i = 0; i < 39; ++i) test.tick();
 
-            if (test.inspect(1) == 46368) {
-                cout << "OK!" << endl;
-            }
-            else {
-                cout << "Fail" << endl;
-            }
+        if (test.inspect(1) == 46368) {
+            cout << "OK!" << endl;
+        }
+        else {
+            cout << "Fail" << endl;
         }
     }
     return 0;

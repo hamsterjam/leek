@@ -126,20 +126,23 @@ int main(int argc, char** argv) {
     cout << endl;
     cout << "Jump and flag opCodes:" << endl;
 
-    cout << "Testing JMP...   \t";
-    testLongOp(0xd, Operation::JMP);
+    cout << "Testing JMP+...  \t";
+    testLongOp(0xd, Operation::JMPf);
+
+    cout << "Testing JMP-...  \t";
+    testLongOp(0xe, Operation::JMPb);
 
     cout << "Testing FJMP...  \t";
-    testLongOp(0xe, Operation::FJMP);
+    testShortOp(0x7, Operation::FJMP);
 
     cout << "Testing FSET...  \t";
-    testShortOp(0x7, Operation::FSET);
+    testShortOp(0x8, Operation::FSET);
 
     cout << "Testing FCLR...  \t";
-    testShortOp(0x8, Operation::FCLR);
+    testShortOp(0x9, Operation::FCLR);
 
     cout << "Testing FTOG...  \t";
-    testShortOp(0x9, Operation::FTOG);
+    testShortOp(0xa, Operation::FTOG);
 
 
     cout << endl;
@@ -167,8 +170,9 @@ int main(int argc, char** argv) {
         unique = unique && Operation::STORE != Operation::LOAD;
         unique = unique && Operation::LOAD  != Operation::PUSH;
         unique = unique && Operation::PUSH  != Operation::POP;
-        unique = unique && Operation::POP   != Operation::JMP;
-        unique = unique && Operation::JMP   != Operation::FJMP;
+        unique = unique && Operation::POP   != Operation::JMPf;
+        unique = unique && Operation::JMPf  != Operation::JMPb;
+        unique = unique && Operation::JMPb  != Operation::FJMP;
         unique = unique && Operation::FJMP  != Operation::FSET;
         unique = unique && Operation::FSET  != Operation::FCLR;
         unique = unique && Operation::FCLR  != Operation::FTOG;

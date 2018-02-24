@@ -71,11 +71,12 @@ Operation Operation::LOAD( 0x4, RR);
 Operation Operation::PUSH( 0x5, RR);
 Operation Operation::POP(  0x6, RR);
 // Jump and flag operations
-Operation Operation::JMP(  0xd, RIR);
-Operation Operation::FJMP( 0xe, RIR);
-Operation Operation::FSET( 0x7, IR);
-Operation Operation::FCLR( 0x8, IR);
-Operation Operation::FTOG( 0x9, IR);
+Operation Operation::JMPf( 0xd, IIR);
+Operation Operation::JMPb( 0xe, IIR);
+Operation Operation::FJMP( 0x7, IR);
+Operation Operation::FSET( 0x8, IR);
+Operation Operation::FCLR( 0x9, IR);
+Operation Operation::FTOG( 0xa, IR);
 
 Operation* Operation::shortOps[16];
 Operation* Operation::longOps[16];

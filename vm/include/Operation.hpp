@@ -36,7 +36,7 @@ class Operation {
         // Memory operations
         static Operation STORE, LOAD, PUSH, POP;
         // Jump and flag operations
-        static Operation JMP, FJMP, FSET, FCLR, FTOG;
+        static Operation JMPf, JMPb, FJMP, FSET, FCLR, FTOG;
 
     private:
         uint8_t opCode;
