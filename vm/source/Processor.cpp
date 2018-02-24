@@ -205,6 +205,12 @@ void Processor::run(uint16_t instruction) {
     }
 }
 
+void Processor::push(uint16_t instruction) {
+    // Totally possible to do this with actual instructions, but this is cleaner
+    mem[reg.stack] = instruction;
+    reg.stack += 1;
+}
+
 void Processor::tick() {
     uint16_t& pc = this->reg.pc;
     ++pc;

@@ -19,6 +19,7 @@ class Processor {
 
         void run(uint16_t instruction);
         void tick();
+        void push(uint16_t instruction);
 
         uint16_t inspect(size_t index);
     private:

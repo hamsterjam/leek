@@ -520,6 +520,37 @@ int main(int argc, char** argv) {
         else {
             cout << "Fail" << endl;
         }
+
+        {
+            // Test it running an actual program (calculating fibonacci numbers)
+            cout << "Fibonacci test... \t\t";
+            test.run(0x01fe); // MOV PC STACK
+            test.run(0x4e1e); // ADDi STACK $1 STACK
+
+            test.push(0x0101); // MOV 0 1
+            test.push(0x0102); // MOV 0 2
+            test.push(0x2012); // LSET $1 2
+            test.push(0x3121); // ADD 1 2 1
+            test.push(0x3122); // ADD 1 2 2
+            test.push(0x01f3); // MOV PC 3
+            test.push(0x6333); // SUBi 3 $3 3
+            test.push(0xd30f); // JMP 3 $0
+
+            // tick 3 times to do the initial data set up, every 5 ticks after
+            // that will calculate the next 2 fibonacci numbers. After n loops
+            // we should have reg[1] = F_{2n} and reg[2] = F={2n + 1}.
+            // The largest fibonacci number that fits into 16 bits is F_24 = 46368
+            // This will require 12 loops and the initial 3 ticks = 63 ticks.
+
+            for (int i = 0; i < 63; ++i) test.tick();
+
+            if (test.inspect(1) == 46368) {
+                cout << "OK!" << endl;
+            }
+            else {
+                cout << "Fail" << endl;
+            }
+        }
     }
     return 0;
 }
