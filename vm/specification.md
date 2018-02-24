@@ -24,11 +24,12 @@ LOAD	0x04
 PUSH	0x05
 POP		0x06
 
-JMP		0xd
-FJMP    0xe
-FSET    0x07
-FCLR    0x08
-FTOG    0x09
+JMP+	0xd
+JMP-    0xe
+FJMP    0x07
+FSET    0x08
+FCLR    0x09
+FTOG    0x0a
 
 Instruction format
 ==================
@@ -163,22 +164,26 @@ Stores the value at address STACK in rD, then decrements STACK.
 Jump and Flags
 --------------
 
-JMP: RIR type
-1101 [rA] [iB] 1111
-Unconditional jump. Sets PC to rA + iB
+JMP+: IIR type
+1101 [  off  ] 1111
+Unconditional forward jump. Sets PC to PC + off.
 
-FJMP: RIR type
-1110 [rA] [iB] 1111
-If the iB'th bit of FLAGS is set, sets PC to the value of rA.
+JMP-: IIR type
+1110 [  off  ] 1111
+Unconditional backward jump. Sets PC to PC - off.
+
+FJMP: IR type
+0000 0111 [iA] 1111
+If the iA'th bit of FLAGS is set, sets the PC to PC + 1
 
 FSET: IR type
-0000 0111 [iA] 1101
+0000 1000 [iA] 1101
 Sets the iA'th bit of FLAGS
 
 FCLR: IR type
-0000 1000 [iA] 1101
+0000 1001 [iA] 1101
 Clears the iA'th bit of FLAGS
 
 FTOG: IR type
-0000 1001 [iA] 1101
+0000 1010 [iA] 1101
 Toggles the iA'th bit of FLAGS
