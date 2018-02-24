@@ -47,12 +47,12 @@ Registers
 
 There are 16 registers. All are 16 bits in length. There are 6 special purpose registers. All may be written to (potentially breaking things) with the exception of OBLIVION. As a write to register 0 is interpreted as discarding the output.
 
-0  = OBLIVION
-11 = ARITH1
-12 = ARITH2
-13 = FLAGS
-14 = STACK
-15 = PC
+0  = 0x0 = OBLIVION
+11 = 0xb = ARITH1
+12 = 0xc = ARITH2
+13 = 0xd = FLAGS
+14 = 0xe = STACK
+15 = 0xf = PC
 
 The bits in the FLAGS register correspond to flags set by operations. Any flag without a designation should be treated as reserved.
 
