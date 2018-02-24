@@ -464,5 +464,62 @@ int main(int argc, char** argv) {
             cout << "Fail" << endl;
         }
     }
+
+    {
+        // Test JMP by attempting to jump to every possible address
+        // Similarly, test FJMP by jumping conditional to every flag
+        cout << "Testing JMP/FJMP... \t\t";
+
+        bool pass = true;
+
+        uint8_t addrLo = 0;
+        uint8_t addrHi = 0;
+        do {
+            do {
+                uint16_t addr = addrHi << 8 | addrLo;
+                // Test JMP
+                test.run(0x1001 | addrHi << 4); // HSET addrHi 1
+                test.run(0x2001 | addrLo << 4); // LSET addrLo 1
+                for (uint8_t off = 0; off < 0x10; ++off) {
+                    test.run(0xd10f | off << 4); // JMP 1 off
+                    uint16_t corrAddr = addr + off;
+                    if (test.inspect(15) != corrAddr) {
+                        pass = false;
+                        break;
+                    }
+                }
+
+                // Test FJMP
+                test.run(0x0202); // NOT 0 2
+                for (uint8_t flag = 0; flag < 16; ++flag) {
+                    test.run(0x010f);             // MOV 0 PC
+                    test.run(0x010d);             // MOV 0 FLAGS
+                    test.run(0xe10f | flag << 4); // FJMP 1 flag
+
+                    if (test.inspect(15) != 0) {
+                        pass = false;
+                        break;
+                    }
+
+                    test.run(0x012d);             // MOV 2 FLAGS
+                    test.run(0xe10f | flag << 4); // FJMP 1 flag
+                    // NOT 0 FLAGS
+                    // Won't work, because that will set the 0 and negative flags
+
+                    if (test.inspect(15) != addr) {
+                        pass = false;
+                        break;
+                    }
+                }
+            } while (++addrLo != 0 && pass);
+        } while (++addrHi != 0 && pass);
+
+        if (pass) {
+            cout << "OK!" << endl;
+        }
+        else {
+            cout << "Fail" << endl;
+        }
+    }
     return 0;
 }
