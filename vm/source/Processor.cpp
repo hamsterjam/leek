@@ -56,8 +56,18 @@ void Processor::run(uint16_t instruction) {
 
     // Compute the result
     // Some operations write to memory, most write to a register
-    // Yes, I do have to do this with the ?: operator
-    uint16_t& res = (op == Operation::STORE || op == Operation::PUSH) ? mem[reg[litC]] : reg[litC];
+    uint16_t* _res;
+    if (op == Operation::STORE || op == Operation::PUSH) {
+        _res = &mem[reg[litC]];
+    }
+    else if (litC == 0) {
+        uint16_t dummy = 0;
+        _res = &dummy;
+    }
+    else {
+        _res = &reg[litC];
+    }
+    uint16_t& res = *_res;
 
     bool setStateFlags = false;
 
@@ -192,13 +202,13 @@ void Processor::run(uint16_t instruction) {
         }
     }
     else if (op == Operation::FSET) {
-        res = inB | (1 << inA);
+        reg.setBit(13, inA, true);
     }
     else if (op == Operation::FCLR) {
-        res = inB & ~(1 << inA);
+        reg.setBit(13, inA, false);
     }
     else if (op == Operation::FTOG) {
-        res = inB ^ (1 << inA);
+        reg.togBit(13, inA);
     }
 
     // Set zero and negative flags

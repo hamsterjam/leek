@@ -12,7 +12,7 @@ int main(int argc, char** argv) {
     {
         // Test HSET and LSET by setting every register to every possible
         // 16 bit value and making sure it actually gets to the register
-        cout << "Testing HSET and LSET... \t";
+        cout << "Testing HSET and LSET... \t" << flush;
 
         bool pass = true;
 
@@ -46,7 +46,7 @@ int main(int argc, char** argv) {
 
     {
         // Test OBLIVION permanance by attempting to set register 0 to 0xffff
-        cout << "Testing OBLIVION permanence...\t";
+        cout << "Testing OBLIVION permanence...\t" << flush;
 
         test.run(0x1ff0);
         test.run(0x2ff0);
@@ -62,7 +62,7 @@ int main(int argc, char** argv) {
     {
         // Test MOV by moving every possible value from every general purpose
         // register to every general purpose register (including itself)
-        cout << "Testing MOV... \t\t\t";
+        cout << "Testing MOV... \t\t\t" << flush;
 
         bool pass = true;
 
@@ -99,7 +99,7 @@ int main(int argc, char** argv) {
     {
         // Test FSET, FCLR, and FTOG by calling each on every bit of every
         // possible value
-        cout << "Testing flag operations... \t";
+        cout << "Testing flag operations... \t" << flush;
 
         bool pass = true;
 
@@ -154,7 +154,7 @@ int main(int argc, char** argv) {
 
     {
         // Testing ADD by testing every value of the upper 8 bits
-        cout << "Testing ADD... \t\t\t";
+        cout << "Testing ADD... \t\t\t" << flush;
 
         bool pass = true;
 
@@ -210,7 +210,7 @@ int main(int argc, char** argv) {
 
     {
         // Test SUB in the same way we test ADD
-        cout << "Testing SUB... \t\t\t";
+        cout << "Testing SUB... \t\t\t" << flush;
 
         bool pass = true;
 
@@ -224,16 +224,11 @@ int main(int argc, char** argv) {
                 test.run(0x1001 | val1Hi << 4); // HSET val1Hi 1
                 test.run(0x0102);               // MOV 0 2
                 test.run(0x1002 | val2Hi << 4); // HSET val2Hi 2
-                test.run(0x5123);               // SUB 1 2 3
+                test.run(0x5120);               // SUB 1 2 0
 
-                // Check the results!
+                // Check we have the correct flags
                 uint16_t corrRes = (val1Hi - val2Hi) << 8;
                 uint32_t longRes = ((uint32_t) val1Hi - val2Hi) << 8;
-
-                if (test.inspect(3) != corrRes) {
-                    pass = false;
-                    break;
-                }
 
                 if (longRes != corrRes && !(test.inspect(13) & 1)) {
                     pass = false;
@@ -253,6 +248,14 @@ int main(int argc, char** argv) {
                     pass = false;
                     break;
                 }
+
+                test.run(0x5123); // SUB 1 2 3
+
+                // Check we have the correct value
+                if (test.inspect(3) != corrRes) {
+                    pass = false;
+                    break;
+                }
             } while (++val2Hi != 0);
         } while (++val1Hi != 0 && pass);
 
@@ -268,7 +271,7 @@ int main(int argc, char** argv) {
         // Testing only the high or low portion of a number will yield
         // unintersting results, instead im going to shift my 8 bit numbers 4
         // bits so they straddle the center of the 16 bit number
-        cout << "Testing MUL... \t\t\t";
+        cout << "Testing MUL... \t\t\t" << flush;
 
         bool pass = true;
 
@@ -307,7 +310,7 @@ int main(int argc, char** argv) {
 
     {
         // Testing ROT by testing all rotations of all possible values
-        cout << "Testing ROT... \t\t\t";
+        cout << "Testing ROT... \t\t\t" << flush;
 
         bool pass = true;
 
@@ -343,7 +346,7 @@ int main(int argc, char** argv) {
 
     {
         // Testing Logic operations by testing them on all possible 8 bit values
-        cout << "Testing logic operations... \t";
+        cout << "Testing logic operations... \t" << flush;
 
         bool pass = true;
 
@@ -392,7 +395,7 @@ int main(int argc, char** argv) {
     {
         // I'm just going to store the address in the place in memory. There is
         // no doubt better tests but this is simple
-        cout << "Testing STORE/LOAD... \t\t";
+        cout << "Testing STORE/LOAD... \t\t" << flush;
 
         bool pass = true;
 
@@ -432,7 +435,7 @@ int main(int argc, char** argv) {
 
     {
         // Just going to push the numbers 0x0000 to 0xffff and pop them back.
-        cout << "Testing PUSH/POP... \t\t";
+        cout << "Testing PUSH/POP... \t\t" << flush;
 
         bool pass = true;
 
@@ -467,7 +470,7 @@ int main(int argc, char** argv) {
 
     {
         // Test JMP by attempting to jump from every address with every offset
-        cout << "Testing JMP+/JMP-... \t\t";
+        cout << "Testing JMP+/JMP-... \t\t" << flush;
 
         bool pass = true;
 
@@ -512,7 +515,7 @@ int main(int argc, char** argv) {
 
     {
         // Just make sure it works with every flag in both positions
-        cout << "Testing FJMP... \t\t";
+        cout << "Testing FJMP... \t\t" << flush;
 
         bool pass = true;
 
@@ -559,7 +562,8 @@ int main(int argc, char** argv) {
 
     {
         // Test it running an actual program (calculating fibonacci numbers)
-        cout << "Fibonacci test... \t\t";
+        cout << "Fibonacci test... \t\t" << flush;
+        test.run(0x010f); // MOV 0 PC
         test.run(0x01fe); // MOV PC STACK
 
         test.push(0x0101); // MOV 0 1
@@ -578,6 +582,78 @@ int main(int argc, char** argv) {
         for (int i = 0; i < 39; ++i) test.tick();
 
         if (test.inspect(1) == 46368) {
+            cout << "OK!" << endl;
+        }
+        else {
+            cout << "Fail" << endl;
+        }
+    }
+
+    {
+        // Test a slightly more complicated program (bubble sort)
+        cout << "Bubble sort test... \t\t" << flush;
+        test.run(0x010f); // MOV 0 PC
+        test.run(0x113e); // HSET 0x13 STACK
+        test.run(0x237e); // LSET 0x37 STACK
+        test.run(0x01ea); // MOV STACK 10
+
+        // Push the data
+        test.push(5);
+        test.push(6);
+        test.push(4);
+        test.push(7);
+        test.push(3);
+        test.push(8);
+        test.push(2);
+        test.push(9);
+        test.push(1);
+        test.push(10);
+        test.push(0);
+
+        test.run(0x01fe); // MOV PC STACK
+
+        // Push the program
+        test.push(0x01a1); //  0: MOV 10 1
+        test.push(0x089d); //  1: FSET 9
+        test.push(0x4112); //  2: ADDi 1 1 2
+        test.push(0x0413); //  3: LOAD 1 3
+        test.push(0x0424); //  4: LOAD 2 4
+        test.push(0x3400); //  5: ADD 4 0 0
+        test.push(0x072f); //  6: FJMP 2
+        test.push(0xd08f); //  7: JMP+ 8
+        test.push(0x5340); //  8: SUB 3 4 0
+        test.push(0x073f); //  9: FJMP 3
+        test.push(0xd03f); // 10: JMP+ 3
+        test.push(0x0341); // 11: STORE 4 1
+        test.push(0x0332); // 12: STORE 3 2
+        test.push(0x099d); // 13: FCLR 9
+        test.push(0x0121); // 14: MOV 2 1
+        test.push(0xe0ef); // 15: JMP- 14
+        test.push(0x079f); // 16: FJMP 9
+        test.push(0xe01f); // 17: JMP- 1 (end)
+        test.push(0xe13f); // 18: JMP- 19
+
+        // Keep going till the PC gets stuck
+        uint16_t prevPC = test.inspect(15);
+        while (true) {
+            test.tick();
+            if (test.inspect(15) == prevPC) break;
+            prevPC = test.inspect(15);
+        }
+
+        bool pass = true;
+
+        test.run(0x01ae); // MOV 10 STACK
+        test.run(0x4eae); // ADDi STACK 10 STACK
+        for (int i = 10; i >= 1; --i) {
+            test.run(0x06e1); // POP 1
+            if (test.inspect(1) != i) {
+                pass = false;
+                break;
+            }
+        }
+
+        if (pass) {
             cout << "OK!" << endl;
         }
         else {
