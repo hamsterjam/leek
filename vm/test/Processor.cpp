@@ -530,16 +530,18 @@ int main(int argc, char** argv) {
                     test.run(0x010d);               // MOV 0 FLAGS
                     test.run(0x070f | flag << 4);   // FJMP flag
 
-                    if (test.inspect(15) != addr) {
+                    uint16_t corrAddr = addr + 1;
+                    if (test.inspect(15) != corrAddr) {
                         pass = false;
                         break;
                     }
 
-                    test.run(0x011d);             // MOV 1 FLAGS
-                    test.run(0x070f | flag << 4); // FJMP flag
+                    test.run(0x100f | addrHi << 4); // HSET addrHi PC
+                    test.run(0x200f | addrLo << 4); // LSET addrLo PC
+                    test.run(0x011d);               // MOV 1 FLAGS
+                    test.run(0x070f | flag << 4);   // FJMP flag
 
-                    uint16_t corrAddr = addr + 1;
-                    if (test.inspect(15) != corrAddr) {
+                    if (test.inspect(15) != addr) {
                         pass = false;
                         break;
                     }

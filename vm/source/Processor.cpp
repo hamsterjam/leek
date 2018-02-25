@@ -187,7 +187,7 @@ void Processor::run(uint16_t instruction) {
         res = inB - inA;
     }
     else if (op == Operation::FJMP) {
-        if (reg.getBit(13, inA)) {
+        if (!reg.getBit(13, inA)) {
             res = inB + 1;
         }
     }

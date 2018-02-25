@@ -174,7 +174,7 @@ Unconditional backward jump. Sets PC to PC - off.
 
 FJMP: IR type
 0000 0111 [iA] 1111
-If the iA'th bit of FLAGS is set, sets the PC to PC + 1
+If the iA'th bit of FLAGS is not set, sets the PC to PC + 1
 
 FSET: IR type
 0000 1000 [iA] 1101
