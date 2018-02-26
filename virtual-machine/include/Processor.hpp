@@ -5,8 +5,8 @@
  *
  * -- Callum Nicholson
  */
-#ifndef KOTO_VM_PROCESSOR_H_DEFINED
-#define KOTO_VM_PROCESSOR_H_DEFINED
+#ifndef LEEK_VM_PROCESSOR_H_DEFINED
+#define LEEK_VM_PROCESSOR_H_DEFINED
 
 #include "MemoryManager.hpp"
 #include "RegisterManager.hpp"
