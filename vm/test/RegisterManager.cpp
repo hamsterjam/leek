@@ -10,7 +10,7 @@ int main(int argc, char** argv) {
     RegisterManager test;
     {
         // Set every register to every possible value
-        cout << "Testing store and recall... \t";
+        cout << "Testing store and recall... \t" << flush;
 
         bool pass = true;
 
@@ -35,7 +35,7 @@ int main(int argc, char** argv) {
 
     {
         // Just try setting it to 0xffff
-        cout << "Testing OBLIVION permanence... \t";
+        cout << "Testing OBLIVION permanence... \t" << flush;
 
         test[0] = 0xffff;
 
@@ -49,7 +49,7 @@ int main(int argc, char** argv) {
 
     {
         // Attempt to set, unset, and toggle every bit in every possible state
-        cout << "Testing bitwise operations... \t";
+        cout << "Testing bitwise operations... \t" << flush;
 
         bool pass = true;
 

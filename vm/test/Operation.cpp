@@ -53,102 +53,102 @@ int main(int argc, char** argv) {
 
     cout << "Move and set opCodes:" << endl;
 
-    cout << "Testing NOP...   \t";
+    cout << "Testing NOP...   \t" << flush;
     testShortOp(0x0, Operation::NOP);
 
-    cout << "Testing MOV...   \t";
+    cout << "Testing MOV...   \t" << flush;
     testShortOp(0x1, Operation::MOV);
 
-    cout << "Testing HSET...  \t";
+    cout << "Testing HSET...  \t" << flush;
     testLongOp(0x1, Operation::HSET);
 
-    cout << "Testing LSET...  \t";
+    cout << "Testing LSET...  \t" << flush;
     testLongOp(0x2, Operation::LSET);
 
 
     cout << endl;
     cout << "Arithmetic opCodes:" << endl;
 
-    cout << "Testing ADD...   \t";
+    cout << "Testing ADD...   \t" << flush;
     testLongOp(0x3, Operation::ADD);
 
-    cout << "Testing ADDi...  \t";
+    cout << "Testing ADDi...  \t" << flush;
     testLongOp(0x4, Operation::ADDi);
 
-    cout << "Testing SUB...   \t";
+    cout << "Testing SUB...   \t" << flush;
     testLongOp(0x5, Operation::SUB);
 
-    cout << "Testing SUBi...  \t";
+    cout << "Testing SUBi...  \t" << flush;
     testLongOp(0x6, Operation::SUBi);
 
-    cout << "Testing MUL...   \t";
+    cout << "Testing MUL...   \t" << flush;
     testLongOp(0x7, Operation::MUL);
 
-    cout << "Testing ROT...   \t";
+    cout << "Testing ROT...   \t" << flush;
     testLongOp(0x8, Operation::ROT);
 
-    cout << "Testing ROTi...  \t";
+    cout << "Testing ROTi...  \t" << flush;
     testLongOp(0x9, Operation::ROTi);
 
 
     cout << endl;
     cout << "Logic opCodes:" << endl;
 
-    cout << "Testing OR...    \t";
+    cout << "Testing OR...    \t" << flush;
     testLongOp(0xa, Operation::OR);
 
-    cout << "Testing AND...   \t";
+    cout << "Testing AND...   \t" << flush;
     testLongOp(0xb, Operation::AND);
 
-    cout << "Testing XOR...   \t";
+    cout << "Testing XOR...   \t" << flush;
     testLongOp(0xc, Operation::XOR);
 
-    cout << "Testing NOT...   \t";
+    cout << "Testing NOT...   \t" << flush;
     testShortOp(0x2, Operation::NOT);
 
 
     cout << endl;
     cout << "Memory opCodes:" << endl;
 
-    cout << "Testing STORE... \t";
+    cout << "Testing STORE... \t" << flush;
     testShortOp(0x3, Operation::STORE);
 
-    cout << "Testing LOAD...  \t";
+    cout << "Testing LOAD...  \t" << flush;
     testShortOp(0x4, Operation::LOAD);
 
-    cout << "Testing PUSH...  \t";
+    cout << "Testing PUSH...  \t" << flush;
     testShortOp(0x5, Operation::PUSH);
 
-    cout << "Testing POP...   \t";
+    cout << "Testing POP...   \t" << flush;
     testShortOp(0x6, Operation::POP);
 
 
     cout << endl;
     cout << "Jump and flag opCodes:" << endl;
 
-    cout << "Testing JMP+...  \t";
+    cout << "Testing JMP+...  \t" << flush;
     testLongOp(0xd, Operation::JMPf);
 
-    cout << "Testing JMP-...  \t";
+    cout << "Testing JMP-...  \t" << flush;
     testLongOp(0xe, Operation::JMPb);
 
-    cout << "Testing FJMP...  \t";
+    cout << "Testing FJMP...  \t" << flush;
     testShortOp(0x7, Operation::FJMP);
 
-    cout << "Testing FSET...  \t";
+    cout << "Testing FSET...  \t" << flush;
     testShortOp(0x8, Operation::FSET);
 
-    cout << "Testing FCLR...  \t";
+    cout << "Testing FCLR...  \t" << flush;
     testShortOp(0x9, Operation::FCLR);
 
-    cout << "Testing FTOG...  \t";
+    cout << "Testing FTOG...  \t" << flush;
     testShortOp(0xa, Operation::FTOG);
 
 
     cout << endl;
     cout << "Other tests:" << endl;
 
-    cout << "Testing uniqueness... \t";
+    cout << "Testing uniqueness... \t" << flush;
     {
         // This is a big chain of comparisons, this is sufficent to ensure that
         // these variables are pairwise unique
