@@ -1,5 +1,8 @@
-Koto
+LEEK
 ====
+
+**L**ittle **E**ducational **E**lectronic **C**omputer
+--------------------------------------
 
 I thought it would be fun to make a toy 16-bit virtual machine in the style of Notchs 0x10^c, but without the game part.
 This could eventually involve building an assembler, a compiler, an operating system, and maybe even some useful software.

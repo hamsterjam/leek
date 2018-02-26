@@ -1,4 +1,4 @@
-NAME = koto-vm
+NAME = leek-vm
 
 #Local Folders
 SOURCE_DIR = source

@@ -1,3 +1,8 @@
+LEEK16 Architecture
+===================
+
+This is a cute little RISC machine designed to have an easy (I hope) instruction set to implement in hardware. The opcodes for everything are essentially temporary untill I figure out more specifics of the hardware. For now, I think this is a pretty good representation of the capabilities of the final architecture.
+
 Opperations Reference
 =====================
 
