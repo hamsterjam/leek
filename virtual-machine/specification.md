@@ -64,7 +64,7 @@ The AUX register is an auxiliary arithmitec register. Currently, it only has one
 The IHP register is the **I**nterrupt **H**andler **P**ointer. It points to a subroutine in memory that is called when an interrupt occurs.
 The STACK register is used for PUSH and POP operations. It points to the most recently PUSHed value.
 The PC register is the program counter. This points to the next operation to be executed by the processor.
-The bits in the FLAGS register correspond to flags set by operations. Any flag without a designation should be treated as reserved.
+The bits in the FLAGS register correspond to flags set by operations. Any flag without a designation should be treated as reserved. Currently designated flags are shown in the following table.
 
 <table style="width:100%; table-layout: fixed">
     <tr align="center">
@@ -92,13 +92,12 @@ The bits in the FLAGS register correspond to flags set by operations. Any flag w
 </table>
 
 The ZERO flag is set if the result of an arithmetic or logic operation is 0. Similarly, the NEG flag is set if the result of an arithmetic or logic opreation is negative when it is interpreted in twos-complement. The CARRY flag is set set if there is an unsigned overflow of an addition opperation, or an unsigned underflow of a subtraction operation (a borrow). The OVER flag is set if there is a signed overflow from addition or subtraction.
-
 The ICF is the **I**nterrupt **C**ontrol **F**lag. It's state affects how interrupts are handled. Flags 7 ~ 15 are **I**nterrupt **S**ignal **F**lags. They are set if the system recieves an interrupt signal along the corresponding interrupt line (ISFs is for software interrupts).
 
 Interrupts
 ----------
 
-This architecture as support for up to 8 hardware interrupt lines. When an interrupt signal is received and the Interrupt Control Flag is set, normal operation is interrupted and the interrupt handler is called. Concretely, the value of PC is pushed to the stack as if PUSH were called and the PC register is set to the value of the IHP register. Additionally the Interrupt Control Flag is cleared. Regardless of the value of the Interrupt Control Flag, one of the Interrupt Signal Flags is always set. Because this architecture does not feature privileged execution contexts, Interrupt Signal Flags and the Interrupt Control Flag can be set and cleared from any "userspace" code. Although it is *possible* it is really not a good idea to modify these flags under normal operation.
+This architecture as support for up to 8 hardware interrupt lines. When an interrupt signal is recieved, one of the Interrupt Signal Flags is set. If in addition the Interrupt Control Flag is set, normal operation is interrupted and the interrupt handler is called. Concretely, the value of PC is pushed to the stack as if PUSH were called and the PC register is set to the value of the IHP register. Additionally the Interrupt Control Flag is cleared. Because this architecture does not feature privileged execution contexts, Interrupt Signal Flags and the Interrupt Control Flag can be set and cleared from any userspace code. Although it is *possible* it is really not a good idea to modify these flags under normal operation.
 
 Opperations Reference
 ---------------------
