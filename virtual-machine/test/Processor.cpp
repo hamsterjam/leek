@@ -571,12 +571,12 @@ int main(int argc, char** argv) {
         test.run(0x201f); // LSET 1 PC
         test.run(0x010e); // MOV 0 STACK
 
-        test.push(0x0101); // MOV 0 1
-        test.push(0x0102); // MOV 0 2
-        test.push(0x2012); // LSET $1 2
-        test.push(0x3121); // ADD 1 2 1
-        test.push(0x3122); // ADD 1 2 2
-        test.push(0xe03f); // JMP- $3
+        test.push(0x0101); // 1: MOV 0 1
+        test.push(0x0102); // 2: MOV 0 2
+        test.push(0x2012); // 3: LSET $1 2
+        test.push(0x3121); // 4: ADD 1 2 1
+        test.push(0x3122); // 5: ADD 1 2 2
+        test.push(0xe03f); // 6: JMP- $3    # line 4
 
         // tick 3 times to do the initial data set up, every 3 ticks after that
         // will calculate the next 2 fibonacci numbers. After n loops we should
@@ -626,18 +626,18 @@ int main(int argc, char** argv) {
         test.push(0x0424); //  5: LOAD 2 4
         test.push(0x3400); //  6: ADD 4 0 0
         test.push(0x070f); //  7: FJMP ZERO
-        test.push(0xd08f); //  8: JMP+ 8
+        test.push(0xd08f); //  8: JMP+ 8        # line 17
         test.push(0x5340); //  9: SUB 3 4 0
         test.push(0x071f); // 10: FJMP NEG
-        test.push(0xd03f); // 11: JMP+ 3
+        test.push(0xd03f); // 11: JMP+ 3        # line 15
         test.push(0x0341); // 12: STORE 4 1
         test.push(0x0332); // 13: STORE 3 2
         test.push(0x095d); // 14: FCLR 5
         test.push(0x0121); // 15: MOV 2 1
-        test.push(0xe0ef); // 16: JMP- 14
+        test.push(0xe0ef); // 16: JMP- 14       # line 3
         test.push(0x075f); // 17: FJMP 5
-        test.push(0xe01f); // 18: JMP- 1 (end)
-        test.push(0xe13f); // 19: JMP- 19
+        test.push(0xe01f); // 18: JMP- 1        # halt
+        test.push(0xe13f); // 19: JMP- 19       # line 1
 
         // Keep going till the PC gets stuck
         uint16_t prevPC = test.inspect(15);
