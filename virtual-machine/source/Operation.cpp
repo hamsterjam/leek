@@ -77,6 +77,8 @@ Operation Operation::FJMP( 0x7, IR);
 Operation Operation::FSET( 0x8, IR);
 Operation Operation::FCLR( 0x9, IR);
 Operation Operation::FTOG( 0xa, IR);
+// Other operations
+Operation Operation::INTER(0xb, RR);
 
 Operation* Operation::shortOps[16];
 Operation* Operation::longOps[16];

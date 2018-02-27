@@ -144,6 +144,9 @@ int main(int argc, char** argv) {
     cout << "Testing FTOG...  \t" << flush;
     testShortOp(0xa, Operation::FTOG);
 
+    cout << "Testing INTER... \t" << flush;
+    testShortOp(0xb, Operation::INTER);
+
 
     cout << endl;
     cout << "Other tests:" << endl;
@@ -176,6 +179,7 @@ int main(int argc, char** argv) {
         unique = unique && Operation::FJMP  != Operation::FSET;
         unique = unique && Operation::FSET  != Operation::FCLR;
         unique = unique && Operation::FCLR  != Operation::FTOG;
+        unique = unique && Operation::FTOG  != Operation::INTER;
 
         if (unique) {
             cout << "OK!" << endl;
