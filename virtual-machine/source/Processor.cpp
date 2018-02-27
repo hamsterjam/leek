@@ -3,14 +3,11 @@
 #include <cstdlib>
 #include <cstdint>
 #include <stdexcept>
-#include <atomic_ops.h>
 
 Processor::Processor(size_t memWords): mem(memWords) {
-    AO_test_and_set(&shouldInterrupt);
-    AO_test_and_set(&softISF);
-    for (int i = 0; i < 8; ++i) {
-        AO_test_and_set(&hardISF[i]);
-    }
+    anyISF = false;
+    softISF = false;
+    for (int i = 0; i < 8; ++i) hardISF[i] = false;
 }
 
 void Processor::run(uint16_t instruction) {
@@ -234,26 +231,36 @@ void Processor::push(uint16_t instruction) {
 }
 
 void Processor::tick() {
-    const size_t ISFs = 7;
-    const size_t ISF0 = 8;
-    const size_t ICF  = 4;
+    const size_t FLAGS_ISFs = 7;
+    const size_t FLAGS_ISF0 = 8;
+    const size_t FLAGS_ICF  = 4;
 
-    bool softISF = !AO_test_and_set(&this->softISF);
-    reg.setBit(RegisterManager::FLAGS, ISFs, softISF);
-
-    for (int i = 0; i < 8; ++i) {
-        bool hardISF = !AO_test_and_set(&this->hardISF[i]);
-        reg.setBit(RegisterManager::FLAGS, ISF0 + i, hardISF);
+    // We clear the flags *conditionally*. If we were to do it unconditionally
+    // we run the risk of recieving a flag inbetween the check and the reset
+    // resulting in a missed flag.
+    if (softISF) {
+        reg.setBit(RegisterManager::FLAGS, FLAGS_ISFs, true);
+        softISF = false;
     }
 
-    bool shouldInterrupt = !AO_test_and_set(&this->shouldInterrupt);
+    for (int i = 0; i < 8; ++i) {
+        if (hardISF[i]) {
+            reg.setBit(RegisterManager::FLAGS, FLAGS_ISF0 + i, true);
+            hardISF[i] = false;
+        }
+    }
 
-    if (shouldInterrupt && reg.getBit(RegisterManager::FLAGS, ICF)) {
+    // Same here, we need to clear the flag conditionally
+    bool needsInterrupt;
+    if (anyISF) {
+        needsInterrupt = true;
+        anyISF = false;
+    }
 
-        reg.setBit(RegisterManager::FLAGS, ICF, false);
-        // Reset shouldInterrupt as it might of been cleared between reading it
-        // and setting the ICF in the FLAGS register
-        AO_test_and_set(&this->shouldInterrupt);
+    if (needsInterrupt && reg.getBit(RegisterManager::FLAGS, FLAGS_ICF)) {
+        reg.setBit(RegisterManager::FLAGS, FLAGS_ICF, false);
+        anyISF = false;
+
         push(reg[RegisterManager::PC]);
         reg[RegisterManager::PC] = reg[RegisterManager::IHP];
     }
@@ -268,13 +275,13 @@ void Processor::interrupt(int line) {
     if (line > 7) {
         throw std::out_of_range("Processor::interrupt");
     }
-    AO_CLEAR(&shouldInterrupt);
+    anyISF = true;
 
     if (line < 0) {
-        AO_CLEAR(&softISF);
+        softISF = true;
     }
     else {
-        AO_CLEAR(&hardISF[line]);
+        hardISF[line] = true;
     }
 }
 

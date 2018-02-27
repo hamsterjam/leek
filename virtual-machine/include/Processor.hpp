@@ -12,7 +12,7 @@
 #include "RegisterManager.hpp"
 #include <cstdlib>
 #include <cstdint>
-#include <atomic_ops.h>
+#include <atomic>
 
 class Processor {
     public:
@@ -27,10 +27,9 @@ class Processor {
 
         uint16_t inspect(size_t index);
     private:
-        // I'm interpreting these as 0 = true, 1 = false which is super confusing
-        AO_TS_t shouldInterrupt;
-        AO_TS_t softISF;
-        AO_TS_t hardISF[8];
+        std::atomic<bool> anyISF;
+        std::atomic<bool> softISF;
+        std::atomic<bool> hardISF[8];
 
         MemoryManager mem;
         RegisterManager reg;
