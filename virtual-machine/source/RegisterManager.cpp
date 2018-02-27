@@ -4,6 +4,14 @@
 #include <cstdlib>
 #include <cstdint>
 
+// Static members
+size_t RegisterManager::MBZ   = 0;
+size_t RegisterManager::AUX   = 11;
+size_t RegisterManager::IHP   = 12;
+size_t RegisterManager::FLAGS = 13;
+size_t RegisterManager::STACK = 14;
+size_t RegisterManager::PC    = 15;
+
 uint16_t& RegisterManager::operator[](size_t index) {
     if (index >= 16) {
         throw std::out_of_range("RegisterManager::operator[]");

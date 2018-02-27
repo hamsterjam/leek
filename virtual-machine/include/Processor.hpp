@@ -12,6 +12,7 @@
 #include "RegisterManager.hpp"
 #include <cstdlib>
 #include <cstdint>
+#include <atomic_ops.h>
 
 class Processor {
     public:
@@ -21,8 +22,16 @@ class Processor {
         void tick();
         void push(uint16_t instruction);
 
+        // This can be called asynchronously
+        void interrupt(int line);
+
         uint16_t inspect(size_t index);
     private:
+        // I'm interpreting these as 0 = true, 1 = false which is super confusing
+        AO_TS_t shouldInterrupt;
+        AO_TS_t softISF;
+        AO_TS_t hardISF[8];
+
         MemoryManager mem;
         RegisterManager reg;
 };

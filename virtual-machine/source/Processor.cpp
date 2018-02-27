@@ -3,9 +3,14 @@
 #include <cstdlib>
 #include <cstdint>
 #include <stdexcept>
+#include <atomic_ops.h>
 
 Processor::Processor(size_t memWords): mem(memWords) {
-    // Do nothing
+    AO_test_and_set(&shouldInterrupt);
+    AO_test_and_set(&softISF);
+    for (int i = 0; i < 8; ++i) {
+        AO_test_and_set(&hardISF[i]);
+    }
 }
 
 void Processor::run(uint16_t instruction) {
@@ -18,7 +23,7 @@ void Processor::run(uint16_t instruction) {
 
     // We need to increase the stack pointer before resolving inputs if the
     // operation is PUSH
-    if (op == Operation::PUSH) reg.STACK += 1;
+    if (op == Operation::PUSH) reg[RegisterManager::STACK] += 1;
 
     uint8_t mask = (1 << 4) - 1;
 
@@ -109,13 +114,13 @@ void Processor::run(uint16_t instruction) {
         setStateFlags = true;
         // Set the carry flag if we need to carry
         bool carry = res < inA;
-        reg.setBit(13, CARRY_FLAG, carry);
+        reg.setBit(RegisterManager::FLAGS, CARRY_FLAG, carry);
 
         // Set the overflow flag if we overflow
         bool over = inA <  0x8000 && inB <  0x8000 && res >= 0x8000 ||
                     inA >= 0x8000 && inB >= 0x8000 && res <  0x8000;
 
-        reg.setBit(13, OVER_FLAG, over);
+        reg.setBit(RegisterManager::FLAGS, OVER_FLAG, over);
     }
     else if (op == Operation::SUB || op == Operation::SUBi) {
         res = inA - inB;
@@ -123,20 +128,19 @@ void Processor::run(uint16_t instruction) {
         setStateFlags = true;
 
         // If this is going to be a negative result, flag carry (borrow)
-        if (inB > inA) reg.setBit(13, 0, true);
         bool carry = inB > inA;
-        reg.setBit(13, CARRY_FLAG, carry);
+        reg.setBit(RegisterManager::FLAGS, CARRY_FLAG, carry);
 
         // Set the overflow flag if we overflow
         bool over = inA <  0x8000 && inB >= 0x8000 && res >= 0x8000 ||
                     inA >= 0x8000 && inB <  0x8000 && res <  0x8000;
-        reg.setBit(13, OVER_FLAG, over);
+        reg.setBit(RegisterManager::FLAGS, OVER_FLAG, over);
     }
     else if (op == Operation::MUL) {
         unsigned long longRes = (unsigned long) inA * inB;
 
         // Upper byte stored in AUX
-        reg.AUX = longRes >> 16;
+        reg[RegisterManager::AUX] = longRes >> 16;
 
         // Lower byte is returned
         res = longRes & ((1 << 16) - 1);
@@ -189,7 +193,7 @@ void Processor::run(uint16_t instruction) {
     }
     else if (op == Operation::POP) {
         res = inA;
-        reg.STACK -= 1;
+        reg[RegisterManager::STACK] -= 1;
     }
 
     //
@@ -202,37 +206,76 @@ void Processor::run(uint16_t instruction) {
         res = inB - inA;
     }
     else if (op == Operation::FJMP) {
-        if (!reg.getBit(13, inA)) {
+        if (!reg.getBit(RegisterManager::FLAGS, inA)) {
             res = inB + 1;
         }
     }
     else if (op == Operation::FSET) {
-        reg.setBit(13, inA, true);
+        reg.setBit(RegisterManager::FLAGS, inA, true);
     }
     else if (op == Operation::FCLR) {
-        reg.setBit(13, inA, false);
+        reg.setBit(RegisterManager::FLAGS, inA, false);
     }
     else if (op == Operation::FTOG) {
-        reg.togBit(13, inA);
+        reg.togBit(RegisterManager::FLAGS, inA);
     }
 
     // Set zero and negative flags
     if (setStateFlags) {
-        reg.setBit(13, ZERO_FLAG, res == 0);
-        reg.setBit(13, NEG_FLAG,  res & (1 << 15));
+        reg.setBit(RegisterManager::FLAGS, ZERO_FLAG, res == 0);
+        reg.setBit(RegisterManager::FLAGS, NEG_FLAG,  res & (1 << 15));
     }
 }
 
 void Processor::push(uint16_t instruction) {
     // Totally possible to do this with actual instructions, but this is cleaner
-    reg.STACK += 1;
-    mem[reg.STACK] = instruction;
+    reg[RegisterManager::STACK] += 1;
+    mem[reg[RegisterManager::STACK]] = instruction;
 }
 
 void Processor::tick() {
-    uint16_t pc = reg.PC;
-    reg.PC += 1;
-    run(mem[pc]);
+    const size_t ISFs = 7;
+    const size_t ISF0 = 8;
+    const size_t ICF  = 4;
+
+    bool softISF = !AO_test_and_set(&this->softISF);
+    reg.setBit(RegisterManager::FLAGS, ISFs, softISF);
+
+    for (int i = 0; i < 8; ++i) {
+        bool hardISF = !AO_test_and_set(&this->hardISF[i]);
+        reg.setBit(RegisterManager::FLAGS, ISF0 + i, hardISF);
+    }
+
+    bool shouldInterrupt = !AO_test_and_set(&this->shouldInterrupt);
+
+    if (shouldInterrupt && reg.getBit(RegisterManager::FLAGS, ICF)) {
+
+        reg.setBit(RegisterManager::FLAGS, ICF, false);
+        // Reset shouldInterrupt as it might of been cleared between reading it
+        // and setting the ICF in the FLAGS register
+        AO_test_and_set(&this->shouldInterrupt);
+        push(reg[RegisterManager::PC]);
+        reg[RegisterManager::PC] = reg[RegisterManager::IHP];
+    }
+    else {
+        uint16_t pc = reg[RegisterManager::PC];
+        reg[RegisterManager::PC] += 1;
+        run(mem[pc]);
+    }
+}
+
+void Processor::interrupt(int line) {
+    if (line > 7) {
+        throw std::out_of_range("Processor::interrupt");
+    }
+    AO_CLEAR(&shouldInterrupt);
+
+    if (line < 0) {
+        AO_CLEAR(&softISF);
+    }
+    else {
+        AO_CLEAR(&hardISF[line]);
+    }
 }
 
 uint16_t Processor::inspect(size_t index) {
