@@ -49,17 +49,21 @@ Instructions are one of the following 5 types. During the operation. The result 
 Registers
 ---------
 
-There are 16 registers. All are 16 bits in length. There are 6 special purpose registers. All may be written to (potentially breaking things) with the exception of MBZ. As a write to register 0 is interpreted as discarding the output.
+There are 16 registers. All are 16 bits in length. There are 6 special purpose registers. All may be written to (potentially breaking things) with the exception of MBZ.
 
 ```
 0  = 0x0 = MBZ
-11 = 0xb = ARITH1
-12 = 0xc = ARITH2
+11 = 0xb = AUX
+12 = 0xc = IHP
 13 = 0xd = FLAGS
 14 = 0xe = STACK
 15 = 0xf = PC
 ```
-
+The MBZ register is the **M**ust **B**e **Z**ero register. It will always hold the value 0, any attempts to write to it will be ignored.
+The AUX register is an auxiliary arithmitec register. Currently, it only has one use, to store the upper word of the result of a MUL instruction.
+The IHP register is the **I**nterrupt **H**andler **P**ointer. It points to a subroutine in memory that is called when an interrupt occurs.
+The STACK register is used for PUSH and POP operations. It points to the most recently PUSHed value.
+The PC register is the program counter. This points to the next operation to be executed by the processor.
 The bits in the FLAGS register correspond to flags set by operations. Any flag without a designation should be treated as reserved.
 
 <table style="width:100%; table-layout: fixed">

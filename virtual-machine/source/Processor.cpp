@@ -16,9 +16,9 @@ void Processor::run(uint16_t instruction) {
 
     Operation& op = Operation::fromInstruction(instruction);
 
-    // We need to decrease the stack pointer before resolving inputs if the
-    // operation is POP
-    if (op == Operation::POP) reg.stack -= 1;
+    // We need to increase the stack pointer before resolving inputs if the
+    // operation is PUSH
+    if (op == Operation::PUSH) reg.stack += 1;
 
     uint8_t mask = (1 << 4) - 1;
 
@@ -185,11 +185,11 @@ void Processor::run(uint16_t instruction) {
     }
     else if (op == Operation::PUSH) {
         res = inA;
-        reg.stack += 1;
+        // Stack pointer is already incremeneted
     }
     else if (op == Operation::POP) {
         res = inA;
-        // Stack pointer is decremented before resolving inputs
+        reg.stack -= 1;
     }
 
     //
@@ -225,8 +225,8 @@ void Processor::run(uint16_t instruction) {
 
 void Processor::push(uint16_t instruction) {
     // Totally possible to do this with actual instructions, but this is cleaner
-    mem[reg.stack] = instruction;
     reg.stack += 1;
+    mem[reg.stack] = instruction;
 }
 
 void Processor::tick() {

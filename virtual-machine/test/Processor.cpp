@@ -568,7 +568,8 @@ int main(int argc, char** argv) {
         // Test it running an actual program (calculating fibonacci numbers)
         cout << "Fibonacci test... \t\t" << flush;
         test.run(0x010f); // MOV 0 PC
-        test.run(0x01fe); // MOV PC STACK
+        test.run(0x201f); // LSET 1 PC
+        test.run(0x010e); // MOV 0 STACK
 
         test.push(0x0101); // MOV 0 1
         test.push(0x0102); // MOV 0 2
@@ -597,9 +598,10 @@ int main(int argc, char** argv) {
         // Test a slightly more complicated program (bubble sort)
         cout << "Bubble sort test... \t\t" << flush;
         test.run(0x010f); // MOV 0 PC
+        test.run(0x201f); // LSET 1 PC
         test.run(0x113e); // HSET 0x13 STACK
         test.run(0x237e); // LSET 0x37 STACK
-        test.run(0x01ea); // MOV STACK 10
+        test.run(0x4e1a); // ADDi STACK 1 10
 
         // Push the data
         test.push(5);
@@ -614,28 +616,28 @@ int main(int argc, char** argv) {
         test.push(10);
         test.push(0);
 
-        test.run(0x01fe); // MOV PC STACK
+        test.run(0x010e); // MOV 0 STACK
 
         // Push the program
-        test.push(0x01a1); //  0: MOV 10 1
-        test.push(0x085d); //  1: FSET 5
-        test.push(0x4112); //  2: ADDi 1 1 2
-        test.push(0x0413); //  3: LOAD 1 3
-        test.push(0x0424); //  4: LOAD 2 4
-        test.push(0x3400); //  5: ADD 4 0 0
-        test.push(0x070f); //  6: FJMP ZERO
-        test.push(0xd08f); //  7: JMP+ 8
-        test.push(0x5340); //  8: SUB 3 4 0
-        test.push(0x071f); //  9: FJMP NEG
-        test.push(0xd03f); // 10: JMP+ 3
-        test.push(0x0341); // 11: STORE 4 1
-        test.push(0x0332); // 12: STORE 3 2
-        test.push(0x095d); // 13: FCLR 5
-        test.push(0x0121); // 14: MOV 2 1
-        test.push(0xe0ef); // 15: JMP- 14
-        test.push(0x075f); // 16: FJMP 5
-        test.push(0xe01f); // 17: JMP- 1 (end)
-        test.push(0xe13f); // 18: JMP- 19
+        test.push(0x01a1); //  1: MOV 10 1
+        test.push(0x085d); //  2: FSET 5
+        test.push(0x4112); //  3: ADDi 1 1 2
+        test.push(0x0413); //  4: LOAD 1 3
+        test.push(0x0424); //  5: LOAD 2 4
+        test.push(0x3400); //  6: ADD 4 0 0
+        test.push(0x070f); //  7: FJMP ZERO
+        test.push(0xd08f); //  8: JMP+ 8
+        test.push(0x5340); //  9: SUB 3 4 0
+        test.push(0x071f); // 10: FJMP NEG
+        test.push(0xd03f); // 11: JMP+ 3
+        test.push(0x0341); // 12: STORE 4 1
+        test.push(0x0332); // 13: STORE 3 2
+        test.push(0x095d); // 14: FCLR 5
+        test.push(0x0121); // 15: MOV 2 1
+        test.push(0xe0ef); // 16: JMP- 14
+        test.push(0x075f); // 17: FJMP 5
+        test.push(0xe01f); // 18: JMP- 1 (end)
+        test.push(0xe13f); // 19: JMP- 19
 
         // Keep going till the PC gets stuck
         uint16_t prevPC = test.inspect(15);
@@ -648,7 +650,7 @@ int main(int argc, char** argv) {
         bool pass = true;
 
         test.run(0x01ae); // MOV 10 STACK
-        test.run(0x4eae); // ADDi STACK 10 STACK
+        test.run(0x4e9e); // ADDi STACK 9 STACK
         for (int i = 10; i >= 1; --i) {
             test.run(0x06e1); // POP 1
             if (test.inspect(1) != i) {
