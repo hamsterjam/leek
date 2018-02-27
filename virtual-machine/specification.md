@@ -142,193 +142,141 @@ Operations
 ### Move and Set
 
 #### NOP
-`0000 0000 0000 0000`
-
-RR type
-
+`0000 0000 0000 0000`  
+RR type.  
 Does no opperation.
 
 #### MOV
-`0000 0001 [rA] [rD]`
-
-RR type
-
+`0000 0001 [rA] [rD]`  
+RR type.  
 Copies the value of rA into rD.
 
 #### HSET
-`0001 [  iVal ] [rD]`
-
-IIR type
-
+`0001 [  iVal ] [rD]`  
+IIR type.  
 Stores the immediate iVal in the upper 8 bits of register rD.
 
 #### LSET
-`0010 [  iVal ] [rD]`
-
-IIR type
-
+`0010 [  iVal ] [rD]`  
+IIR type.  
 Stores the immediate iVal in the lower 8 bits of register rD.
 
 ### Arithmetic
 
 #### ADD
-`0011 [rA] [rB] [rD]`
-
-RRR type
-
+`0011 [rA] [rB] [rD]`  
+RRR type.  
 Stores the result of rA+rB in register rD. Sets the carry, overflow, negative, and zero flags.
 
 #### ADDi
-`0100 [rA] [iB] [rD]`
-
-RIR type
-
+`0100 [rA] [iB] [rD]`  
+RIR type.  
 Stores the result of rA+iB in register rD. Sets the carry, overflow, negative, and zero flags.
 
 #### SUB
-`0101 [rA] [rB] [rD]`
-
-RRR type
-
+`0101 [rA] [rB] [rD]`  
+RRR type.  
 Stores the result of rA-rB in register rD. Sets the carry (for a borrow), overflow, negative, and zero flags.
 
 #### SUBi
-`0110 [rA] [iB] [rD]`
-
-RIR type
-
+`0110 [rA] [iB] [rD]`  
+RIR type.  
 Stores the result of rA-iB in register rD. Sets the carry (for a borrow), overflow, negative, and zero flags.
 
 #### MUL
-`0111 [rA] [rB] [rD]`
-
-RRR type
-
+`0111 [rA] [rB] [rD]`  
+RRR type.  
 Stores the result of rA\*rB in register rD. Sets the negative, and zero flags. The upper word of the result is stored in AUX.
 
 #### ROT
-`1000 [rA] [rB] [rD]`
-
-RRR type
-
+`1000 [rA] [rB] [rD]`  
+RRR type.  
 Shifts rA to the left rB places (with wrapping) and stores the result in rD.
 
 #### ROTi
-`1001 [rA] [iB] [rD]`
-
-RIR type
-
+`1001 [rA] [iB] [rD]`  
+RIR type.  
 Shifts rA to the left iB places (with wrapping) and stores the result in rD.
 
 ### Logic
 
 #### OR
-`1010 [rA] [rB] [rD]`
-
-RRR type
-
+`1010 [rA] [rB] [rD]`  
+RRR type.  
 Performs a bitwise OR on rA and rB and stores the result in rD. Sets the zero flag.
 
 #### AND
-`1011 [rA] [rB] [rD]`
-
-RRR type
-
+`1011 [rA] [rB] [rD]`  
+RRR type.  
 Performs a bitwise AND on rA and rB and stores the result in rD. Sets the zero flag.
 
 #### XOR
-`1100 [rA] [rB] [rD]`
-
-RRR type
-
+`1100 [rA] [rB] [rD]`  
+RRR type.  
 Performs a bitwse XOR on rA and rB and stores the result in rD. Sets the zero flag.
 
 #### NOT
-`0000 0010 [rA] [rD]`
-
-RR type
-
+`0000 0010 [rA] [rD]`  
+RR type.  
 Performs a bitwse NOT on rA and stores the result in rD. Sets the zero flag.
 
 ### Memory
 
 #### STORE
-`0000 0011 [rA] [ad]`
-
-RR type
-
+`0000 0011 [rA] [ad]`  
+RR type.  
 Stores rA in the address ad in memory.
 
 #### LOAD
-`0000 0100 [ad] [rD]`
-
-RR type
-
+`0000 0100 [ad] [rD]`  
+RR type.  
 Stores the value at address ad in rD.
 
 #### PUSH
-`0000 0101 [rA] 1110`
-
-RR type
-
+`0000 0101 [rA] 1110`  
+RR type.  
 Stores rA at the address in STACK, then increments STACK.
 
 #### POP
-`0000 0110 1110 [rD]`
-
-RR type
-
+`0000 0110 1110 [rD]`  
+RR type.  
 Stores the value at address STACK in rD, then decrements STACK.
 
 ### Jump and Flags
 
 #### JMP
-`1101 [  off  ] 1111`
-
-IIR type
-
+`1101 [  off  ] 1111`  
+IIR type.  
 Unconditional forward jump. Sets PC to PC + off.
 
 #### JMP
-`1110 [  off  ] 1111`
-
-IIR type
-
+`1110 [  off  ] 1111`  
+IIR type.  
 Unconditional backward jump. Sets PC to PC - off.
 
 #### FJMP
-`0000 0111 [iA] 1111`
-
-IR type
-
+`0000 0111 [iA] 1111`  
+IR type.  
 If the iA'th bit of FLAGS is not set, sets the PC to PC + 1.
 
 #### FSET
-`0000 1000 [iA] 1101`
-
-IR type
-
+`0000 1000 [iA] 1101`  
+IR type.  
 Sets the iA'th bit of FLAGS.
 
 #### FCLR
-`0000 1001 [iA] 1101`
-
-IR type
-
+`0000 1001 [iA] 1101`  
+IR type.  
 Clears the iA'th bit of FLAGS.
 
 #### FTOG
-`0000 1010 [iA] 1101`
-
-IR type
-
+`0000 1010 [iA] 1101`  
+IR type.  
 Toggles the iA'th bit of FLAGS.
 
 ### Other
 
 #### INTER
-`0000 1011 1100 1111`
-
-RR type
-
+`0000 1011 1100 1111`  
+RR type.  
 Performs a software interrupt. This behaves exactly like a hardware interrupt, the corresponding Interrupt Signal Flag is ISFs.
