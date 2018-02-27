@@ -6,6 +6,16 @@
 
 using namespace std;
 
+const uint8_t ZERO_FLAG  = 0;
+const uint8_t NEG_FLAG   = 1;
+const uint8_t CARRY_FLAG = 2;
+const uint8_t OVER_FLAG  = 3;
+
+const uint8_t ZERO_MASK  = 1 << ZERO_FLAG;
+const uint8_t NEG_MASK   = 1 << NEG_FLAG;
+const uint8_t CARRY_MASK = 1 << CARRY_FLAG;
+const uint8_t OVER_MASK  = 1 << OVER_FLAG;
+
 int main(int argc, char** argv) {
     Processor test(0x10000); // 64k
 
@@ -45,8 +55,8 @@ int main(int argc, char** argv) {
     }
 
     {
-        // Test OBLIVION permanance by attempting to set register 0 to 0xffff
-        cout << "Testing OBLIVION permanence...\t" << flush;
+        // Test MBZ permanance by attempting to set register 0 to 0xffff
+        cout << "Testing MBZ permanence...\t" << flush;
 
         test.run(0x1ff0);
         test.run(0x2ff0);
@@ -178,22 +188,20 @@ int main(int argc, char** argv) {
                     break;
                 }
 
-                // If we carry and don't trigger the carry flag
-                if (longRes > 0xffff && !(test.inspect(13) & 1)) {
+                // Check if the CARRY flag is set correctly
+                if ((longRes != corrRes) == !(test.inspect(13) & CARRY_MASK)) {
                     pass = false;
                     break;
                 }
 
-                // Check stuff to do with signed arithemetic
-                int16_t signVal1 = (* (int16_t*) &val1Hi) << 8;
-                int16_t signVal2 = (* (int16_t*) &val2Hi) << 8;
+                // Check if the OVER flag is set correctly
+                int16_t sVal1 = (* (int16_t*) &val1Hi) << 8;
+                int16_t sVal2 = (* (int16_t*) &val2Hi) << 8;
 
-                int16_t signCorrRes = signVal1 + signVal2;
-                int32_t signLongRes = signVal1 + signVal2;
+                int16_t sCorrRes = sVal1 + sVal2;
+                int32_t sLongRes = sVal1 + sVal2;
 
-                // This confusing condition just means:
-                // "If they have different sign and we have no overflow flag"
-                if (!(signCorrRes > 0) != !(signLongRes > 0) && !(test.inspect(13) & 2)) {
+                if ((sCorrRes != sLongRes) == !(test.inspect(13) & OVER_MASK)) {
                     pass = false;
                     break;
                 }
@@ -224,38 +232,34 @@ int main(int argc, char** argv) {
                 test.run(0x1001 | val1Hi << 4); // HSET val1Hi 1
                 test.run(0x0102);               // MOV 0 2
                 test.run(0x1002 | val2Hi << 4); // HSET val2Hi 2
-                test.run(0x5120);               // SUB 1 2 0
+                test.run(0x5123);               // SUB 1 2 3
 
-                // Check we have the correct flags
+                // Check we have the correct value
                 uint16_t corrRes = (val1Hi - val2Hi) << 8;
                 uint32_t longRes = ((uint32_t) val1Hi - val2Hi) << 8;
-
-                if (longRes != corrRes && !(test.inspect(13) & 1)) {
+                if (test.inspect(3) != corrRes) {
                     pass = false;
                     break;
                 }
 
-                // Signed arithmetic stuff
+                // Check if the CARRY flag is set correctly
+                if ((longRes != corrRes) == !(test.inspect(13) & CARRY_MASK)) {
+                    pass = false;
+                    break;
+                }
+
+                // Check if the OVER flag is set correctly
                 int16_t sVal1 = (* (int16_t*) &val1Hi) << 8;
                 int16_t sVal2 = (* (int16_t*) &val2Hi) << 8;
 
                 int16_t sCorrRes = sVal1 - sVal2;
                 int32_t sLongRes = (int32_t) sVal1 - sVal2;
 
-                // This means: "If sLongRes and sCorrRes have different signs,
-                // and the overflow flag is not set"
-                if (!(sLongRes > 0) != !(sCorrRes > 0) && !(test.inspect(13) & 2)) {
+                if ((sLongRes != sCorrRes) == !(test.inspect(13) & OVER_MASK)) {
                     pass = false;
                     break;
                 }
 
-                test.run(0x5123); // SUB 1 2 3
-
-                // Check we have the correct value
-                if (test.inspect(3) != corrRes) {
-                    pass = false;
-                    break;
-                }
             } while (++val2Hi != 0);
         } while (++val1Hi != 0 && pass);
 
@@ -614,22 +618,22 @@ int main(int argc, char** argv) {
 
         // Push the program
         test.push(0x01a1); //  0: MOV 10 1
-        test.push(0x089d); //  1: FSET 9
+        test.push(0x085d); //  1: FSET 5
         test.push(0x4112); //  2: ADDi 1 1 2
         test.push(0x0413); //  3: LOAD 1 3
         test.push(0x0424); //  4: LOAD 2 4
         test.push(0x3400); //  5: ADD 4 0 0
-        test.push(0x072f); //  6: FJMP 2
+        test.push(0x070f); //  6: FJMP ZERO
         test.push(0xd08f); //  7: JMP+ 8
         test.push(0x5340); //  8: SUB 3 4 0
-        test.push(0x073f); //  9: FJMP 3
+        test.push(0x071f); //  9: FJMP NEG
         test.push(0xd03f); // 10: JMP+ 3
         test.push(0x0341); // 11: STORE 4 1
         test.push(0x0332); // 12: STORE 3 2
-        test.push(0x099d); // 13: FCLR 9
+        test.push(0x095d); // 13: FCLR 5
         test.push(0x0121); // 14: MOV 2 1
         test.push(0xe0ef); // 15: JMP- 14
-        test.push(0x079f); // 16: FJMP 9
+        test.push(0x075f); // 16: FJMP 5
         test.push(0xe01f); // 17: JMP- 1 (end)
         test.push(0xe13f); // 18: JMP- 19
 

@@ -49,10 +49,10 @@ Instructions are one of the following 5 types. During the operation. The result 
 Registers
 ---------
 
-There are 16 registers. All are 16 bits in length. There are 6 special purpose registers. All may be written to (potentially breaking things) with the exception of OBLIVION. As a write to register 0 is interpreted as discarding the output.
+There are 16 registers. All are 16 bits in length. There are 6 special purpose registers. All may be written to (potentially breaking things) with the exception of MBZ. As a write to register 0 is interpreted as discarding the output.
 
 ```
-0  = 0x0 = OBLIVION
+0  = 0x0 = MBZ
 11 = 0xb = ARITH1
 12 = 0xc = ARITH2
 13 = 0xd = FLAGS
@@ -66,61 +66,65 @@ The bits in the FLAGS register correspond to flags set by operations. Any flag w
     <tr align="center">
         <th> 0 <th> 1 <th> 2 <th> 3 <th> 4 <th> 5 <th> 6 <th> 7
     <tr align="center">
-        <td> carry
-        <td> overflow
-        <td> zero
-        <td> negative
+        <td> ZERO
+        <td> NEG
+        <td> CARRY
+        <td> OVER
+        <td> ICF
         <td>
         <td>
-        <td>
-        <td>
+        <td> ISFs
     <tr align="center">
         <th> 8 <th> 9 <th> 10 <th> 11 <th> 12 <th> 13 <th> 14 <th> 15
     <tr align="center">
-        <td> </td>
-        <td>
-        <td>
-        <td>
-        <td>
-        <td>
-        <td>
-        <td>
+        <td> ISF0
+        <td> ISF1
+        <td> ISF2
+        <td> ISF3
+        <td> ISF4
+        <td> ISF5
+        <td> ISF6
+        <td> ISF7
 </table>
+
+The ZERO flag is set if the result of an arithmetic or logic operation is 0. Similarly, the NEG flag is set if the result of an arithmetic or logic opreation is negative when it is interpreted in twos-complement. The CARRY flag is set set if there is an unsigned overflow of an addition opperation, or an unsigned underflow of a subtraction operation (a borrow). The OVER flag is set if there is a signed overflow from addition or subtraction.
+
+The ICF is the **I**nterrupt **C**ontroll **F**lag. It's state affects how interrupts are handled. Flags 7 ~ 15 are **I**nterrupt **S**ignal **F**lags. They are set if the system recieves an interrupt signal along the corresponding interrupt line (ISFs is for software interrupts.
 
 Opperations Reference
 ---------------------
 
 |           | Mode | Op Code |
 |-----------|------|---------|
-| **NOP**       | RR   | 0x00    |
-| **MOV**       | RR   | 0x01    |
-| **HSET**      | IIR  | 0x1     |
-| **LSET**      | IIR  | 0x2     |
+| **NOP**   | RR   | 0x00    |
+| **MOV**   | RR   | 0x01    |
+| **HSET**  | IIR  | 0x1     |
+| **LSET**  | IIR  | 0x2     |
 ||||
-| **ADD**       | RRR  | 0x3     |
-| **ADDi**      | RIR  | 0x4     |
-| **SUB**       | RRR  | 0x5     |
-| **SUBi**      | RIR  | 0x6     |
-| **MUL**       | RRR  | 0x7     |
-| **ROT**       | RRR  | 0x8     |
-| **ROTi**      | RIR  | 0x9     |
+| **ADD**   | RRR  | 0x3     |
+| **ADDi**  | RIR  | 0x4     |
+| **SUB**   | RRR  | 0x5     |
+| **SUBi**  | RIR  | 0x6     |
+| **MUL**   | RRR  | 0x7     |
+| **ROT**   | RRR  | 0x8     |
+| **ROTi**  | RIR  | 0x9     |
 ||||
-| **OR**        | RRR  | 0xa     |
-| **AND**       | RRR  | 0xb     |
-| **XOR**       | RRR  | 0xc     |
-| **NOT**       | RR   | 0x02    |
+| **OR**    | RRR  | 0xa     |
+| **AND**   | RRR  | 0xb     |
+| **XOR**   | RRR  | 0xc     |
+| **NOT**   | RR   | 0x02    |
 ||||
-| **STORE**     | RR   | 0x03    |
-| **LOAD**      | RR   | 0x04    |
-| **PUSH**      | RR   | 0x05    |
-| **POP**       | RR   | 0x06    |
+| **STORE** | RR   | 0x03    |
+| **LOAD**  | RR   | 0x04    |
+| **PUSH**  | RR   | 0x05    |
+| **POP**   | RR   | 0x06    |
 ||||
-| **JMP+**      | IIR  | 0xd     |
-| **JMP-**      | IIR  | 0xe     |
-| **FJMP**      | IR   | 0x07    |
-| **FSET**      | IR   | 0x08    |
-| **FCLR**      | IR   | 0x09    |
-| **FTOG**      | IR   | 0x0a    |
+| **JMP+**  | IIR  | 0xd     |
+| **JMP-**  | IIR  | 0xe     |
+| **FJMP**  | IR   | 0x07    |
+| **FSET**  | IR   | 0x08    |
+| **FCLR**  | IR   | 0x09    |
+| **FTOG**  | IR   | 0x0a    |
 
 Operations
 ----------

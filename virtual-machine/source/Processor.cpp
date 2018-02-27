@@ -9,6 +9,11 @@ Processor::Processor(size_t memWords): mem(memWords) {
 }
 
 void Processor::run(uint16_t instruction) {
+    const uint8_t ZERO_FLAG  = 0;
+    const uint8_t NEG_FLAG   = 1;
+    const uint8_t CARRY_FLAG = 2;
+    const uint8_t OVER_FLAG  = 3;
+
     Operation& op = Operation::fromInstruction(instruction);
 
     // We need to decrease the stack pointer before resolving inputs if the
@@ -103,14 +108,14 @@ void Processor::run(uint16_t instruction) {
 
         setStateFlags = true;
         // Set the carry flag if we need to carry
-        if (res < inA) reg.setBit(13, 0, true);
+        bool carry = res < inA;
+        reg.setBit(13, CARRY_FLAG, carry);
 
         // Set the overflow flag if we overflow
-        if (inA <  0x8000 && inB <  0x8000 && res >= 0x8000 ||
-            inA >= 0x8000 && inB >= 0x8000 && res <  0x8000)
-        {
-            reg.setBit(13, 1, true);
-        }
+        bool over = inA <  0x8000 && inB <  0x8000 && res >= 0x8000 ||
+                    inA >= 0x8000 && inB >= 0x8000 && res <  0x8000;
+
+        reg.setBit(13, OVER_FLAG, over);
     }
     else if (op == Operation::SUB || op == Operation::SUBi) {
         res = inA - inB;
@@ -119,13 +124,13 @@ void Processor::run(uint16_t instruction) {
 
         // If this is going to be a negative result, flag carry (borrow)
         if (inB > inA) reg.setBit(13, 0, true);
+        bool carry = inB > inA;
+        reg.setBit(13, CARRY_FLAG, carry);
 
         // Set the overflow flag if we overflow
-        if (inA <  0x8000 && inB >= 0x8000 && res >= 0x8000 ||
-            inA >= 0x8000 && inB <  0x8000 && res <  0x8000)
-        {
-            reg.setBit(13, 1, true);
-        }
+        bool over = inA <  0x8000 && inB >= 0x8000 && res >= 0x8000 ||
+                    inA >= 0x8000 && inB <  0x8000 && res <  0x8000;
+        reg.setBit(13, OVER_FLAG, over);
     }
     else if (op == Operation::MUL) {
         unsigned long longRes = (unsigned long) inA * inB;
@@ -213,8 +218,8 @@ void Processor::run(uint16_t instruction) {
 
     // Set zero and negative flags
     if (setStateFlags) {
-        reg.setBit(13, 2, res == 0);
-        reg.setBit(13, 3, res >= (1 << 15));
+        reg.setBit(13, ZERO_FLAG, res == 0);
+        reg.setBit(13, NEG_FLAG,  res & (1 << 15));
     }
 }
 
