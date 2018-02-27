@@ -89,7 +89,7 @@ The bits in the FLAGS register correspond to flags set by operations. Any flag w
 
 The ZERO flag is set if the result of an arithmetic or logic operation is 0. Similarly, the NEG flag is set if the result of an arithmetic or logic opreation is negative when it is interpreted in twos-complement. The CARRY flag is set set if there is an unsigned overflow of an addition opperation, or an unsigned underflow of a subtraction operation (a borrow). The OVER flag is set if there is a signed overflow from addition or subtraction.
 
-The ICF is the **I**nterrupt **C**ontroll **F**lag. It's state affects how interrupts are handled. Flags 7 ~ 15 are **I**nterrupt **S**ignal **F**lags. They are set if the system recieves an interrupt signal along the corresponding interrupt line (ISFs is for software interrupts.
+The ICF is the **I**nterrupt **C**ontroll **F**lag. It's state affects how interrupts are handled. Flags 7 ~ 15 are **I**nterrupt **S**ignal **F**lags. They are set if the system recieves an interrupt signal along the corresponding interrupt line (ISFs is for software interrupts).
 
 Opperations Reference
 ---------------------
@@ -136,28 +136,28 @@ Operations
 
 RR type
 
-Does nothing for 1 CPU cycle
+Does no opperation.
 
 #### MOV
 `0000 0001 [rA] [rD]`
 
 RR type
 
-Copies the value of rA into rD
+Copies the value of rA into rD.
 
 #### HSET
 `0001 [  iVal ] [rD]`
 
 IIR type
 
-Stores the immediate iVal in the upper 8 bits of register rD
+Stores the immediate iVal in the upper 8 bits of register rD.
 
 #### LSET
 `0010 [  iVal ] [rD]`
 
 IIR type
 
-Stores the immediate iVal in the lower 8 bits of register rD
+Stores the immediate iVal in the lower 8 bits of register rD.
 
 ### Arithmetic
 
@@ -173,7 +173,7 @@ Stores the result of rA+rB in register rD. Sets the carry, overflow, negative, a
 
 RIR type
 
-Stores the result of rA+iB in register rD. Sets the carry, overflow, negative, and zero flags
+Stores the result of rA+iB in register rD. Sets the carry, overflow, negative, and zero flags.
 
 #### SUB
 `0101 [rA] [rB] [rD]`
@@ -291,25 +291,25 @@ Unconditional backward jump. Sets PC to PC - off.
 
 IR type
 
-If the iA'th bit of FLAGS is not set, sets the PC to PC + 1
+If the iA'th bit of FLAGS is not set, sets the PC to PC + 1.
 
 #### FSET
 `0000 1000 [iA] 1101`
 
 IR type
 
-Sets the iA'th bit of FLAGS
+Sets the iA'th bit of FLAGS.
 
 #### FCLR
 `0000 1001 [iA] 1101`
 
 IR type
 
-Clears the iA'th bit of FLAGS
+Clears the iA'th bit of FLAGS.
 
 #### FTOG
 `0000 1010 [iA] 1101`
 
 IR type
 
-Toggles the iA'th bit of FLAGS
+Toggles the iA'th bit of FLAGS.
