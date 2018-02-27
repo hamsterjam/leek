@@ -18,7 +18,7 @@ void Processor::run(uint16_t instruction) {
 
     // We need to increase the stack pointer before resolving inputs if the
     // operation is PUSH
-    if (op == Operation::PUSH) reg.stack += 1;
+    if (op == Operation::PUSH) reg.STACK += 1;
 
     uint8_t mask = (1 << 4) - 1;
 
@@ -135,8 +135,8 @@ void Processor::run(uint16_t instruction) {
     else if (op == Operation::MUL) {
         unsigned long longRes = (unsigned long) inA * inB;
 
-        // Upper byte stored in ARITH1
-        reg.arith1 = longRes >> 16;
+        // Upper byte stored in AUX
+        reg.AUX = longRes >> 16;
 
         // Lower byte is returned
         res = longRes & ((1 << 16) - 1);
@@ -189,7 +189,7 @@ void Processor::run(uint16_t instruction) {
     }
     else if (op == Operation::POP) {
         res = inA;
-        reg.stack -= 1;
+        reg.STACK -= 1;
     }
 
     //
@@ -225,13 +225,13 @@ void Processor::run(uint16_t instruction) {
 
 void Processor::push(uint16_t instruction) {
     // Totally possible to do this with actual instructions, but this is cleaner
-    reg.stack += 1;
-    mem[reg.stack] = instruction;
+    reg.STACK += 1;
+    mem[reg.STACK] = instruction;
 }
 
 void Processor::tick() {
-    uint16_t pc = reg.pc;
-    reg.pc += 1;
+    uint16_t pc = reg.PC;
+    reg.PC += 1;
     run(mem[pc]);
 }
 

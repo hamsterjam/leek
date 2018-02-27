@@ -19,11 +19,11 @@ class RegisterManager {
         void setBit(size_t index, size_t bit, bool value);
         void togBit(size_t index, size_t bit);
 
-        uint16_t& arith1 = registers[11];
-        uint16_t& arith2 = registers[12];
-        uint16_t& flags  = registers[13];
-        uint16_t& stack  = registers[14];
-        uint16_t& pc     = registers[15];
+        uint16_t& AUX   = registers[11];
+        uint16_t& IHP   = registers[12];
+        uint16_t& FLAGS = registers[13];
+        uint16_t& STACK = registers[14];
+        uint16_t& PC    = registers[15];
     private:
         uint16_t registers[16];
 };
