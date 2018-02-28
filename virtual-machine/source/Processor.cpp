@@ -274,6 +274,16 @@ void Processor::tick() {
     }
 }
 
+// Call tick in a loop untill we halt
+void Processor::run() {
+    uint16_t prevPC;
+    do {
+        prevPC = reg[RegisterManager::PC];
+        tick();
+    }
+    while (prevPC != reg[RegisterManager::PC]);
+}
+
 void Processor::interrupt(int line) {
     if (line > 7) {
         throw std::out_of_range("Processor::interrupt");

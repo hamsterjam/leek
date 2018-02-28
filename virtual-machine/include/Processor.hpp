@@ -20,6 +20,7 @@ class Processor {
 
         void exec(uint16_t instruction);
         void tick();
+        void run();
         void push(uint16_t instruction);
 
         // This can be called asynchronously
