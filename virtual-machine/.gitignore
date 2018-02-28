@@ -1,4 +1,4 @@
 object/*
 *-test
-koto-vm
-koto-vm_debug
+leek-vm
+leek-vm_debug

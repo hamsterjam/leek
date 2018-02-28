@@ -2,11 +2,16 @@
 
 #include <iostream>
 #include <fstream>
+#include <sstream>
 #include <string>
+#include <limits>
 #include <stdexcept>
+
 #include <cstdint>
 #include <cassert>
-#include <cstdlib> // strtol
+#include <cstdio>
+
+#include <unistd.h>
 
 const char* helpText = R"(
 NAME
@@ -16,9 +21,8 @@ SYNOPSIS
         leek-vm [options] [file]
 
 DESCRIPTION
-        leek-vm is a virtual machine that emulates the LEEK15 architecture. It
-        reads from stdin or a file, loads the given program into memory and
-        runs it.
+        leek-vm is a virtual machine that emulates the LEEK16 architecture. It
+        reads data from file, loads the given program into memory and runs it.
 
         This program is typically used to run a LEEK16 program with the command
 
@@ -50,10 +54,11 @@ enum InputMode {
 };
 
 int main(int argc, char** argv) {
-    // Process args
     bool interactive = false;
     InputMode mode = BIN;
     char* filename = 0;
+
+    // Process args
     for (int i = 1; i < argc; ++i) {
         if (argv[i][0] == '-') {
             // Process flag
@@ -107,8 +112,11 @@ int main(int argc, char** argv) {
         }
     }
 
-    std::ifstream fin(filename);
-    std::istream& in = (filename) ? static_cast<std::istream&>(fin) : std::cin;
+    if (!filename) {
+        // If we don't provide data, then the only thing that makes sense is to
+        // run in interactive mode.
+        interactive = true;
+    }
 
     Processor cpu(0x10000); // 64k of memory
 
@@ -118,59 +126,71 @@ int main(int argc, char** argv) {
     cpu.exec(0x010f); // MOV  0 PC
     cpu.exec(0x201f); // LSET 1 PC
 
-    while (true) {
-        uint16_t instruction;
-        if      (mode == BIN) {
-            instruction = in.get() << 8 | in.get();
-            if (in.gcount() == 0) break;
-        }
-        else if (mode == HEX) {
-            // Discard whitespac
-            in >> std::ws;
-            // Read 4 characters
-            char buff[4];
-            in.read(buff, 4);
-            if (in.gcount() < 4) break;
+    // Push any data (either as a file or a pipe) to memory
+    if (filename) {
+        std::ifstream in(filename);
 
-            // Interperet it as a base-16 string
-            instruction = strtol(buff, NULL, 16);
-        }
-        else {
-            assert(false);
-        }
+        while (in.peek() != std::istream::traits_type::eof()) {
+            uint16_t instruction;
+            switch (mode) {
+                case BIN:
+                    instruction = in.get() << 8 | in.get();
+                    break;
 
-        cpu.push(instruction);
+                case HEX:
+                    in >> std::ws;
+                    char buff[4];
+                    in.read(buff, 4);
+                    instruction = std::stoul(buff, NULL, 16);
+                    break;
+
+                default:
+                    assert(false);
+            }
+            cpu.push(instruction);
+        }
     }
 
-    // Run the processor till it halts
     if (interactive) {
         bool done = false;
         while (!done) {
+            const std::streamsize maxSize = std::numeric_limits<std::streamsize>::max();
+
             std::cout << ">> " << std::flush;
-            std::string line;
-            std::cin >> line;
-            switch (line[0]) {
+
+            // stringstreams are easy to deal with when lexing, but it does
+            // make this kind of verbose.
+            std::string lineString;
+            std::getline(std::cin, lineString);
+            std::stringstream line(std::move(lineString));
+            switch (line.peek()) {
                 case 'e':
                     // exec
-                    {
-                        std::string arg;
-                        std::cin >> arg;
-                        uint16_t instr = strtol(arg.c_str(), NULL, 16);
+                    line.ignore(maxSize, ' ');
+                    if (line.eof()) {
+                        std::cout << "No argument" << std::endl;
+                    }
+                    else {
+                        uint16_t instr;
+                        line >> std::hex >> instr;
                         cpu.exec(instr);
                     }
                     break;
 
                 case 'p':
                     // print
-                    {
-                        std::string arg;
-                        std::cin >> arg;
-                        int reg = atoi(arg.c_str());
+                    line.ignore(maxSize, ' ');
+                    if (line.eof()) {
+                        std::cout << "No argument" << std::endl;
+                    }
+                    else {
+                        int reg;
+                        line >> std::dec >> reg;
                         try {
                             std::cout << cpu.inspect(reg) << std::endl;
                         }
-                        catch (std::out_of_range e){
-                            std::cout << "Invalid register" << reg << std::endl;
+                        catch (std::out_of_range e) {
+                            std::cout << "Invalid register" << std::endl;
                         }
                     }
                     break;
