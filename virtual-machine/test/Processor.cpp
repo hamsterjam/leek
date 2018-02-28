@@ -33,8 +33,8 @@ int main(int argc, char** argv) {
             // through every value of valLo and valHi
             do {
                 do {
-                    test.run(0x1000 | valHi << 4 | reg); // HSET valHi reg
-                    test.run(0x2000 | valLo << 4 | reg); // LSET valLo reg
+                    test.exec(0x1000 | valHi << 4 | reg); // HSET valHi reg
+                    test.exec(0x2000 | valLo << 4 | reg); // LSET valLo reg
 
                     uint16_t val = valHi << 8 | valLo;
                     if (test.inspect(reg) != val) {
@@ -58,8 +58,8 @@ int main(int argc, char** argv) {
         // Test MBZ permanance by attempting to set register 0 to 0xffff
         cout << "Testing MBZ permanence...\t" << flush;
 
-        test.run(0x1ff0);
-        test.run(0x2ff0);
+        test.exec(0x1ff0);
+        test.exec(0x2ff0);
 
         if (test.inspect(0) == 0) {
             cout << "OK!" << endl;
@@ -85,9 +85,9 @@ int main(int argc, char** argv) {
                 do {
                     uint16_t val = valHi << 8 | valLo;
                     for (size_t dest = 1; dest <= 10; ++dest) {
-                        test.run(0x1000 | valHi << 4 | src); // HSET valHi src
-                        test.run(0x2000 | valLo << 4 | src); // LSET valLo src
-                        test.run(0x0100 | src << 4 | dest);  // MOV src dest
+                        test.exec(0x1000 | valHi << 4 | src); // HSET valHi src
+                        test.exec(0x2000 | valLo << 4 | src); // LSET valLo src
+                        test.exec(0x0100 | src << 4 | dest);  // MOV src dest
 
                         if (test.inspect(dest) != val) {
                             pass = false;
@@ -121,9 +121,9 @@ int main(int argc, char** argv) {
                 for (size_t bit = 0; bit < 16; ++bit) {
                     uint16_t corrVal;
 
-                    test.run(0x100d | valHi << 4); // HSET valHi FLAGS
-                    test.run(0x200d | valLo << 4); // LSET valLo FLAGS
-                    test.run(0x080d | bit << 4);   // FSET bit
+                    test.exec(0x100d | valHi << 4); // HSET valHi FLAGS
+                    test.exec(0x200d | valLo << 4); // LSET valLo FLAGS
+                    test.exec(0x080d | bit << 4);   // FSET bit
 
                     corrVal = val | (1 << bit);
                     if (test.inspect(13) != corrVal) {
@@ -131,9 +131,9 @@ int main(int argc, char** argv) {
                         break;
                     }
 
-                    test.run(0x100d | valHi << 4); // HSET valHi FLAGS
-                    test.run(0x200d | valLo << 4); // LSET valLo FLAGS
-                    test.run(0x090d | bit << 4);   // FCLR bit
+                    test.exec(0x100d | valHi << 4); // HSET valHi FLAGS
+                    test.exec(0x200d | valLo << 4); // LSET valLo FLAGS
+                    test.exec(0x090d | bit << 4);   // FCLR bit
 
                     corrVal = val & ~(1 << bit);
                     if (test.inspect(13) != corrVal) {
@@ -141,9 +141,9 @@ int main(int argc, char** argv) {
                         break;
                     }
 
-                    test.run(0x100d | valHi << 4); // HSET valHi FLAGS
-                    test.run(0x200d | valLo << 4); // LSET valLo FLAGS
-                    test.run(0x0a0d | bit << 4);   // FTOG bit
+                    test.exec(0x100d | valHi << 4); // HSET valHi FLAGS
+                    test.exec(0x200d | valLo << 4); // LSET valLo FLAGS
+                    test.exec(0x0a0d | bit << 4);   // FTOG bit
 
                     corrVal = val ^ (1 << bit);
                     if (test.inspect(13) != corrVal) {
@@ -172,13 +172,13 @@ int main(int argc, char** argv) {
         uint8_t val2Hi = 0x00;
         do {
             do {
-                test.run(0x080d);               // FCLR 0
-                test.run(0x081d);               // FCLR 1
-                test.run(0x0101);               // MOV 0 1
-                test.run(0x1001 | val1Hi << 4); // HSET val1Hi 1
-                test.run(0x0102);               // MOV 0 2
-                test.run(0x1002 | val2Hi << 4); // HSET val2Hi 2
-                test.run(0x3123);               // ADD 1 2 3
+                test.exec(0x080d);               // FCLR 0
+                test.exec(0x081d);               // FCLR 1
+                test.exec(0x0101);               // MOV 0 1
+                test.exec(0x1001 | val1Hi << 4); // HSET val1Hi 1
+                test.exec(0x0102);               // MOV 0 2
+                test.exec(0x1002 | val2Hi << 4); // HSET val2Hi 2
+                test.exec(0x3123);               // ADD 1 2 3
 
                 // Make sure the value is right
                 uint16_t corrRes = (val1Hi + val2Hi) << 8;
@@ -226,13 +226,13 @@ int main(int argc, char** argv) {
         uint8_t val2Hi = 0;
         do {
             do {
-                test.run(0x080d);               // FCLR 0
-                test.run(0x081d);               // FCLR 1
-                test.run(0x0101);               // MOV 0 1
-                test.run(0x1001 | val1Hi << 4); // HSET val1Hi 1
-                test.run(0x0102);               // MOV 0 2
-                test.run(0x1002 | val2Hi << 4); // HSET val2Hi 2
-                test.run(0x5123);               // SUB 1 2 3
+                test.exec(0x080d);               // FCLR 0
+                test.exec(0x081d);               // FCLR 1
+                test.exec(0x0101);               // MOV 0 1
+                test.exec(0x1001 | val1Hi << 4); // HSET val1Hi 1
+                test.exec(0x0102);               // MOV 0 2
+                test.exec(0x1002 | val2Hi << 4); // HSET val2Hi 2
+                test.exec(0x5123);               // SUB 1 2 3
 
                 // Check we have the correct value
                 uint16_t corrRes = (val1Hi - val2Hi) << 8;
@@ -288,11 +288,11 @@ int main(int argc, char** argv) {
                 uint8_t val2Lo = val2 << 4;
                 uint8_t val2Hi = val2 >> 4;
 
-                test.run(0x1001 | val1Hi << 4); // HSET val1Hi 1
-                test.run(0x2001 | val1Lo << 4); // LSET val1Lo 1
-                test.run(0x1002 | val2Hi << 4); // HSET val2Hi 2
-                test.run(0x2002 | val2Lo << 4); // LSET val2Lo 2
-                test.run(0x7123);               // MUL 1 2 3
+                test.exec(0x1001 | val1Hi << 4); // HSET val1Hi 1
+                test.exec(0x2001 | val1Lo << 4); // LSET val1Lo 1
+                test.exec(0x1002 | val2Hi << 4); // HSET val2Hi 2
+                test.exec(0x2002 | val2Lo << 4); // LSET val2Lo 2
+                test.exec(0x7123);               // MUL 1 2 3
 
                 uint32_t corrRes = ((uint32_t) val1 * val2) << 8;
                 uint32_t testRes = ((uint32_t) test.inspect(11) << 16) | test.inspect(3);
@@ -324,11 +324,11 @@ int main(int argc, char** argv) {
             do {
                 uint16_t val = valHi << 8 | valLo;
                 for (uint8_t rot = 0; rot < 16; ++rot) {
-                    test.run(0x1001 | valHi << 4); // HSET valHi 1
-                    test.run(0x2001 | valLo << 4); // LSET valLo 1
-                    test.run(0x0102);              // MOV 0 2
-                    test.run(0x2002 | rot << 4);   // LSET rot 2
-                    test.run(0x8123);              // ROT 1 2 3
+                    test.exec(0x1001 | valHi << 4); // HSET valHi 1
+                    test.exec(0x2001 | valLo << 4); // LSET valLo 1
+                    test.exec(0x0102);              // MOV 0 2
+                    test.exec(0x2002 | rot << 4);   // LSET rot 2
+                    test.exec(0x8123);              // ROT 1 2 3
 
                     uint16_t corrRes = val << rot | val >> (16 - rot);
 
@@ -357,9 +357,9 @@ int main(int argc, char** argv) {
         uint8_t val1 = 0;
         uint8_t val2 = 0;
         do {
-            test.run(0x0101);             // MOV 0 1
-            test.run(0x2001 | val1 << 4); // LSET val1 1
-            test.run(0x0216);             // NOT 1 6
+            test.exec(0x0101);             // MOV 0 1
+            test.exec(0x2001 | val1 << 4); // LSET val1 1
+            test.exec(0x0216);             // NOT 1 6
 
             uint16_t corrNot = ~((uint16_t) val1);
             if (test.inspect(6) != corrNot) {
@@ -368,11 +368,11 @@ int main(int argc, char** argv) {
             }
 
             do {
-                test.run(0x0102);             // MOV 0 2
-                test.run(0x2002 | val2 << 4); // LSET val2 2
-                test.run(0xa123);             // OR  1 2 3
-                test.run(0xb124);             // AND 1 2 4
-                test.run(0xc125);             // XOR 1 2 5
+                test.exec(0x0102);             // MOV 0 2
+                test.exec(0x2002 | val2 << 4); // LSET val2 2
+                test.exec(0xa123);             // OR  1 2 3
+                test.exec(0xb124);             // AND 1 2 4
+                test.exec(0xc125);             // XOR 1 2 5
 
                 uint16_t corrOr  = val1 | val2;
                 uint16_t corrAnd = val1 & val2;
@@ -407,9 +407,9 @@ int main(int argc, char** argv) {
         uint8_t addrHi = 0;
         do {
             do {
-                test.run(0x1001 | addrHi << 4); // HSET addrHi 1
-                test.run(0x2001 | addrLo << 4); // LSET addrLo 1
-                test.run(0x0311);               // STORE 1 1
+                test.exec(0x1001 | addrHi << 4); // HSET addrHi 1
+                test.exec(0x2001 | addrLo << 4); // LSET addrLo 1
+                test.exec(0x0311);               // STORE 1 1
             } while (++addrLo != 0);
         } while (++addrHi != 0);
 
@@ -417,9 +417,9 @@ int main(int argc, char** argv) {
         addrHi = 0;
         do {
             do {
-                test.run(0x1001 | addrHi << 4); // HSET addrHi 1
-                test.run(0x2001 | addrLo << 4); // LSET addrLo 1
-                test.run(0x0412);               // LOAD 1 2
+                test.exec(0x1001 | addrHi << 4); // HSET addrHi 1
+                test.exec(0x2001 | addrLo << 4); // LSET addrLo 1
+                test.exec(0x0412);               // LOAD 1 2
 
                 uint16_t addr = addrHi << 8 | addrLo;
                 if (test.inspect(2) != addr) {
@@ -443,21 +443,21 @@ int main(int argc, char** argv) {
 
         bool pass = true;
 
-        test.run(0x010e); // MOV 0 STACK
+        test.exec(0x010e); // MOV 0 STACK
 
         uint8_t countLo = 0;
         uint8_t countHi = 0;
         do {
             do {
-                test.run(0x1001 | countHi << 4); // HSET countHi 1
-                test.run(0x2001 | countLo << 4); // LSET countLo 1
-                test.run(0x051e);                // PUSH 1
+                test.exec(0x1001 | countHi << 4); // HSET countHi 1
+                test.exec(0x2001 | countLo << 4); // LSET countLo 1
+                test.exec(0x051e);                // PUSH 1
             } while (++countLo != 0);
         } while (++countHi != 0);
 
         uint16_t count = 0xffff;
         do {
-            test.run(0x06e1); // POP 1
+            test.exec(0x06e1); // POP 1
             if (test.inspect(1) != count) {
                 pass = false;
                 break;
@@ -486,9 +486,9 @@ int main(int argc, char** argv) {
                 uint16_t addr = addrHi << 8 | addrLo;
                 do {
                     uint16_t corrAddr;
-                    test.run(0x100f | addrHi << 4); // HSET addrHi PC
-                    test.run(0x200f | addrLo << 4); // LSET addrLo PC
-                    test.run(0xd00f | offset << 4); // JMP+ offset
+                    test.exec(0x100f | addrHi << 4); // HSET addrHi PC
+                    test.exec(0x200f | addrLo << 4); // LSET addrLo PC
+                    test.exec(0xd00f | offset << 4); // JMP+ offset
 
                     corrAddr = addr + offset;
                     if (test.inspect(15) != corrAddr) {
@@ -496,9 +496,9 @@ int main(int argc, char** argv) {
                         break;
                     }
 
-                    test.run(0x100f | addrHi << 4); // HSET addrHi PC
-                    test.run(0x200f | addrLo << 4); // LSET addrLo PC
-                    test.run(0xe00f | offset << 4); // JMP- offset
+                    test.exec(0x100f | addrHi << 4); // HSET addrHi PC
+                    test.exec(0x200f | addrLo << 4); // LSET addrLo PC
+                    test.exec(0xe00f | offset << 4); // JMP- offset
 
                     corrAddr = addr - offset;
                     if (test.inspect(15) != corrAddr) {
@@ -527,15 +527,15 @@ int main(int argc, char** argv) {
         uint8_t addrHi = 0;
 
         // Need to precalculate this as the NOT command will set some flags
-        test.run(0x0201); // NOT 0 1
+        test.exec(0x0201); // NOT 0 1
         do {
             do {
                 uint16_t addr = addrHi << 8 | addrLo;
                 for (uint8_t flag = 0; flag < 16; ++flag) {
-                    test.run(0x100f | addrHi << 4); // HSET addrHi PC
-                    test.run(0x200f | addrLo << 4); // LSET addrLo PC
-                    test.run(0x010d);               // MOV 0 FLAGS
-                    test.run(0x070f | flag << 4);   // FJMP flag
+                    test.exec(0x100f | addrHi << 4); // HSET addrHi PC
+                    test.exec(0x200f | addrLo << 4); // LSET addrLo PC
+                    test.exec(0x010d);               // MOV 0 FLAGS
+                    test.exec(0x070f | flag << 4);   // FJMP flag
 
                     uint16_t corrAddr = addr + 1;
                     if (test.inspect(15) != corrAddr) {
@@ -543,10 +543,10 @@ int main(int argc, char** argv) {
                         break;
                     }
 
-                    test.run(0x100f | addrHi << 4); // HSET addrHi PC
-                    test.run(0x200f | addrLo << 4); // LSET addrLo PC
-                    test.run(0x011d);               // MOV 1 FLAGS
-                    test.run(0x070f | flag << 4);   // FJMP flag
+                    test.exec(0x100f | addrHi << 4); // HSET addrHi PC
+                    test.exec(0x200f | addrLo << 4); // LSET addrLo PC
+                    test.exec(0x011d);               // MOV 1 FLAGS
+                    test.exec(0x070f | flag << 4);   // FJMP flag
 
                     if (test.inspect(15) != addr) {
                         pass = false;
@@ -567,9 +567,9 @@ int main(int argc, char** argv) {
     {
         // Test it running an actual program (calculating fibonacci numbers)
         cout << "Fibonacci test... \t\t" << flush;
-        test.run(0x010f); // MOV 0 PC
-        test.run(0x201f); // LSET 1 PC
-        test.run(0x010e); // MOV 0 STACK
+        test.exec(0x010f); // MOV 0 PC
+        test.exec(0x201f); // LSET 1 PC
+        test.exec(0x010e); // MOV 0 STACK
 
         test.push(0x0101); // 1: MOV 0 1
         test.push(0x0102); // 2: MOV 0 2
@@ -597,11 +597,11 @@ int main(int argc, char** argv) {
     {
         // Test a slightly more complicated program (bubble sort)
         cout << "Bubble sort test... \t\t" << flush;
-        test.run(0x010f); // MOV 0 PC
-        test.run(0x201f); // LSET 1 PC
-        test.run(0x113e); // HSET 0x13 STACK
-        test.run(0x237e); // LSET 0x37 STACK
-        test.run(0x4e1a); // ADDi STACK 1 10
+        test.exec(0x010f); // MOV 0 PC
+        test.exec(0x201f); // LSET 1 PC
+        test.exec(0x113e); // HSET 0x13 STACK
+        test.exec(0x237e); // LSET 0x37 STACK
+        test.exec(0x4e1a); // ADDi STACK 1 10
 
         // Push the data
         test.push(5);
@@ -616,7 +616,7 @@ int main(int argc, char** argv) {
         test.push(10);
         test.push(0);
 
-        test.run(0x010e); // MOV 0 STACK
+        test.exec(0x010e); // MOV 0 STACK
 
         // Push the program
         test.push(0x01a1); //  1: MOV 10 1
@@ -649,10 +649,10 @@ int main(int argc, char** argv) {
 
         bool pass = true;
 
-        test.run(0x01ae); // MOV 10 STACK
-        test.run(0x4e9e); // ADDi STACK 9 STACK
+        test.exec(0x01ae); // MOV 10 STACK
+        test.exec(0x4e9e); // ADDi STACK 9 STACK
         for (int i = 10; i >= 1; --i) {
-            test.run(0x06e1); // POP 1
+            test.exec(0x06e1); // POP 1
             if (test.inspect(1) != i) {
                 pass = false;
                 break;

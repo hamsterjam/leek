@@ -18,7 +18,7 @@ class Processor {
     public:
         Processor(size_t memWords);
 
-        void run(uint16_t instruction);
+        void exec(uint16_t instruction);
         void tick();
         void push(uint16_t instruction);
 

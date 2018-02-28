@@ -10,7 +10,7 @@ Processor::Processor(size_t memWords): mem(memWords) {
     for (int i = 0; i < 8; ++i) hardISF[i] = false;
 }
 
-void Processor::run(uint16_t instruction) {
+void Processor::exec(uint16_t instruction) {
     const uint8_t ZERO_FLAG  = 0;
     const uint8_t NEG_FLAG   = 1;
     const uint8_t CARRY_FLAG = 2;
@@ -216,6 +216,9 @@ void Processor::run(uint16_t instruction) {
     else if (op == Operation::FTOG) {
         reg.togBit(RegisterManager::FLAGS, inA);
     }
+    else if (op == Operation::INTER) {
+        interrupt(-1);
+    }
 
     // Set zero and negative flags
     if (setStateFlags) {
@@ -267,7 +270,7 @@ void Processor::tick() {
     else {
         uint16_t pc = reg[RegisterManager::PC];
         reg[RegisterManager::PC] += 1;
-        run(mem[pc]);
+        exec(mem[pc]);
     }
 }
 
