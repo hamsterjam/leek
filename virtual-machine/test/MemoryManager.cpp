@@ -8,7 +8,7 @@ using namespace std;
 
 int main(int argc, char** argv) {
 
-    size_t words = 1L << 16;
+    size_t words = 0x1000;
     MemoryManager testMem(words);
 
     {
@@ -85,4 +85,6 @@ int main(int argc, char** argv) {
             cout << "Fail" << endl;
         }
     }
+
+    return 0;
 }
