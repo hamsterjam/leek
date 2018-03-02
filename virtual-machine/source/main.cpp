@@ -1,4 +1,5 @@
 #include "Processor.hpp"
+#include "devices/NumberDisplay.hpp"
 
 #include <iostream>
 #include <fstream>
@@ -36,16 +37,20 @@ OPTIONS
         The options may be given in any order, but the file name must be the
         final argument.
 
-        -h              Print this help message.
+        -h
+                        Print this help message.
 
-        -i              Enable interactive mode.
+        -i
+                        Enable interactive mode.
 
-        -m {mode}       Sets the input mode. mode is either hex or bin with the
+        -m {mode}
+                        Sets the input mode. mode is either hex or bin with the
                         default being bin. In bin mode, the virtual machine
                         will read 2 chars and interpret it as a 16 bit
                         instruction. In hex mode the virtual machine will read
                         4 chars and interpret it as a 16 bit number written in
                         hexadecimal.
+
 )";
 
 enum InputMode {
@@ -119,6 +124,10 @@ int main(int argc, char** argv) {
     }
 
     Processor cpu(0x10000); // 64k of memory
+
+    //TODO// Don't hardcode this in
+    NumberDisplay disp(15);
+    cpu.useDevice(disp, 0xc100, 0);
 
     // Initialise the state of STACK and PC
 

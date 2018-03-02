@@ -99,7 +99,6 @@ void MemoryManager::writeIfDevice(uint16_t* val) {
 
         if (index >= pos && index <= pos + dev.length()) {
             std::thread(callWrite, &dev, index - pos, *val).detach();
-            dev.write(index - pos, *val);
             *val = 0;
             break;
         }
