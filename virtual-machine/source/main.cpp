@@ -126,7 +126,7 @@ int main(int argc, char** argv) {
     Processor cpu(0x10000); // 64k of memory
 
     //TODO// Don't hardcode this in
-    NumberDisplay disp(15);
+    NumberDisplay disp;
     cpu.useDevice(disp, 0xc100, 0);
 
     // Initialise the state of STACK and PC
