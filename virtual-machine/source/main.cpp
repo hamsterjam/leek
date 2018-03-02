@@ -14,45 +14,6 @@
 
 #include <unistd.h>
 
-const char* helpText = R"(
-NAME
-        leek-vm - The Little Educational Electronic Komputer Virtual Machine
-
-SYNOPSIS
-        leek-vm [options] [file]
-
-DESCRIPTION
-        leek-vm is a virtual machine that emulates the LEEK16 architecture. It
-        reads data from file, loads the given program into memory and runs it.
-
-        This program is typically used to run a LEEK16 program with the command
-
-            leek-vm file
-
-        You can more generally start the virtual machine with
-
-            leek-vm [options] [file]
-
-OPTIONS
-        The options may be given in any order, but the file name must be the
-        final argument.
-
-        -h
-                        Print this help message.
-
-        -i
-                        Enable interactive mode.
-
-        -m {mode}
-                        Sets the input mode. mode is either hex or bin with the
-                        default being bin. In bin mode, the virtual machine
-                        will read 2 chars and interpret it as a 16 bit
-                        instruction. In hex mode the virtual machine will read
-                        4 chars and interpret it as a 16 bit number written in
-                        hexadecimal.
-
-)";
-
 enum InputMode {
     BIN,
     HEX
@@ -70,9 +31,13 @@ int main(int argc, char** argv) {
             switch (argv[i][1]) {
                 case 'h':
                     // Print help text
-                    // +1 is there to discard opening newline
-                    std::cout << helpText + 1 << std::flush;
-                    return 0;
+                    {
+                        std::fstream fin("help.txt");
+                        while (fin.peek() != std::ifstream::traits_type::eof()) {
+                            std::cout.put(fin.get());
+                        }
+                        return 0;
+                    }
                     break;
 
                 case 'i':
@@ -139,7 +104,7 @@ int main(int argc, char** argv) {
     if (filename) {
         std::ifstream in(filename);
 
-        while (in.peek() != std::istream::traits_type::eof()) {
+        while (in.peek() != std::ifstream::traits_type::eof()) {
             uint16_t instruction;
             switch (mode) {
                 case BIN:
