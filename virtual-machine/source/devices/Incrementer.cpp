@@ -4,7 +4,7 @@
 #include <cstdlib>
 #include <cstdint>
 
-class Processor;
+#include <unistd.h>
 
 Incrementer::Incrementer(): IODevice(1) {
     // Do nothing
@@ -14,6 +14,9 @@ void Incrementer::write(size_t address, uint16_t value) {
     // Call super to validate address
     IODevice::write(address, value);
     this->value = value + 1;
+
+    // Wait a second, this is a slow peripheral...
+    sleep(1);
 
     ready();
 }

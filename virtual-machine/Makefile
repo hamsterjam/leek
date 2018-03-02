@@ -13,7 +13,7 @@ OBJECTS = $(filter-out main.o,$(CPP_FILES:.cpp=.o))
 
 #Globals
 CFLAGS = -std=c++11
-LFLAGS = -I$(HEADER_DIR)
+LFLAGS = -I$(HEADER_DIR) -lpthread
 
 #Debug Varibales
 DEBUG_TARGET = $(NAME)_debug

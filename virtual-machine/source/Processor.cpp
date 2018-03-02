@@ -259,7 +259,7 @@ void Processor::tick() {
     }
 
     // Same here, we need to clear the flag conditionally
-    bool needsInterrupt;
+    bool needsInterrupt = false;
     if (anyISF) {
         needsInterrupt = true;
         anyISF = false;
@@ -304,6 +304,9 @@ void Processor::interrupt(int line) {
 }
 
 void Processor::useDevice(IODevice& dev, size_t pos, uint8_t line) {
+    if (line >= 8) {
+        throw std::out_of_range("Processor::useDevice");
+    }
     dev.cpu = this;
     dev.line = line;
     mem.useDevice(dev, pos);

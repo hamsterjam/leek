@@ -244,12 +244,12 @@ Stores the value at address STACK in rD, then decrements STACK.
 
 ### Jump and Flags
 
-#### JMP
+#### JMP+
 `1101 [  off  ] 1111`  
 IIR type.  
 Unconditional forward jump. Sets PC to PC + off.
 
-#### JMP
+#### JMP-
 `1110 [  off  ] 1111`  
 IIR type.  
 Unconditional backward jump. Sets PC to PC - off.

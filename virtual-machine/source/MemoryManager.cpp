@@ -3,6 +3,7 @@
 
 #include <set>
 #include <utility>
+#include <thread>
 #include <stdexcept>
 
 #include <cstdlib>
@@ -82,6 +83,10 @@ void MemoryManager::removeDevice(IODevice& dev) {
     }
 }
 
+void callWrite(IODevice* dev, size_t pos, uint16_t val) {
+    dev->write(pos, val);
+}
+
 void MemoryManager::writeIfDevice(uint16_t* val) {
     // Make sure it's in the memory chunk
     if (val < data || val > data + words) return;
@@ -93,7 +98,7 @@ void MemoryManager::writeIfDevice(uint16_t* val) {
         size_t    pos =  p.second;
 
         if (index >= pos && index <= pos + dev.length()) {
-            //TODO// run the write asynchronously
+            std::thread(callWrite, &dev, index - pos, *val).detach();
             dev.write(index - pos, *val);
             *val = 0;
             break;
