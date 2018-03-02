@@ -1,13 +1,13 @@
 #include "MemoryManager.hpp"
 #include "IODevice.hpp"
 
-#include <vector>
+#include <set>
 #include <utility>
 #include <stdexcept>
 
 #include <cstdlib>
 #include <cstdint>
-#include <cstring>
+#include <cstring> // memcpy
 
 MemoryManager::MemoryManager(size_t words) {
     this->data  = (uint16_t*) malloc(sizeof(uint16_t) * words);
@@ -16,6 +16,26 @@ MemoryManager::MemoryManager(size_t words) {
 
 MemoryManager::~MemoryManager() {
     free(data);
+}
+
+uint16_t& MemoryManager::operator[](size_t index) {
+    if (index >= words) {
+        throw std::out_of_range("MemoryManager::operator[]");
+    }
+
+    uint16_t& ret = data[index];
+
+    for (auto p : devices) {
+        IODevice& dev = *p.first;
+        size_t    pos =  p.second;
+
+        if (pos <= index && index <= pos + dev.length()) {
+            ret = dev.read(index - pos);
+            break;
+        }
+    }
+
+    return this->data[index];
 }
 
 void MemoryManager::setRange(size_t index, uint16_t* values, size_t length) {
@@ -27,15 +47,15 @@ void MemoryManager::setRange(size_t index, uint16_t* values, size_t length) {
 }
 
 void MemoryManager::useDevice(IODevice& dev, size_t pos) {
-    // Check the deivce range doesn't overlap the memory boundaries
+    // Check the device range doesn't overlap the memory boundaries
     if (pos + dev.length() >= words) {
         throw std::out_of_range("MemoryManager::useDevice: Memory boundary collision");
     }
 
     // Check it doesn't overlap any other device either
     for (auto p : devices) {
-        size_t    posCheck =  p.first;
-        IODevice& devCheck = *p.second;
+        IODevice& devCheck = *p.first;
+        size_t    posCheck =  p.second;
 
         size_t a1, a2, b1, b2;
         a1 = pos;
@@ -48,25 +68,35 @@ void MemoryManager::useDevice(IODevice& dev, size_t pos) {
         }
     }
 
-    devices.push_back(std::make_pair(pos, &dev));
+    devices.insert(std::pair<IODevice*, size_t>(&dev, pos));
 }
 
-uint16_t& MemoryManager::operator[](size_t index) {
-    if (index >= words) {
-        throw std::out_of_range("MemoryManager::operator[]");
-    }
+void MemoryManager::removeDevice(IODevice& dev) {
+    for (auto it = devices.begin(); it != devices.end(); ++it) {
+        IODevice& cand = *it->first;
 
-    uint16_t& ret = data[index];
-
-    for (auto p : devices) {
-        size_t    pos =  p.first;
-        IODevice& dev = *p.second;
-
-        if (pos <= index && index <= pos + dev.length()) {
-            ret = dev.read(index - pos);
+        if (&cand == &dev) {
+            devices.erase(it);
             break;
         }
     }
+}
 
-    return this->data[index];
+void MemoryManager::writeIfDevice(uint16_t* val) {
+    // Make sure it's in the memory chunk
+    if (val < data || val > data + words) return;
+
+    // Find if it is in the memory mapped to a device
+    size_t index = val - data;
+    for (auto p : devices) {
+        IODevice& dev = *p.first;
+        size_t    pos =  p.second;
+
+        if (index >= pos && index <= pos + dev.length()) {
+            //TODO// run the write asynchronously
+            dev.write(index - pos, *val);
+            *val = 0;
+            break;
+        }
+    }
 }

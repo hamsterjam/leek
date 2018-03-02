@@ -14,6 +14,8 @@
 #include <cstdint>
 #include <atomic>
 
+class IODevice;
+
 class Processor {
     public:
         Processor(size_t memWords);
@@ -21,11 +23,12 @@ class Processor {
         void exec(uint16_t instruction);
         void tick();
         void run();
+        void interrupt(int line); /* thread safe */
+
+        void useDevice(IODevice& dev, size_t pos, uint8_t line);
+        void removeDevice(IODevice& dev);
+
         void push(uint16_t instruction);
-
-        // This can be called asynchronously
-        void interrupt(int line);
-
         uint16_t inspect(size_t index);
     private:
         std::atomic<bool> anyISF;

@@ -11,7 +11,7 @@
 #ifndef LEEK_VM_MEMORY_H_DEFINED
 #define LEEK_VM_MEMORY_H_DEFINED
 
-#include <vector>
+#include <set>
 #include <utility>
 
 #include <cstdlib>
@@ -24,15 +24,18 @@ class MemoryManager {
         MemoryManager(size_t words);
         ~MemoryManager();
 
-        void setRange(size_t index, uint16_t* values, size_t length);
-        void useDevice(IODevice& dev, size_t pos);
-
         uint16_t& operator[](size_t index);
+        void setRange(size_t index, uint16_t* values, size_t length);
+
+        void useDevice(IODevice& dev, size_t pos);
+        void removeDevice(IODevice& dev);
+        void writeIfDevice(uint16_t* data);
+
     private:
-        size_t words;
+        size_t    words;
         uint16_t* data;
 
-        std::vector<std::pair<size_t, IODevice*>> devices;
+        std::set<std::pair<IODevice*, size_t>> devices;
 };
 
 #endif

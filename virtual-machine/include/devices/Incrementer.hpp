@@ -10,7 +10,7 @@ class Processor;
 
 class Incrementer: public IODevice {
     public:
-        Incrementer(Processor& cpu, uint8_t line);
+        Incrementer();
 
         void     write(size_t address, uint16_t value);
         uint16_t  read(size_t address);

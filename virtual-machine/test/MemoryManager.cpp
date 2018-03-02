@@ -8,11 +8,11 @@ using namespace std;
 
 int main(int argc, char** argv) {
 
-    size_t words = 0x1000;
+    size_t words = 0x10000;
     MemoryManager testMem(words);
 
     {
-        // I'm just going to store the numbers 0 ~ 2^16-1 in the array as a test.
+        // I'm just going to store the numbers 0x0000 ~ 0xffff in the array as a test.
         cout << "Testing store and recall... \t\t" << flush;
         for (size_t i = 0; i < words; ++i) {
             testMem[i] = i;
@@ -85,6 +85,5 @@ int main(int argc, char** argv) {
             cout << "Fail" << endl;
         }
     }
-
     return 0;
 }

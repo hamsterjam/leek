@@ -6,9 +6,7 @@
 
 class Processor;
 
-Incrementer::Incrementer(Processor& cpu, uint8_t line):
-    IODevice(cpu, line, 1)
-{
+Incrementer::Incrementer(): IODevice(1) {
     // Do nothing
 }
 

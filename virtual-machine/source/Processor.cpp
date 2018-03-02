@@ -1,8 +1,12 @@
 #include "Processor.hpp"
 #include "Operation.hpp"
+#include "IODevice.hpp"
+
+#include <stdexcept>
+
 #include <cstdlib>
 #include <cstdint>
-#include <stdexcept>
+
 
 Processor::Processor(size_t memWords): mem(memWords) {
     anyISF = false;
@@ -216,6 +220,10 @@ void Processor::exec(uint16_t instruction) {
     else if (op == Operation::FTOG) {
         reg.togBit(RegisterManager::FLAGS, inA);
     }
+
+    //
+    // Other
+    //
     else if (op == Operation::INTER) {
         interrupt(-1);
     }
@@ -225,12 +233,9 @@ void Processor::exec(uint16_t instruction) {
         reg.setBit(RegisterManager::FLAGS, ZERO_FLAG, res == 0);
         reg.setBit(RegisterManager::FLAGS, NEG_FLAG,  res & (1 << 15));
     }
-}
 
-void Processor::push(uint16_t instruction) {
-    // Totally possible to do this with actual instructions, but this is cleaner
-    reg[RegisterManager::STACK] += 1;
-    mem[reg[RegisterManager::STACK]] = instruction;
+    // Trigger an IODevice write if we happened to be writting to a device
+    mem.writeIfDevice(&res);
 }
 
 void Processor::tick() {
@@ -297,6 +302,23 @@ void Processor::interrupt(int line) {
         hardISF[line] = true;
     }
 }
+
+void Processor::useDevice(IODevice& dev, size_t pos, uint8_t line) {
+    dev.cpu = this;
+    dev.line = line;
+    mem.useDevice(dev, pos);
+}
+
+void Processor::removeDevice(IODevice& dev) {
+    mem.removeDevice(dev);
+}
+
+void Processor::push(uint16_t instruction) {
+    // Totally possible to do this with actual instructions, but this is cleaner
+    reg[RegisterManager::STACK] += 1;
+    mem[reg[RegisterManager::STACK]] = instruction;
+}
+
 
 uint16_t Processor::inspect(size_t index) {
     return reg[index];

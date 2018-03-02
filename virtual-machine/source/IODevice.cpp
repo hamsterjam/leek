@@ -6,13 +6,7 @@
 #include <cstdlib>
 #include <cstdint>
 
-IODevice::IODevice(Processor& cpu, uint8_t line, uint16_t words) {
-    if (line >= 16) {
-        throw std::out_of_range("IODevice::IODevice");
-    }
-
-    this->cpu   = &cpu;
-    this->line  = line;
+IODevice::IODevice(uint16_t words) {
     this->words = words;
 }
 
