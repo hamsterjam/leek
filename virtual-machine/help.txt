@@ -26,10 +26,7 @@ OPTIONS
         -i
                         Enable interactive mode.
 
-        -m {mode}
-                        Sets the input mode. mode is either hex or bin with the
-                        default being bin. In bin mode, the virtual machine
-                        will read 2 chars and interpret it as a 16 bit
-                        instruction. In hex mode the virtual machine will read
-                        4 chars and interpret it as a 16 bit number written in
-                        hexadecimal.
+        -x
+                        Changes input to hexadecimal mode. This will read 4
+                        characters ignoring whitespace and interperet it as a
+                        16 bit instruction written in hexadecimal.

@@ -14,14 +14,9 @@
 
 #include <unistd.h>
 
-enum InputMode {
-    BIN,
-    HEX
-};
-
 int main(int argc, char** argv) {
     bool interactive = false;
-    InputMode mode = BIN;
+    bool hexMode     = false;
     char* filename = 0;
 
     // Process args
@@ -45,23 +40,9 @@ int main(int argc, char** argv) {
                     interactive = true;
                     break;
 
-                case 'm':
+                case 'x':
                     // Sets the input mode
-                    ++i;
-                    if (i == argc) {
-                        std::cout << "No mode provided to -m option" << std::endl;
-                        return 1;
-                    }
-                    if (argv[i][0] == 'b') {
-                        mode = BIN;
-                    }
-                    else if (argv[i][0] == 'h') {
-                        mode = HEX;
-                    }
-                    else {
-                        std::cout << "Unkown input mode: " << argv[i] << std::endl;
-                        return 1;
-                    }
+                    hexMode = true;
                     break;
 
                 default:
@@ -106,20 +87,15 @@ int main(int argc, char** argv) {
 
         while (in.peek() != std::ifstream::traits_type::eof()) {
             uint16_t instruction;
-            switch (mode) {
-                case BIN:
-                    instruction = in.get() << 8 | in.get();
-                    break;
-
-                case HEX:
-                    in >> std::ws;
-                    char buff[4];
-                    in.read(buff, 4);
-                    instruction = std::stoul(buff, NULL, 16);
-                    break;
-
-                default:
-                    assert(false);
+            if (hexMode) {
+                in >> std::ws;
+                char buff[5];
+                in.read(buff, 4);
+                buff[4] = 0;
+                instruction = std::stoul(buff, NULL, 16);
+            }
+            else {
+                instruction = in.get() << 8 | in.get();
             }
             cpu.push(instruction);
         }
