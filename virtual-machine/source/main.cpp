@@ -1,20 +1,27 @@
 #include "Processor.hpp"
+#include "IODevice.hpp"
 #include "devices/NumberDisplay.hpp"
 
 #include <iostream>
 #include <fstream>
 #include <sstream>
 #include <string>
+#include <set>
+#include <tuple>
 #include <limits>
 #include <stdexcept>
 
 #include <cstdint>
+#include <cstring>
 #include <cassert>
 #include <cstdio>
 
 #include <unistd.h>
 
 int main(int argc, char** argv) {
+    std::set<std::tuple<IODevice*, size_t, uint8_t>> devices;
+    bool standardDevices = false;
+
     bool interactive = false;
     bool hexMode     = false;
     char* filename = 0;
@@ -24,6 +31,19 @@ int main(int argc, char** argv) {
         if (argv[i][0] == '-') {
             // Process flag
             switch (argv[i][1]) {
+                case 'd':
+                    // Add a device
+                    if (!strcmp(argv[i+1], "numdisp")) {
+                        IODevice* dev = new NumberDisplay();
+                        size_t    pos = strtoul(argv[i+2], NULL, 16);
+                        uint8_t  line = atoi(argv[i+3]);
+
+                        devices.insert(std::make_tuple(dev, pos, line));
+                    }
+                    // Eat 3 words
+                    i += 3;
+                    break;
+
                 case 'h':
                     // Print help text
                     {
@@ -38,6 +58,11 @@ int main(int argc, char** argv) {
                 case 'i':
                     // Interactive mode
                     interactive = true;
+                    break;
+
+                case 's':
+                    // Standard devices
+                    standardDevices = true;
                     break;
 
                 case 'x':
@@ -63,6 +88,17 @@ int main(int argc, char** argv) {
         }
     }
 
+    if (standardDevices) {
+        {
+            // Number Display
+            IODevice* dev = new NumberDisplay();
+            size_t    pos = 0xc100;
+            uint8_t  line = 0;
+
+            devices.insert(std::make_tuple(dev, pos, line));
+        }
+    }
+
     if (!filename) {
         // If we don't provide data, then the only thing that makes sense is to
         // run in interactive mode.
@@ -71,17 +107,18 @@ int main(int argc, char** argv) {
 
     Processor cpu(0x10000); // 64k of memory
 
-    //TODO// Don't hardcode this in
-    NumberDisplay disp;
-    cpu.useDevice(disp, 0xc100, 0);
 
-    // Initialise the state of STACK and PC
+    for (auto t : devices) {
+        cpu.useDevice(*std::get<0>(t), std::get<1>(t), std::get<2>(t));
+    }
 
-    cpu.exec(0x010e); // MOV  0 STACK
-    cpu.exec(0x010f); // MOV  0 PC
-    cpu.exec(0x201f); // LSET 1 PC
+    // Initialise the state of the processor
 
-    // Push any data (either as a file or a pipe) to memory
+    cpu.exec(0x010d); // MOV  r0    rFLAGS
+    cpu.exec(0x010e); // MOV  r0    rSTACK
+    cpu.exec(0x401f); // ADDi r0 $1 rPC
+
+    // Push any data in the file to memory
     if (filename) {
         std::ifstream in(filename);
 
@@ -167,8 +204,11 @@ int main(int argc, char** argv) {
     }
     else {
         // Just run untill we halt.
-        // This mode doesn't really make sense without IO implemented
         cpu.run();
+    }
+
+    for (auto t : devices) {
+        delete std::get<0>(t);
     }
 
     return 0;

@@ -20,11 +20,20 @@ OPTIONS
         The options may be given in any order, but the file name must be the
         final argument.
 
+        -d {name} {position} {line}
+                        Adds a device 'name' to the virtual machine and maps it
+                        to memory 'position' written in hexadecimal. The device
+                        will interrupt on 'line'.
+
         -h
                         Print this help message.
 
         -i
                         Enable interactive mode.
+
+        -s              Enable a standard set up for devices. This includes for
+                        now:
+                                numdisp     c100    0
 
         -x
                         Changes input to hexadecimal mode. This will read 4
