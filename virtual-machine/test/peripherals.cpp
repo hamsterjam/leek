@@ -21,12 +21,11 @@ int main(int argc, char** argv) {
 
         // Push the program
         test.push(0x084d); // FSET  fICF
-        test.push(0x4f5c); // ADDi  rPC 5 rIHP
+        test.push(0x4f4c); // ADDi  rPC 4 rIHP
         test.push(0x1c12); // HSET  r2 0xc1
         test.push(0x2002); // LSET  r2 0x00
         test.push(0x0312); // STORE r1 r2
-        test.push(0x0000); // NOP
-        test.push(0xe02f); // JMP-  2
+        test.push(0x0C0F); // WFI
         test.push(0x0421); // LOAD  r2 r1
         test.push(0xe01f); // JMP-  1
 

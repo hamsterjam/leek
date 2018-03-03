@@ -38,6 +38,8 @@ class Processor {
         std::mutex sleepM;
         std::condition_variable sleepCV;
 
+        std::atomic<bool> lastTickWasInterrupt;
+
         std::atomic<bool> anyISF;
         std::atomic<bool> softISF;
         std::atomic<bool> hardISF[8];

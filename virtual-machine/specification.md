@@ -283,7 +283,7 @@ RR type.
 Performs a software interrupt. This behaves exactly like a hardware interrupt, the corresponding Interrupt Signal Flag is ISFs.
 
 #### WFI
-`0000 1100 0000 0000`  
+`0000 1100 0000 1111`  
 RR type.  
 Normal operation is suspended untill an interrupt is recieved.
 If the ICF is set, it will handle the interrupt in the normal manner.

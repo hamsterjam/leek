@@ -15,6 +15,8 @@ Processor::Processor(size_t memWords): mem(memWords) {
     anyISF = false;
     softISF = false;
     for (int i = 0; i < 8; ++i) hardISF[i] = false;
+
+    lastTickWasInterrupt = false;
 }
 
 void Processor::exec(uint16_t instruction) {
@@ -230,9 +232,10 @@ void Processor::exec(uint16_t instruction) {
     else if (op == Operation::INTER) {
         interrupt(-1);
     }
-    else if (op == Operation::WFI) {
+    else if (op == Operation::WFI && !lastTickWasInterrupt) {
         std::unique_lock<std::mutex> lk(sleepM);
         while (!anyISF) sleepCV.wait(lk);
+        res += 1;
     }
 
     // Set zero and negative flags
@@ -278,11 +281,15 @@ void Processor::tick() {
 
         push(reg[RegisterManager::PC]);
         reg[RegisterManager::PC] = reg[RegisterManager::IHP];
+
+        lastTickWasInterrupt = true;
     }
     else {
         uint16_t pc = reg[RegisterManager::PC];
         reg[RegisterManager::PC] += 1;
         exec(mem[pc]);
+
+        lastTickWasInterrupt = false;
     }
 }
 
