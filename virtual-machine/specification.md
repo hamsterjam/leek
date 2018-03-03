@@ -134,7 +134,8 @@ Opperations Reference
 | **FCLR**  | IR   | 0x09    |
 | **FTOG**  | IR   | 0x0a    |
 ||||
-| **INTR**  | IR   | 0x0b    |
+| **INTR**  | RR   | 0x0b    |
+| **WFI**   | RR   | 0x0c    |
 
 Operations
 ----------
@@ -280,3 +281,10 @@ Toggles the iA'th bit of FLAGS.
 `0000 1011 1100 1111`  
 RR type.  
 Performs a software interrupt. This behaves exactly like a hardware interrupt, the corresponding Interrupt Signal Flag is ISFs.
+
+#### WFI
+`0000 1100 0000 0000`  
+RR type.  
+Normal operation is suspended untill an interrupt is recieved.
+If the ICF is set, it will handle the interrupt in the normal manner.
+if it is not set, operation will simply resume when the interrupt is recieved.

@@ -10,9 +10,13 @@
 
 #include "MemoryManager.hpp"
 #include "RegisterManager.hpp"
+
+#include <mutex>
+#include <condition_variable>
+#include <atomic>
+
 #include <cstdlib>
 #include <cstdint>
-#include <atomic>
 
 class IODevice;
 
@@ -31,6 +35,9 @@ class Processor {
         void push(uint16_t instruction);
         uint16_t inspect(size_t index);
     private:
+        std::mutex sleepM;
+        std::condition_variable sleepCV;
+
         std::atomic<bool> anyISF;
         std::atomic<bool> softISF;
         std::atomic<bool> hardISF[8];

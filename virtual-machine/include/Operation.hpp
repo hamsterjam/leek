@@ -38,7 +38,7 @@ class Operation {
         // Jump and flag operations
         static Operation JMPf, JMPb, FJMP, FSET, FCLR, FTOG;
         // Other operations
-        static Operation INTER;
+        static Operation INTER, WFI;
 
     private:
         uint8_t opCode;

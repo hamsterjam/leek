@@ -79,6 +79,7 @@ Operation Operation::FCLR( 0x9, IR);
 Operation Operation::FTOG( 0xa, IR);
 // Other operations
 Operation Operation::INTER(0xb, RR);
+Operation Operation::WFI(  0xc, RR);
 
 Operation* Operation::shortOps[16];
 Operation* Operation::longOps[16];

@@ -2,6 +2,9 @@
 #include "Operation.hpp"
 #include "IODevice.hpp"
 
+#include <mutex>
+#include <condition_variable>
+#include <atomic>
 #include <stdexcept>
 
 #include <cstdlib>
@@ -227,6 +230,10 @@ void Processor::exec(uint16_t instruction) {
     else if (op == Operation::INTER) {
         interrupt(-1);
     }
+    else if (op == Operation::WFI) {
+        std::unique_lock<std::mutex> lk(sleepM);
+        while (!anyISF) sleepCV.wait(lk);
+    }
 
     // Set zero and negative flags
     if (setStateFlags) {
@@ -294,6 +301,7 @@ void Processor::interrupt(int line) {
         throw std::out_of_range("Processor::interrupt");
     }
     anyISF = true;
+    sleepCV.notify_all();
 
     if (line < 0) {
         softISF = true;
