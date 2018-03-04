@@ -128,9 +128,9 @@ int main(int argc, char** argv) {
             uint16_t instruction;
             if (hexMode) {
                 in >> std::ws;
-                while (in.peek() == '\n') {
+                if (in.peek() == '\n') {
                     in.get();
-                    in >> std::ws;
+                    continue;
                 }
                 if (in.peek() == '#') {
                     in.ignore(maxStreamSize, '\n');
