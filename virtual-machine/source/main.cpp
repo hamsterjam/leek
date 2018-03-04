@@ -18,6 +18,8 @@
 
 #include <unistd.h>
 
+const std::streamsize maxStreamSize = std::numeric_limits<std::streamsize>::max();
+
 int main(int argc, char** argv) {
     std::set<std::tuple<IODevice*, size_t, uint8_t>> devices;
     bool standardDevices = false;
@@ -126,6 +128,14 @@ int main(int argc, char** argv) {
             uint16_t instruction;
             if (hexMode) {
                 in >> std::ws;
+                while (in.peek() == '\n') {
+                    in.get();
+                    in >> std::ws;
+                }
+                if (in.peek() == '#') {
+                    in.ignore(maxStreamSize, '\n');
+                    continue;
+                }
                 char buff[5];
                 in.read(buff, 4);
                 buff[4] = 0;
@@ -141,7 +151,6 @@ int main(int argc, char** argv) {
     if (interactive) {
         bool done = false;
         while (!done) {
-            const std::streamsize maxSize = std::numeric_limits<std::streamsize>::max();
 
             std::cout << ">> " << std::flush;
 
@@ -153,7 +162,7 @@ int main(int argc, char** argv) {
             switch (line.peek()) {
                 case 'e':
                     // exec
-                    line.ignore(maxSize, ' ');
+                    line.ignore(maxStreamSize, ' ');
                     if (line.eof()) {
                         std::cout << "No argument" << std::endl;
                     }
@@ -166,7 +175,7 @@ int main(int argc, char** argv) {
 
                 case 'p':
                     // print
-                    line.ignore(maxSize, ' ');
+                    line.ignore(maxStreamSize, ' ');
                     if (line.eof()) {
                         std::cout << "No argument" << std::endl;
                     }
