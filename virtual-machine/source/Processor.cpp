@@ -24,6 +24,7 @@ void Processor::exec(uint16_t instruction) {
     const uint8_t NEG_FLAG   = 1;
     const uint8_t CARRY_FLAG = 2;
     const uint8_t OVER_FLAG  = 3;
+    const uint8_t ICF_FLAG   = 4;
 
     Operation& op = Operation::fromInstruction(instruction);
 
@@ -235,7 +236,6 @@ void Processor::exec(uint16_t instruction) {
     else if (op == Operation::WFI && !lastTickWasInterrupt) {
         std::unique_lock<std::mutex> lk(sleepM);
         while (!anyISF) sleepCV.wait(lk);
-        res += 1;
     }
 
     // Set zero and negative flags
@@ -300,7 +300,7 @@ void Processor::run() {
         prevPC = reg[RegisterManager::PC];
         tick();
     }
-    while (prevPC != reg[RegisterManager::PC]);
+    while (prevPC != reg[RegisterManager::PC] || lastTickWasInterrupt);
 }
 
 void Processor::interrupt(int line) {

@@ -1,5 +1,6 @@
 #include "Processor.hpp"
 #include "devices/Incrementer.hpp"
+#include "devices/Multiplier.hpp"
 
 #include <iostream>
 
@@ -32,6 +33,40 @@ int main(int argc, char** argv) {
         test.run();
 
         if (test.inspect(1) == 101) {
+            std::cout << "OK!" << std::endl;
+        }
+        else {
+            std::cout << "Fail" << std::endl;
+        }
+    }
+
+    {
+        // The multiplier is a slightly more complicated i/o device
+        std::cout << "Testing Multiplier... \t" << std::flush;
+        Processor test(0x10000);
+        Multiplier mul;
+
+        test.useDevice(mul, 0xc100, 0);
+
+        test.exec(0x010d); // MOV   r0    rFLAGS
+        test.exec(0x010e); // MOV   r0    rSTACK
+        test.exec(0x401f); // ADDi  r0 $1 rPC
+
+        test.push(0x1c19); // HSET  0xc1  r9
+        test.push(0x2009); // LSET  0x00  r9
+        test.push(0x491a); // ADDi  r9 $1 r10
+        test.push(0x4051); // ADDi  r0 $5 r1
+        test.push(0x4072); // ADDi  r0 $7 r2
+        test.push(0x0319); // STORE r1    r9
+        test.push(0x032a); // STORE r2    r10
+        test.push(0x0c0f); // WFI
+        test.push(0x0491); // LOAD  r9    r1
+        test.push(0x04a2); // LOAD  r10   r2
+        test.push(0xe01f); // JMP-  $1
+
+        test.run();
+
+        if (test.inspect(1) == 35 && test.inspect(2) == 0) {
             std::cout << "OK!" << std::endl;
         }
         else {
