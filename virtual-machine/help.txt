@@ -14,11 +14,13 @@ DESCRIPTION
 
         You can more generally start the virtual machine with
 
-            leek-vm [options] [file]
+            leek-vm [options]
 
 OPTIONS
-        The options may be given in any order, but the file name must be the
-        final argument.
+
+        {filename}
+                        If no flag is used, the option is interpreted as the
+                        filename to load
 
         -d {name} {position} {line}
                         Adds a device 'name' to the virtual machine and maps it

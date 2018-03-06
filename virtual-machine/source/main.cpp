@@ -73,20 +73,18 @@ int main(int argc, char** argv) {
                     break;
 
                 default:
-                    std::cout << "Unknown option: " << argv[i] << std::endl;
+                    std::cerr << "Unknown option: " << argv[i] << std::endl;
                     return 1;
             }
         }
-
-        // If it is the last arg, it is a filename
-        else if (i + 1 == argc) {
-            filename = argv[i];
-        }
-
-        // Else it is an error
         else {
-            std::cout << "Unknown argument: " << argv[i] << std::endl;
-            return 1;
+            // If it is not a flag, interpret it as the filename
+            if (filename) {
+                // If we already have a filename, this is an error.
+                std::cerr << "More than one filename provided" << std::endl;
+                return 1;
+            }
+            filename = argv[i];
         }
     }
 
