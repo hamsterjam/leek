@@ -221,6 +221,9 @@ int main(int argc, char** argv) {
         uint16_t instr = instructions[i]->toBin();
         uint8_t instrHi = instr >> 8;
         uint8_t instrLo = instr & ((1 << 8) - 1);
+
+        out.put(instrHi);
+        out.put(instrLo);
     }
 
     return 0;
