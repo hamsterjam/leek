@@ -21,11 +21,11 @@ Instruction::Instruction(std::string& opCode) {
     }
     else if (opCode == "HSET") {
         setNextValue(0x1);
-        setValue(1, 0x0);
+        setNextValue(0x0);
     }
     else if (opCode == "LSET") {
         setNextValue(0x2);
-        setValue(1, 0x0);
+        setNextValue(0x0);
     }
     else if (opCode == "ADD") {
         setNextValue(0x3);
@@ -81,15 +81,15 @@ Instruction::Instruction(std::string& opCode) {
     }
     else if (opCode == "JMP+") {
         setNextValue(0xD);
-        setValue(1, 0x0);
+        setNextValue(0x0);
         setValue(0, 0xF);
-        args[2].relative = true;
+        args[1].relative = true;
     }
     else if (opCode == "JMP-" || opCode == "JMP") {
         setNextValue(0xE);
-        setValue(1, 0x0);
+        setNextValue(0x0);
         setValue(0, 0xF);
-        args[2].relative = true;
+        args[1].relative = true;
     }
     else if (opCode == "FJMP") {
         setNextValue(0x0);

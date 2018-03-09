@@ -60,7 +60,8 @@ int main(int argc, char** argv) {
      * Process arguments *
      * * * * * * * * * * */
 
-    char* inputFilename = 0;
+    char* inputFilename  = 0;
+    char* outputFilename = 0;
 
     for (int i = 1; i < argc; ++i) {
         if (argv[i][0] == '-') {
@@ -75,6 +76,17 @@ int main(int argc, char** argv) {
                         }
                     }
                     return 0;
+
+                case 'o':
+                    // Output file
+                    if (outputFilename) {
+                        std::cerr << "More than one output file provided." << std::endl;
+                        return 1;
+                    }
+                    outputFilename = argv[i+1];
+                    ++i;
+                    break;
+
                 default:
                     std::cerr << "Unkown option: " << argv[i] << std::endl;
                     return 1;
@@ -84,7 +96,7 @@ int main(int argc, char** argv) {
             // It is an input file
             if (inputFilename) {
                 // Then we already have a filename, this is an error (for now)
-                std::cerr << "More than one file provided" << std::endl;
+                std::cerr << "More than one input file provided." << std::endl;
                 return 1;
             }
             inputFilename = argv[i];
@@ -93,7 +105,13 @@ int main(int argc, char** argv) {
 
     if (!inputFilename) {
         // No file provided, this is an error
-        std::cerr << "No input file provided" << std::endl;
+        std::cerr << "No input file provided." << std::endl;
+        return 1;
+    }
+
+    if (!outputFilename) {
+        // No output provided, this is an error
+        std::cerr << "No output file provided." << std::endl;
         return 1;
     }
 
@@ -196,6 +214,14 @@ int main(int argc, char** argv) {
     /* * * * * *
      * Output  *
      * * * * * */
+
+    std::ofstream out(outputFilename);
+
+    for (int i = 0; i < instructions.size(); ++i) {
+        uint16_t instr = instructions[i]->toBin();
+        uint8_t instrHi = instr >> 8;
+        uint8_t instrLo = instr & ((1 << 8) - 1);
+    }
 
     return 0;
 }
