@@ -9,10 +9,59 @@
 
 #include <cstdint>
 
+void addStandardReferences(std::map<std::string, unsigned int>& symbolTable) {
+    // Numeric register references
+    symbolTable["r0"]  = 0;
+    symbolTable["r1"]  = 1;
+    symbolTable["r2"]  = 2;
+    symbolTable["r3"]  = 3;
+    symbolTable["r4"]  = 4;
+    symbolTable["r5"]  = 5;
+    symbolTable["r6"]  = 6;
+    symbolTable["r7"]  = 7;
+    symbolTable["r8"]  = 8;
+    symbolTable["r9"]  = 9;
+    symbolTable["r10"] = 10;
+    symbolTable["r11"] = 11;
+    symbolTable["r12"] = 12;
+    symbolTable["r13"] = 13;
+    symbolTable["r14"] = 14;
+    symbolTable["r15"] = 15;
+
+    // Symbolic register references
+    symbolTable["rMBZ"]   = 0;
+    symbolTable["rAUX"]   = 11;
+    symbolTable["rIHP"]   = 12;
+    symbolTable["rFLAGS"] = 13;
+    symbolTable["rSTACK"] = 14;
+    symbolTable["rPC"]    = 15;
+
+    // Symbolic flag references
+    symbolTable["fZERO"]  = 0;
+    symbolTable["fNEG"]   = 1;
+    symbolTable["fCARRY"] = 2;
+    symbolTable["fOVER"]  = 3;
+    symbolTable["fICF"]   = 4;
+    symbolTable["fISFs"]  = 7;
+    symbolTable["fISF0"]  = 8;
+    symbolTable["fISF1"]  = 9;
+    symbolTable["fISF2"]  = 10;
+    symbolTable["fISF3"]  = 11;
+    symbolTable["fISF4"]  = 12;
+    symbolTable["fISF5"]  = 13;
+    symbolTable["fISF6"]  = 14;
+    symbolTable["fISF7"]  = 15;
+
+}
+
 int main(int argc, char** argv) {
+
+    /* * * * * * * * * * *
+     * Process arguments *
+     * * * * * * * * * * */
+
     char* inputFilename = 0;
 
-    // Process arguments
     for (int i = 1; i < argc; ++i) {
         if (argv[i][0] == '-') {
             // Process flag
@@ -50,13 +99,18 @@ int main(int argc, char** argv) {
 
     std::ifstream in(inputFilename);
 
+    /* * * * *
+     * Parse *
+     * * * * */
+
     unsigned int logicalLineNumber = 0;
     unsigned int sourceLineNumber  = 1;
 
     std::map<std::string, unsigned int> symbolTable;
     std::vector<Instruction*> instructions(0);
 
-    // Process line by line
+    addStandardReferences(symbolTable);
+
     while (in.peek() != std::ifstream::traits_type::eof()) {
         std::string lineString;
         std::getline(in, lineString);
@@ -126,6 +180,22 @@ int main(int argc, char** argv) {
 
         ++sourceLineNumber;
     }
+
+    /* * * * * * * * * *
+     * Link References *
+     * * * * * * * * * */
+
+    for (int i = 0; i < instructions.size(); ++i) {
+        instructions[i]->linkReferences(symbolTable, i);
+        if (!instructions[i]->isReady()) {
+            // Error message provided by Instruction::linkReferences
+            return 1;
+        }
+    }
+
+    /* * * * * *
+     * Output  *
+     * * * * * */
 
     return 0;
 }

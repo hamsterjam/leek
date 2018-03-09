@@ -2,12 +2,15 @@
 #define LEEK_ASSEMBLER_INSTRUCTION_H_DEFINED
 
 #include <string>
+#include <map>
+#include <cstdint>
 
 class Instruction {
     public:
         Instruction(std::string& opCode);
 
         void addArgument(std::string& arg);
+        void linkReferences(std::map<std::string, unsigned int>& symbolTable, unsigned int logicalLineNumber);
         bool isReady();
         bool isSpecified();
         uint16_t toBin();

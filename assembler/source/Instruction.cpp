@@ -1,6 +1,7 @@
 #include "Instruction.hpp"
 
 #include <string>
+#include <iostream>
 
 #include <cstdint>
 
@@ -142,6 +143,36 @@ void Instruction::addArgument(std::string& arg) {
         // Otherwise it is a string referencing something
         args[nextFree].reference = arg;
         while (args[--nextFree].ready);
+    }
+}
+
+void Instruction::linkReferences(std::map<std::string, unsigned int>& sym, unsigned int num) {
+    // Relative values are relative to the *next* instruction, not this one
+    ++num;
+    for (int i = 0; i < 4; ++i) {
+        if (!args[i].ready) {
+            if (!sym.count(args[i].reference)) {
+                std::cerr << "Undefined reference to \"" << args[i].reference << "\"" << std::endl;
+                return;
+            }
+
+            unsigned int refValue = sym[args[i].reference];
+
+            if (args[i].relative) {
+                // If it is a relative reference
+                if (refValue > num) {
+                    refValue = refValue - num;
+                    // Recalling that backwards jumps are the default
+                    toggleJumpDir();
+                }
+                else {
+                    refValue = num - refValue;
+                }
+            }
+
+            args[i].value = refValue;
+            args[i].ready = true;
+        }
     }
 }
 
