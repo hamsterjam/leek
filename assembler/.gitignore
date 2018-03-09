@@ -1,0 +1,4 @@
+*.o
+object/*
+leek-asm
+leek-asm_debug

@@ -1,0 +1,181 @@
+#include "Instruction.hpp"
+
+#include <string>
+
+#include <cstdint>
+
+Instruction::Instruction(std::string& opCode) {
+    nextFree = 3;
+
+    // There is probably a much nicer way to do this...
+    if      (opCode == "NOP") {
+        setNextValue(0x0);
+        setNextValue(0x0);
+        setNextValue(0x0);
+        setNextValue(0x0);
+    }
+    else if (opCode == "MOV") {
+        setNextValue(0x0);
+        setNextValue(0x1);
+    }
+    else if (opCode == "HSET") {
+        setNextValue(0x1);
+        setValue(1, 0x0);
+    }
+    else if (opCode == "LSET") {
+        setNextValue(0x2);
+        setValue(1, 0x0);
+    }
+    else if (opCode == "ADD") {
+        setNextValue(0x3);
+    }
+    else if (opCode == "ADDi") {
+        setNextValue(0x4);
+    }
+    else if (opCode == "SUB") {
+        setNextValue(0x5);
+    }
+    else if (opCode == "SUBi") {
+        setNextValue(0x6);
+    }
+    else if (opCode == "MUL") {
+        setNextValue(0x7);
+    }
+    else if (opCode == "ROT") {
+        setNextValue(0x8);
+    }
+    else if (opCode == "ROTi") {
+        setNextValue(0x9);
+    }
+    else if (opCode == "OR") {
+        setNextValue(0xA);
+    }
+    else if (opCode == "AND") {
+        setNextValue(0xB);
+    }
+    else if (opCode == "XOR") {
+        setNextValue(0xC);
+    }
+    else if (opCode == "NOT") {
+        setNextValue(0x0);
+        setNextValue(0x2);
+    }
+    else if (opCode == "STORE") {
+        setNextValue(0x0);
+        setNextValue(0x3);
+    }
+    else if (opCode == "LOAD") {
+        setNextValue(0x0);
+        setNextValue(0x4);
+    }
+    else if (opCode == "PUSH") {
+        setNextValue(0x0);
+        setNextValue(0x5);
+        setValue(0, 0xE);
+    }
+    else if (opCode == "POP") {
+        setNextValue(0x0);
+        setNextValue(0x6);
+        setNextValue(0xE);
+    }
+    else if (opCode == "JMP+") {
+        setNextValue(0xD);
+        setValue(1, 0x0);
+        setValue(0, 0xF);
+        args[2].relative = true;
+    }
+    else if (opCode == "JMP-" || opCode == "JMP") {
+        setNextValue(0xE);
+        setValue(1, 0x0);
+        setValue(0, 0xF);
+        args[2].relative = true;
+    }
+    else if (opCode == "FJMP") {
+        setNextValue(0x0);
+        setNextValue(0x7);
+        setValue(0, 0xF);
+    }
+    else if (opCode == "FSET") {
+        setNextValue(0x0);
+        setNextValue(0x8);
+        setValue(0, 0xD);
+    }
+    else if (opCode == "FCLR") {
+        setNextValue(0x0);
+        setNextValue(0x9);
+        setValue(0, 0xD);
+    }
+    else if (opCode == "FTOG") {
+        setNextValue(0x0);
+        setNextValue(0xA);
+        setValue(0, 0xD);
+    }
+    else if (opCode == "INTER") {
+        setNextValue(0x0);
+        setNextValue(0xB);
+        setNextValue(0xC);
+        setNextValue(0xF);
+    }
+    else if (opCode == "WFI") {
+        setNextValue(0x0);
+        setNextValue(0xC);
+        setNextValue(0x0);
+        setNextValue(0xF);
+    }
+}
+
+void Instruction::addArgument(std::string& arg) {
+    // If the first character is a number
+    if (arg[0] >= '0' && arg[0] <= '9') {
+        uint8_t val = 0;
+        // If it begins with 0x interperet it as hex, otherwise as dec
+        if (arg[0] == '0' && arg[1] == 'x') {
+            val = std::stoul(arg.substr(2, -1), NULL, 16);
+        }
+        else {
+            val = std::stoul(arg, NULL, 10);
+        }
+
+        setNextValue(val);
+    }
+    else {
+        // Otherwise it is a string referencing something
+        args[nextFree].reference = arg;
+        while (args[--nextFree].ready);
+    }
+}
+
+bool Instruction::isReady() {
+    bool ret = true;
+    for (int i = 0; i < 4; ++i) {
+        ret = ret && args[i].ready;
+    }
+
+    return ret;
+}
+
+bool Instruction::isSpecified() {
+    return nextFree < 0;
+}
+
+uint16_t Instruction::toBin() {
+    uint16_t ret = 0;
+    for (int i = 0; i < 4; ++i) {
+        ret |= args[i].value << (i*4);
+    }
+    return ret;
+}
+
+void Instruction::setValue(int pos, uint8_t value) {
+    args[pos].value = value;
+    args[pos].ready = true;
+}
+
+void Instruction::setNextValue(uint8_t value) {
+    setValue(nextFree, value);
+    while (args[--nextFree].ready);
+}
+
+void Instruction::toggleJumpDir() {
+    args[2].value ^= 0x3;
+}

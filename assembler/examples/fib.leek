@@ -1,0 +1,31 @@
+
+# Setup
+
+HSET    0xC1            r10
+LSET    0x00            r10
+MOV     r0              r1
+ADDi    r0      1       r2
+ADDi    r0      1       r3
+FCLR    fICF
+
+# Print
+
+loop:
+
+STORE   r2              r10
+WFI
+STORE   r3              r10
+WFI
+
+# Calculate next numbers
+
+ADD     r2      r3      r2
+ADD     r2      r3      r3
+
+# Loop 12 times
+
+ADDi    r1      1       r1
+SUBi    r1      12      r0
+FJMP    fZERO
+JMP-    1
+JMP     loop
