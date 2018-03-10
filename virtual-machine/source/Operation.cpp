@@ -57,22 +57,23 @@ Operation Operation::ADD(  0x3, RRR);
 Operation Operation::ADDi( 0x4, RIR);
 Operation Operation::SUB(  0x5, RRR);
 Operation Operation::SUBi( 0x6, RIR);
-Operation Operation::MUL(  0x7, RRR);
-Operation Operation::ROT(  0x8, RRR);
-Operation Operation::ROTi( 0x9, RIR);
+Operation Operation::ROT(  0x7, RRR);
+Operation Operation::ROTi( 0x8, RIR);
 // Logic operations
-Operation Operation::OR(   0xa, RRR);
-Operation Operation::AND(  0xb, RRR);
-Operation Operation::XOR(  0xc, RRR);
+Operation Operation::OR(   0x9, RRR);
+Operation Operation::AND(  0xa, RRR);
+Operation Operation::XOR(  0xb, RRR);
 Operation Operation::NOT(  0x2, RR);
 // Memory operations
 Operation Operation::STORE(0x3, RR);
 Operation Operation::LOAD( 0x4, RR);
+Operation Operation::LDRf( 0xc, IIR);
+Operation Operation::LDRb( 0xd, IIR);
 Operation Operation::PUSH( 0x5, RR);
 Operation Operation::POP(  0x6, RR);
 // Jump and flag operations
-Operation Operation::JMPf( 0xd, IIR);
-Operation Operation::JMPb( 0xe, IIR);
+Operation Operation::JMPf( 0xe, IIR);
+Operation Operation::JMPb( 0xf, IIR);
 Operation Operation::FJMP( 0x7, IR);
 Operation Operation::FSET( 0x8, IR);
 Operation Operation::FCLR( 0x9, IR);

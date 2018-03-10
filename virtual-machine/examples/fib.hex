@@ -31,5 +31,5 @@
 4111    # ADDi      r1      1       r1
 61C0    # SUBi      r1      12      r0
 070F    # FJMP      fZERO
-E01F    # JMP-      1
-E0FF    # JMP-      15
+F01F    # JMP-      1
+F0FF    # JMP-      15

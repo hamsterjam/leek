@@ -272,47 +272,6 @@ int main(int argc, char** argv) {
     }
 
     {
-        // Testing only the high or low portion of a number will yield
-        // unintersting results, instead im going to shift my 8 bit numbers 4
-        // bits so they straddle the center of the 16 bit number
-        cout << "Testing MUL... \t\t\t" << flush;
-
-        bool pass = true;
-
-        uint8_t val1 = 0;
-        uint8_t val2 = 0;
-        do {
-            uint8_t val1Lo = val1 << 4;
-            uint8_t val1Hi = val1 >> 4;
-            do {
-                uint8_t val2Lo = val2 << 4;
-                uint8_t val2Hi = val2 >> 4;
-
-                test.exec(0x1001 | val1Hi << 4); // HSET val1Hi 1
-                test.exec(0x2001 | val1Lo << 4); // LSET val1Lo 1
-                test.exec(0x1002 | val2Hi << 4); // HSET val2Hi 2
-                test.exec(0x2002 | val2Lo << 4); // LSET val2Lo 2
-                test.exec(0x7123);               // MUL 1 2 3
-
-                uint32_t corrRes = ((uint32_t) val1 * val2) << 8;
-                uint32_t testRes = ((uint32_t) test.inspect(11) << 16) | test.inspect(3);
-
-                if (corrRes != testRes) {
-                    pass = false;
-                    break;
-                }
-            } while (++val2 != 0);
-        } while (++val1 != 0 && pass);
-
-        if (pass) {
-            cout << "OK!" << endl;
-        }
-        else {
-            cout << "Fail" << endl;
-        }
-    }
-
-    {
         // Testing ROT by testing all rotations of all possible values
         cout << "Testing ROT... \t\t\t" << flush;
 
@@ -328,7 +287,7 @@ int main(int argc, char** argv) {
                     test.exec(0x2001 | valLo << 4); // LSET valLo 1
                     test.exec(0x0102);              // MOV 0 2
                     test.exec(0x2002 | rot << 4);   // LSET rot 2
-                    test.exec(0x8123);              // ROT 1 2 3
+                    test.exec(0x7123);              // ROT 1 2 3
 
                     uint16_t corrRes = val << rot | val >> (16 - rot);
 
@@ -370,9 +329,9 @@ int main(int argc, char** argv) {
             do {
                 test.exec(0x0102);             // MOV 0 2
                 test.exec(0x2002 | val2 << 4); // LSET val2 2
-                test.exec(0xa123);             // OR  1 2 3
-                test.exec(0xb124);             // AND 1 2 4
-                test.exec(0xc125);             // XOR 1 2 5
+                test.exec(0x9123);             // OR  1 2 3
+                test.exec(0xa124);             // AND 1 2 4
+                test.exec(0xb125);             // XOR 1 2 5
 
                 uint16_t corrOr  = val1 | val2;
                 uint16_t corrAnd = val1 & val2;
@@ -488,7 +447,7 @@ int main(int argc, char** argv) {
                     uint16_t corrAddr;
                     test.exec(0x100f | addrHi << 4); // HSET addrHi PC
                     test.exec(0x200f | addrLo << 4); // LSET addrLo PC
-                    test.exec(0xd00f | offset << 4); // JMP+ offset
+                    test.exec(0xe00f | offset << 4); // JMP+ offset
 
                     corrAddr = addr + offset;
                     if (test.inspect(15) != corrAddr) {
@@ -498,7 +457,7 @@ int main(int argc, char** argv) {
 
                     test.exec(0x100f | addrHi << 4); // HSET addrHi PC
                     test.exec(0x200f | addrLo << 4); // LSET addrLo PC
-                    test.exec(0xe00f | offset << 4); // JMP- offset
+                    test.exec(0xf00f | offset << 4); // JMP- offset
 
                     corrAddr = addr - offset;
                     if (test.inspect(15) != corrAddr) {
@@ -576,7 +535,7 @@ int main(int argc, char** argv) {
         test.push(0x2012); // 3: LSET $1 2
         test.push(0x3121); // 4: ADD 1 2 1
         test.push(0x3122); // 5: ADD 1 2 2
-        test.push(0xe03f); // 6: JMP- $3    # line 4
+        test.push(0xf03f); // 6: JMP- $3    # line 4
 
         // tick 3 times to do the initial data set up, every 3 ticks after that
         // will calculate the next 2 fibonacci numbers. After n loops we should
@@ -626,18 +585,18 @@ int main(int argc, char** argv) {
         test.push(0x0424); //  5: LOAD 2 4
         test.push(0x3400); //  6: ADD 4 0 0
         test.push(0x070f); //  7: FJMP ZERO
-        test.push(0xd08f); //  8: JMP+ 8        # line 17
+        test.push(0xe08f); //  8: JMP+ 8        # line 17
         test.push(0x5340); //  9: SUB 3 4 0
         test.push(0x071f); // 10: FJMP NEG
-        test.push(0xd03f); // 11: JMP+ 3        # line 15
+        test.push(0xe03f); // 11: JMP+ 3        # line 15
         test.push(0x0341); // 12: STORE 4 1
         test.push(0x0332); // 13: STORE 3 2
         test.push(0x095d); // 14: FCLR 5
         test.push(0x0121); // 15: MOV 2 1
-        test.push(0xe0ef); // 16: JMP- 14       # line 3
+        test.push(0xf0ef); // 16: JMP- 14       # line 3
         test.push(0x075f); // 17: FJMP 5
-        test.push(0xe01f); // 18: JMP- 1        # halt
-        test.push(0xe13f); // 19: JMP- 19       # line 1
+        test.push(0xf01f); // 18: JMP- 1        # halt
+        test.push(0xf13f); // 19: JMP- 19       # line 1
 
         // Keep going till the PC gets stuck
         uint16_t prevPC = test.inspect(15);

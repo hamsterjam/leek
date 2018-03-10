@@ -143,17 +143,6 @@ void Processor::exec(uint16_t instruction) {
                     inA >= 0x8000 && inB <  0x8000 && res <  0x8000;
         reg.setBit(RegisterManager::FLAGS, OVER_FLAG, over);
     }
-    else if (op == Operation::MUL) {
-        unsigned long longRes = (unsigned long) inA * inB;
-
-        // Upper byte stored in AUX
-        reg[RegisterManager::AUX] = longRes >> 16;
-
-        // Lower byte is returned
-        res = longRes & ((1 << 16) - 1);
-
-        setStateFlags = true;
-    }
     else if (op == Operation::ROT || op == Operation::ROTi) {
         inB %= 16;
 
@@ -193,6 +182,12 @@ void Processor::exec(uint16_t instruction) {
     //
     else if (op == Operation::STORE || op == Operation::LOAD) {
         res = inA;
+    }
+    else if (op == Operation::LDRf) {
+        res = mem[reg[RegisterManager::PC] + inA];
+    }
+    else if (op == Operation::LDRb) {
+        res = mem[reg[RegisterManager::PC] - inA];
     }
     else if (op == Operation::PUSH) {
         res = inA;

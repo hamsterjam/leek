@@ -81,27 +81,24 @@ int main(int argc, char** argv) {
     cout << "Testing SUBi...  \t" << flush;
     testLongOp(0x6, Operation::SUBi);
 
-    cout << "Testing MUL...   \t" << flush;
-    testLongOp(0x7, Operation::MUL);
-
     cout << "Testing ROT...   \t" << flush;
-    testLongOp(0x8, Operation::ROT);
+    testLongOp(0x7, Operation::ROT);
 
     cout << "Testing ROTi...  \t" << flush;
-    testLongOp(0x9, Operation::ROTi);
+    testLongOp(0x8, Operation::ROTi);
 
 
     cout << endl;
     cout << "Logic opCodes:" << endl;
 
     cout << "Testing OR...    \t" << flush;
-    testLongOp(0xa, Operation::OR);
+    testLongOp(0x9, Operation::OR);
 
     cout << "Testing AND...   \t" << flush;
-    testLongOp(0xb, Operation::AND);
+    testLongOp(0xa, Operation::AND);
 
     cout << "Testing XOR...   \t" << flush;
-    testLongOp(0xc, Operation::XOR);
+    testLongOp(0xb, Operation::XOR);
 
     cout << "Testing NOT...   \t" << flush;
     testShortOp(0x2, Operation::NOT);
@@ -116,6 +113,12 @@ int main(int argc, char** argv) {
     cout << "Testing LOAD...  \t" << flush;
     testShortOp(0x4, Operation::LOAD);
 
+    cout << "Testing LDR+...  \t" << flush;
+    testLongOp(0xc, Operation::LDRf);
+
+    cout << "Testing LDR-...  \t" << flush;
+    testLongOp(0xd, Operation::LDRb);
+
     cout << "Testing PUSH...  \t" << flush;
     testShortOp(0x5, Operation::PUSH);
 
@@ -127,10 +130,10 @@ int main(int argc, char** argv) {
     cout << "Jump and flag opCodes:" << endl;
 
     cout << "Testing JMP+...  \t" << flush;
-    testLongOp(0xd, Operation::JMPf);
+    testLongOp(0xe, Operation::JMPf);
 
     cout << "Testing JMP-...  \t" << flush;
-    testLongOp(0xe, Operation::JMPb);
+    testLongOp(0xf, Operation::JMPb);
 
     cout << "Testing FJMP...  \t" << flush;
     testShortOp(0x7, Operation::FJMP);
@@ -163,7 +166,7 @@ int main(int argc, char** argv) {
         unique = unique && Operation::ADD   != Operation::ADDi;
         unique = unique && Operation::ADDi  != Operation::SUB;
         unique = unique && Operation::SUB   != Operation::SUBi;
-        unique = unique && Operation::MUL   != Operation::ROT;
+        unique = unique && Operation::SUBi  != Operation::ROT;
         unique = unique && Operation::ROT   != Operation::ROTi;
         unique = unique && Operation::ROTi  != Operation::OR;
         unique = unique && Operation::OR    != Operation::AND;
@@ -171,7 +174,9 @@ int main(int argc, char** argv) {
         unique = unique && Operation::XOR   != Operation::NOT;
         unique = unique && Operation::NOT   != Operation::STORE;
         unique = unique && Operation::STORE != Operation::LOAD;
-        unique = unique && Operation::LOAD  != Operation::PUSH;
+        unique = unique && Operation::LOAD  != Operation::LDRf;
+        unique = unique && Operation::LDRf  != Operation::LDRb;
+        unique = unique && Operation::LDRb  != Operation::PUSH;
         unique = unique && Operation::PUSH  != Operation::POP;
         unique = unique && Operation::POP   != Operation::JMPf;
         unique = unique && Operation::JMPf  != Operation::JMPb;

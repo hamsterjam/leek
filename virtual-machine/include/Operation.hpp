@@ -30,11 +30,11 @@ class Operation {
         // Move and set operations
         static Operation NOP, MOV, HSET, LSET;
         // Arithmetic operations
-        static Operation ADD, ADDi, SUB, SUBi, MUL, ROT, ROTi;
+        static Operation ADD, ADDi, SUB, SUBi, ROT, ROTi;
         // Logic operations
         static Operation OR, AND, XOR, NOT;
         // Memory operations
-        static Operation STORE, LOAD, PUSH, POP;
+        static Operation STORE, LOAD, LDRf, LDRb, PUSH, POP;
         // Jump and flag operations
         static Operation JMPf, JMPb, FJMP, FSET, FCLR, FTOG;
         // Other operations

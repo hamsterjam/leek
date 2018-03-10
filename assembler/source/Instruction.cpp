@@ -39,23 +39,20 @@ Instruction::Instruction(std::string& opCode) {
     else if (opCode == "SUBi") {
         setNextValue(0x6);
     }
-    else if (opCode == "MUL") {
+    else if (opCode == "ROT") {
         setNextValue(0x7);
     }
-    else if (opCode == "ROT") {
+    else if (opCode == "ROTi") {
         setNextValue(0x8);
     }
-    else if (opCode == "ROTi") {
+    else if (opCode == "OR") {
         setNextValue(0x9);
     }
-    else if (opCode == "OR") {
+    else if (opCode == "AND") {
         setNextValue(0xA);
     }
-    else if (opCode == "AND") {
-        setNextValue(0xB);
-    }
     else if (opCode == "XOR") {
-        setNextValue(0xC);
+        setNextValue(0xB);
     }
     else if (opCode == "NOT") {
         setNextValue(0x0);
@@ -69,6 +66,16 @@ Instruction::Instruction(std::string& opCode) {
         setNextValue(0x0);
         setNextValue(0x4);
     }
+    else if (opCode == "LDR+") {
+        setNextValue(0xC);
+        setNextValue(0x0);
+        args[1].relative = true;
+    }
+    else if (opCode == "LDR-" || opCode == "LDR") {
+        setNextValue(0xD);
+        setNextValue(0x0);
+        args[1].relative = true;
+    }
     else if (opCode == "PUSH") {
         setNextValue(0x0);
         setNextValue(0x5);
@@ -80,13 +87,13 @@ Instruction::Instruction(std::string& opCode) {
         setNextValue(0xE);
     }
     else if (opCode == "JMP+") {
-        setNextValue(0xD);
+        setNextValue(0xE);
         setNextValue(0x0);
         setValue(0, 0xF);
         args[1].relative = true;
     }
     else if (opCode == "JMP-" || opCode == "JMP") {
-        setNextValue(0xE);
+        setNextValue(0xF);
         setNextValue(0x0);
         setValue(0, 0xF);
         args[1].relative = true;
