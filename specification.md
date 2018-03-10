@@ -53,14 +53,15 @@ There are 16 registers. All are 16 bits in length. There are 6 special purpose r
 
 ```
 0  = 0x0 = MBZ
-11 = 0xb = AUX
+10 = 0xa = AUX1
+11 = 0xb = AUX2
 12 = 0xc = IHP
 13 = 0xd = FLAGS
 14 = 0xe = STACK
 15 = 0xf = PC
 ```
 The MBZ register is the **M**ust **B**e **Z**ero register. It will always hold the value 0, any attempts to write to it will be ignored.
-The AUX register is an auxiliary arithmitec register. Currently, it only has one use, to store the upper word of the result of a MUL instruction.
+The AUX registers are reserved for latter use but have no current use.
 The IHP register is the **I**nterrupt **H**andler **P**ointer. It points to a subroutine in memory that is called when an interrupt occurs.
 The STACK register is used for PUSH and POP operations. It points to the most recently PUSHed value.
 The PC register is the program counter. This points to the next operation to be executed by the processor.
@@ -113,22 +114,23 @@ Opperations Reference
 | **ADDi**  | RIR  | 0x4     |
 | **SUB**   | RRR  | 0x5     |
 | **SUBi**  | RIR  | 0x6     |
-| **MUL**   | RRR  | 0x7     |
-| **ROT**   | RRR  | 0x8     |
-| **ROTi**  | RIR  | 0x9     |
+| **ROT**   | RRR  | 0x7     |
+| **ROTi**  | RIR  | 0x8     |
 ||||
-| **OR**    | RRR  | 0xa     |
-| **AND**   | RRR  | 0xb     |
-| **XOR**   | RRR  | 0xc     |
+| **OR**    | RRR  | 0x9     |
+| **AND**   | RRR  | 0xa     |
+| **XOR**   | RRR  | 0xb     |
 | **NOT**   | RR   | 0x02    |
 ||||
 | **STORE** | RR   | 0x03    |
 | **LOAD**  | RR   | 0x04    |
+| **LDR+**  | IIR  | 0xc     |
+| **LDR-**  | IIR  | 0xd     |
 | **PUSH**  | RR   | 0x05    |
 | **POP**   | RR   | 0x06    |
 ||||
-| **JMP+**  | IIR  | 0xd     |
-| **JMP-**  | IIR  | 0xe     |
+| **JMP+**  | IIR  | 0xe     |
+| **JMP-**  | IIR  | 0xf     |
 | **FJMP**  | IR   | 0x07    |
 | **FSET**  | IR   | 0x08    |
 | **FCLR**  | IR   | 0x09    |
@@ -184,35 +186,30 @@ Stores the result of rA-rB in register rD. Sets the carry (for a borrow), overfl
 RIR type.  
 Stores the result of rA-iB in register rD. Sets the carry (for a borrow), overflow, negative, and zero flags.
 
-#### MUL
-`0111 [rA] [rB] [rD]`  
-RRR type.  
-Stores the result of rA\*rB in register rD. Sets the negative, and zero flags. The upper word of the result is stored in AUX.
-
 #### ROT
-`1000 [rA] [rB] [rD]`  
+`0111 [rA] [rB] [rD]`  
 RRR type.  
 Shifts rA to the left rB places (with wrapping) and stores the result in rD.
 
 #### ROTi
-`1001 [rA] [iB] [rD]`  
+`1000 [rA] [iB] [rD]`  
 RIR type.  
 Shifts rA to the left iB places (with wrapping) and stores the result in rD.
 
 ### Logic
 
 #### OR
-`1010 [rA] [rB] [rD]`  
+`1001 [rA] [rB] [rD]`  
 RRR type.  
 Performs a bitwise OR on rA and rB and stores the result in rD. Sets the zero flag.
 
 #### AND
-`1011 [rA] [rB] [rD]`  
+`1010 [rA] [rB] [rD]`  
 RRR type.  
 Performs a bitwise AND on rA and rB and stores the result in rD. Sets the zero flag.
 
 #### XOR
-`1100 [rA] [rB] [rD]`  
+`1011 [rA] [rB] [rD]`  
 RRR type.  
 Performs a bitwse XOR on rA and rB and stores the result in rD. Sets the zero flag.
 
@@ -233,47 +230,57 @@ Stores rA in the address ad in memory.
 RR type.  
 Stores the value at address ad in rD.
 
+#### LDR+
+`1100 [  off  ] [rD]`  
+IIR type.  
+Stores the value at memory address rPC + off into register rD.
+
+#### LDR-
+`1101 [  off  ] [rD]`  
+IIR type.  
+Stores the value at memory address rPC - off into register rD.
+
 #### PUSH
 `0000 0101 [rA] 1110`  
 RR type.  
-Stores rA at the address in STACK, then increments STACK.
+Stores rA at the address in rSTACK, then increments rSTACK.
 
 #### POP
 `0000 0110 1110 [rD]`  
 RR type.  
-Stores the value at address STACK in rD, then decrements STACK.
+Stores the value at address rSTACK in rD, then decrements rSTACK.
 
 ### Jump and Flags
 
 #### JMP+
-`1101 [  off  ] 1111`  
-IIR type.  
-Unconditional forward jump. Sets PC to PC + off.
-
-#### JMP-
 `1110 [  off  ] 1111`  
 IIR type.  
-Unconditional backward jump. Sets PC to PC - off.
+Unconditional forward jump. Sets rPC to rPC + off.
+
+#### JMP-
+`1111 [  off  ] 1111`  
+IIR type.  
+Unconditional backward jump. Sets rPC to rPC - off.
 
 #### FJMP
 `0000 0111 [iA] 1111`  
 IR type.  
-If the iA'th bit of FLAGS is not set, sets the PC to PC + 1.
+If the iA'th bit of rFLAGS is not set, sets the rPC to rPC + 1.
 
 #### FSET
 `0000 1000 [iA] 1101`  
 IR type.  
-Sets the iA'th bit of FLAGS.
+Sets the iA'th bit of rFLAGS.
 
 #### FCLR
 `0000 1001 [iA] 1101`  
 IR type.  
-Clears the iA'th bit of FLAGS.
+Clears the iA'th bit of rFLAGS.
 
 #### FTOG
 `0000 1010 [iA] 1101`  
 IR type.  
-Toggles the iA'th bit of FLAGS.
+Toggles the iA'th bit of rFLAGS.
 
 ### Other
 
@@ -286,5 +293,5 @@ Performs a software interrupt. This behaves exactly like a hardware interrupt, t
 `0000 1100 0000 1111`  
 RR type.  
 Normal operation is suspended untill an interrupt is recieved.
-If the ICF is set, it will handle the interrupt in the normal manner.
+If fICF is set, it will handle the interrupt in the normal manner.
 if it is not set, operation will simply resume when the interrupt is recieved.
