@@ -107,12 +107,12 @@ Opperations Reference
 |-----------|------|---------|
 | **NOP**   | RR   | 0x00    |
 | **MOV**   | RR   | 0x01    |
-| **HSET**  | IIR  | 0x1     |
-| **LSET**  | IIR  | 0x2     |
 ||||
-| **ADD**   | RRR  | 0x3     |
-| **ADDi**  | RIR  | 0x4     |
-| **SUB**   | RRR  | 0x5     |
+| **ADD**   | RRR  | 0x1     |
+| **ADDC**  | RRR  | 0x2     |
+| **ADDi**  | RIR  | 0x3     |
+| **SUB**   | RRR  | 0x4     |
+| **SUBB**  | RRR  | 0x5     |
 | **SUBi**  | RIR  | 0x6     |
 | **ROT**   | RRR  | 0x7     |
 | **ROTi**  | RIR  | 0x8     |
@@ -142,7 +142,7 @@ Opperations Reference
 Operations
 ----------
 
-### Move and Set
+### Move
 
 #### NOP
 `0000 0000 0000 0000`  
@@ -154,32 +154,32 @@ Does no opperation.
 RR type.  
 Copies the value of rA into rD.
 
-#### HSET
-`0001 [  iVal ] [rD]`  
-IIR type.  
-Stores the immediate iVal in the upper 8 bits of register rD.
-
-#### LSET
-`0010 [  iVal ] [rD]`  
-IIR type.  
-Stores the immediate iVal in the lower 8 bits of register rD.
-
 ### Arithmetic
 
 #### ADD
-`0011 [rA] [rB] [rD]`  
+`0001 [rA] [rB] [rD]`  
 RRR type.  
 Stores the result of rA+rB in register rD. Sets the carry, overflow, negative, and zero flags.
 
+#### ADDC
+`0010 [rA] [rB] [rD]`  
+RRR type.  
+Add with carry. Stores the result of rA+rB+fCARRY in register rD. Sets the carry, overflow, negative, and zero flags:
+
 #### ADDi
-`0100 [rA] [iB] [rD]`  
+`0011 [rA] [iB] [rD]`  
 RIR type.  
 Stores the result of rA+iB in register rD. Sets the carry, overflow, negative, and zero flags.
 
 #### SUB
-`0101 [rA] [rB] [rD]`  
+`0100 [rA] [rB] [rD]`  
 RRR type.  
 Stores the result of rA-rB in register rD. Sets the carry (for a borrow), overflow, negative, and zero flags.
+
+#### SUBB
+`0101 [rA] [rB] [rD]`  
+RRR type.  
+Subtraction with borrow. Stores the result of rA-rB-fCARRY in register rD. Sets the carry, overflow, negative, and zero flags.
 
 #### SUBi
 `0110 [rA] [iB] [rD]`  
@@ -282,7 +282,7 @@ Clears the iA'th bit of rFLAGS.
 IR type.  
 Toggles the iA'th bit of rFLAGS.
 
-### Other
+### Interrupts
 
 #### INTER
 `0000 1011 1100 1111`  
