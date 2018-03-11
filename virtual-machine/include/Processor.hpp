@@ -33,6 +33,7 @@ class Processor {
         void removeDevice(IODevice& dev);
 
         void push(uint16_t instruction);
+        void set(size_t index, uint16_t value);
         uint16_t inspect(size_t index);
     private:
         std::mutex sleepM;

@@ -97,26 +97,16 @@ void Processor::exec(uint16_t instruction) {
     else if (op == Operation::MOV) {
         res = inA;
     }
-    else if (op == Operation::HSET) {
-        res = inB;
-        // Clear high 8 bits
-        res &= (1 << 8) - 1;
-        // Set high 8 bits to inA
-        res |= inA << 8;
-    }
-    else if (op == Operation::LSET) {
-        res = inB;
-        // Clear low 8 bits
-        res &= ~((1 << 8) - 1);
-        // Set low 8 bits to inA
-        res |= inA;
-    }
 
     //
     // Arithmetic
     //
-    else if (op == Operation::ADD || op == Operation::ADDi) {
+    else if (op == Operation::ADD || op == Operation::ADDC || op == Operation::ADDi) {
         res = inA + inB;
+
+        if (op == Operation::ADDC && reg.getBit(RegisterManager::FLAGS, CARRY_FLAG)) {
+            ++res;
+        }
 
         setStateFlags = true;
         // Set the carry flag if we need to carry
@@ -129,8 +119,12 @@ void Processor::exec(uint16_t instruction) {
 
         reg.setBit(RegisterManager::FLAGS, OVER_FLAG, over);
     }
-    else if (op == Operation::SUB || op == Operation::SUBi) {
+    else if (op == Operation::SUB || op == Operation::SUBB || op == Operation::SUBi) {
         res = inA - inB;
+
+        if (op == Operation::SUBB && reg.getBit(RegisterManager::FLAGS, CARRY_FLAG)) {
+            --res;
+        }
 
         setStateFlags = true;
 
@@ -332,6 +326,9 @@ void Processor::push(uint16_t instruction) {
     mem[reg[RegisterManager::STACK]] = instruction;
 }
 
+void Processor::set(size_t index, uint16_t value) {
+    reg[index] = value;
+}
 
 uint16_t Processor::inspect(size_t index) {
     return reg[index];

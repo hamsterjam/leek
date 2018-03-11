@@ -50,12 +50,12 @@ bool operator!=(Operation& lhs, Operation& rhs) {
 // Move and set operations
 Operation Operation::NOP(  0x0, RR);
 Operation Operation::MOV(  0x1, RR);
-Operation Operation::HSET( 0x1, IIR);
-Operation Operation::LSET( 0x2, IIR);
 // Arithmetic operations
-Operation Operation::ADD(  0x3, RRR);
-Operation Operation::ADDi( 0x4, RIR);
-Operation Operation::SUB(  0x5, RRR);
+Operation Operation::ADD(  0x1, RRR);
+Operation Operation::ADDC( 0x2, RRR);
+Operation Operation::ADDi( 0x3, RIR);
+Operation Operation::SUB(  0x4, RRR);
+Operation Operation::SUBB( 0x5, RRR);
 Operation Operation::SUBi( 0x6, RIR);
 Operation Operation::ROT(  0x7, RRR);
 Operation Operation::ROTi( 0x8, RIR);

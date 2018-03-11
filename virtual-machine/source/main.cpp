@@ -107,16 +107,15 @@ int main(int argc, char** argv) {
 
     Processor cpu(0x10000); // 64k of memory
 
-
     for (auto t : devices) {
         cpu.useDevice(*std::get<0>(t), std::get<1>(t), std::get<2>(t));
     }
 
     // Initialise the state of the processor
 
-    cpu.exec(0x010d); // MOV  r0    rFLAGS
-    cpu.exec(0x010e); // MOV  r0    rSTACK
-    cpu.exec(0x401f); // ADDi r0 $1 rPC
+    cpu.set(RegisterManager::FLAGS, 0);
+    cpu.set(RegisterManager::STACK, 0);
+    cpu.set(RegisterManager::PC,    1);
 
     // Push any data in the file to memory
     if (filename) {

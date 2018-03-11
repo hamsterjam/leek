@@ -51,7 +51,7 @@ int main(int argc, char** argv) {
     // instruction to be 0 (such as the destination for flag operations), this
     // actually tests some isntructions that are technically undefined.
 
-    cout << "Move and set opCodes:" << endl;
+    cout << "Move opCodes:" << endl;
 
     cout << "Testing NOP...   \t" << flush;
     testShortOp(0x0, Operation::NOP);
@@ -59,24 +59,24 @@ int main(int argc, char** argv) {
     cout << "Testing MOV...   \t" << flush;
     testShortOp(0x1, Operation::MOV);
 
-    cout << "Testing HSET...  \t" << flush;
-    testLongOp(0x1, Operation::HSET);
-
-    cout << "Testing LSET...  \t" << flush;
-    testLongOp(0x2, Operation::LSET);
-
 
     cout << endl;
     cout << "Arithmetic opCodes:" << endl;
 
     cout << "Testing ADD...   \t" << flush;
-    testLongOp(0x3, Operation::ADD);
+    testLongOp(0x1, Operation::ADD);
+
+    cout << "Testing ADDC...  \t" << flush;
+    testLongOp(0x2, Operation::ADDC);
 
     cout << "Testing ADDi...  \t" << flush;
-    testLongOp(0x4, Operation::ADDi);
+    testLongOp(0x3, Operation::ADDi);
 
     cout << "Testing SUB...   \t" << flush;
-    testLongOp(0x5, Operation::SUB);
+    testLongOp(0x4, Operation::SUB);
+
+    cout << "Testing SUBB...  \t" << flush;
+    testLongOp(0x5, Operation::SUBB);
 
     cout << "Testing SUBi...  \t" << flush;
     testLongOp(0x6, Operation::SUBi);
@@ -144,6 +144,10 @@ int main(int argc, char** argv) {
     cout << "Testing FCLR...  \t" << flush;
     testShortOp(0x9, Operation::FCLR);
 
+
+    cout << endl;
+    cout << "Interrupt opCodes:" << endl;
+
     cout << "Testing FTOG...  \t" << flush;
     testShortOp(0xa, Operation::FTOG);
 
@@ -160,12 +164,12 @@ int main(int argc, char** argv) {
         // these variables are pairwise unique
         bool unique = true;
         unique = unique && Operation::NOP   != Operation::MOV;
-        unique = unique && Operation::MOV   != Operation::HSET;
-        unique = unique && Operation::HSET  != Operation::LSET;
-        unique = unique && Operation::LSET  != Operation::ADD;
-        unique = unique && Operation::ADD   != Operation::ADDi;
+        unique = unique && Operation::MOV   != Operation::ADD;
+        unique = unique && Operation::ADD   != Operation::ADDC;
+        unique = unique && Operation::ADDC  != Operation::ADDi;
         unique = unique && Operation::ADDi  != Operation::SUB;
-        unique = unique && Operation::SUB   != Operation::SUBi;
+        unique = unique && Operation::SUB   != Operation::SUBB;
+        unique = unique && Operation::SUBB  != Operation::SUBi;
         unique = unique && Operation::SUBi  != Operation::ROT;
         unique = unique && Operation::ROT   != Operation::ROTi;
         unique = unique && Operation::ROTi  != Operation::OR;

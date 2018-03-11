@@ -27,17 +27,17 @@ class Operation {
         static Operation& fromInstruction(uint16_t instruction);
         Mode getMode();
 
-        // Move and set operations
-        static Operation NOP, MOV, HSET, LSET;
+        // Move operations
+        static Operation NOP, MOV;
         // Arithmetic operations
-        static Operation ADD, ADDi, SUB, SUBi, ROT, ROTi;
+        static Operation ADD, ADDC, ADDi, SUB, SUBB, SUBi, ROT, ROTi;
         // Logic operations
         static Operation OR, AND, XOR, NOT;
         // Memory operations
         static Operation STORE, LOAD, LDRf, LDRb, PUSH, POP;
         // Jump and flag operations
         static Operation JMPf, JMPb, FJMP, FSET, FCLR, FTOG;
-        // Other operations
+        // Interrupt operations
         static Operation INTER, WFI;
 
     private:

@@ -1,35 +1,38 @@
 
 ### Setup
 
-1C1A    # HSET      0xC1            r10
-200A    # LSET      0x00            r10
+C12A    # LDR+      18              r10
 0101    # MOV       r0              r1
-4012    # ADDi      r0      1       r2
-4013    # ADDi      r0      1       r3
+3012    # ADDi      r0      1       r2
+3013    # ADDi      r0      1       r3
 
 ### Print r2
 
-4F3C    # ADDi      rPC     3       rIHP
+3F3C    # ADDi      rPC     3       rIHP
 084D    # SETF      fICF
 032A    # STORE     r2              r10
 0C0F    # WFI
 
 ### Print r3
 
-4F3C    # ADDi      rPC     3       rIHP
+3F3C    # ADDi      rPC     3       rIHP
 084D    # SETF      fICF
 033A    # STORE     r3              r10
 0C0F    # WFI
 
 ### Calculate next Fibonacci numbers
 
-3232    # ADD       r2      r3      r2
-3233    # ADD       r2      r3      r3
+1232    # ADD       r2      r3      r2
+1233    # ADD       r2      r3      r3
 
 ### Loop 12 times
 
-4111    # ADDi      r1      1       r1
+3111    # ADDi      r1      1       r1
 61C0    # SUBi      r1      12      r0
 070F    # FJMP      fZERO
 F01F    # JMP-      1
 F0FF    # JMP-      15
+
+### Data
+
+C100    # Memory mapped address of output
