@@ -1,8 +1,7 @@
 
 # Setup
 
-HSET    0xC1            r10
-LSET    0x00            r10
+LDR     textOut         r9
 MOV     r0              r1
 ADDi    r0      1       r2
 ADDi    r0      1       r3
@@ -12,9 +11,9 @@ FCLR    fICF
 
 loop:
 
-STORE   r2              r10
+STORE   r2              r9
 WFI
-STORE   r3              r10
+STORE   r3              r9
 WFI
 
 # Calculate next numbers
@@ -29,3 +28,7 @@ SUBi    r1      12      r0
 FJMP    fZERO
 JMP-    1
 JMP     loop
+
+# Data
+
+textOut: LIT 0xC100

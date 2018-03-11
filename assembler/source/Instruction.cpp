@@ -19,21 +19,19 @@ Instruction::Instruction(std::string& opCode) {
         setNextValue(0x0);
         setNextValue(0x1);
     }
-    else if (opCode == "HSET") {
-        setNextValue(0x1);
-        setNextValue(0x0);
-    }
-    else if (opCode == "LSET") {
-        setNextValue(0x2);
-        setNextValue(0x0);
-    }
     else if (opCode == "ADD") {
-        setNextValue(0x3);
+        setNextValue(0x1);
+    }
+    else if (opCode == "ADDC") {
+        setNextValue(0x2);
     }
     else if (opCode == "ADDi") {
-        setNextValue(0x4);
+        setNextValue(0x3);
     }
     else if (opCode == "SUB") {
+        setNextValue(0x4);
+    }
+    else if (opCode == "SUBB") {
         setNextValue(0x5);
     }
     else if (opCode == "SUBi") {
@@ -130,12 +128,17 @@ Instruction::Instruction(std::string& opCode) {
         setNextValue(0x0);
         setNextValue(0xF);
     }
+    else if (opCode == "LIT") {
+        setNextValue(0x0);
+        setNextValue(0x0);
+        setNextValue(0x0);
+    }
 }
 
 void Instruction::addArgument(std::string& arg) {
     // If the first character is a number
     if (arg[0] >= '0' && arg[0] <= '9') {
-        uint8_t val = 0;
+        uint16_t val = 0;
         // If it begins with 0x interperet it as hex, otherwise as dec
         if (arg[0] == '0' && arg[1] == 'x') {
             val = std::stoul(arg.substr(2, -1), NULL, 16);
@@ -170,7 +173,7 @@ void Instruction::linkReferences(std::map<std::string, unsigned int>& sym, unsig
                 if (refValue > num) {
                     refValue = refValue - num;
                     // Recalling that backwards jumps are the default
-                    toggleJumpDir();
+                    toggleRefDir();
                 }
                 else {
                     refValue = num - refValue;
@@ -204,16 +207,16 @@ uint16_t Instruction::toBin() {
     return ret;
 }
 
-void Instruction::setValue(int pos, uint8_t value) {
+void Instruction::setValue(int pos, uint16_t value) {
     args[pos].value = value;
     args[pos].ready = true;
 }
 
-void Instruction::setNextValue(uint8_t value) {
+void Instruction::setNextValue(uint16_t value) {
     setValue(nextFree, value);
     while (args[--nextFree].ready);
 }
 
-void Instruction::toggleJumpDir() {
-    args[2].value ^= 0x3;
+void Instruction::toggleRefDir() {
+    args[3].value ^= 0x1;
 }

@@ -16,17 +16,17 @@ class Instruction {
         uint16_t toBin();
     private:
         struct Arg {
-            uint8_t     value;
+            uint16_t     value;
             std::string reference;
 
             bool ready;
             bool relative;
         };
 
-        void setValue(int pos, uint8_t value);
-        void setNextValue(uint8_t value);
+        void setValue(int pos, uint16_t value);
+        void setNextValue(uint16_t value);
 
-        void toggleJumpDir();
+        void toggleRefDir();
 
         Arg args[4]; // little-endian
         int nextFree;
