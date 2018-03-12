@@ -170,7 +170,8 @@ void Instruction::linkReferences(std::map<std::string, unsigned int>& sym, unsig
     for (int i = 0; i < 4; ++i) {
         if (!args[i].ready) {
             if (!sym.count(args[i].reference)) {
-                std::cerr << "Undefined reference to \"" << args[i].reference << "\"" << std::endl;
+                std::cerr << "Undefined reference to \"" << args[i].reference
+                    << "\" (line " << sourceLineNumber << ")" << std::endl;
                 return;
             }
 
@@ -188,8 +189,7 @@ void Instruction::linkReferences(std::map<std::string, unsigned int>& sym, unsig
                 }
             }
 
-            args[i].value = refValue;
-            args[i].ready = true;
+            setValue(i, refValue);
         }
     }
 }
