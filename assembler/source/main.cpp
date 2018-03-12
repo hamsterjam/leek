@@ -30,7 +30,8 @@ void addStandardReferences(std::map<std::string, unsigned int>& symbolTable) {
 
     // Symbolic register references
     symbolTable["rMBZ"]   = 0;
-    symbolTable["rAUX"]   = 11;
+    symbolTable["rAUX1"]  = 10;
+    symbolTable["rAUX2"]  = 11;
     symbolTable["rIHP"]   = 12;
     symbolTable["rFLAGS"] = 13;
     symbolTable["rSTACK"] = 14;
@@ -51,7 +52,6 @@ void addStandardReferences(std::map<std::string, unsigned int>& symbolTable) {
     symbolTable["fISF5"]  = 13;
     symbolTable["fISF6"]  = 14;
     symbolTable["fISF7"]  = 15;
-
 }
 
 int main(int argc, char** argv) {
