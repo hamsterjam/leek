@@ -5,8 +5,16 @@
 
 #include <cstdint>
 
-Instruction::Instruction(std::string& opCode) {
+Instruction::Instruction(std::string& opCode, unsigned int sourceLineNumber) {
+    this->sourceLineNumber = sourceLineNumber;
     nextFree = 3;
+
+    // At least clear the bools
+    for (int i = 0; i < 4; ++i) {
+        args[i].ready    = false;
+        args[i].relative = false;
+        args[i].reserved = false;
+    }
 
     // There is probably a much nicer way to do this...
     if      (opCode == "NOP") {
@@ -66,12 +74,12 @@ Instruction::Instruction(std::string& opCode) {
     }
     else if (opCode == "LDR+") {
         setNextValue(0xC);
-        setNextValue(0x0);
+        reserveNext();
         args[1].relative = true;
     }
     else if (opCode == "LDR-" || opCode == "LDR") {
         setNextValue(0xD);
-        setNextValue(0x0);
+        reserveNext();
         args[1].relative = true;
     }
     else if (opCode == "PUSH") {
@@ -86,13 +94,13 @@ Instruction::Instruction(std::string& opCode) {
     }
     else if (opCode == "JMP+") {
         setNextValue(0xE);
-        setNextValue(0x0);
+        reserveNext();
         setValue(0, 0xF);
         args[1].relative = true;
     }
     else if (opCode == "JMP-" || opCode == "JMP") {
         setNextValue(0xF);
-        setNextValue(0x0);
+        reserveNext();
         setValue(0, 0xF);
         args[1].relative = true;
     }
@@ -129,9 +137,9 @@ Instruction::Instruction(std::string& opCode) {
         setNextValue(0xF);
     }
     else if (opCode == "LIT") {
-        setNextValue(0x0);
-        setNextValue(0x0);
-        setNextValue(0x0);
+        reserveNext();
+        reserveNext();
+        reserveNext();
     }
 }
 
@@ -208,12 +216,46 @@ uint16_t Instruction::toBin() {
 }
 
 void Instruction::setValue(int pos, uint16_t value) {
+    // Make sure the value isn't too big
+    if ((pos >= 3 || !args[pos + 1].reserved) && value > 0xF) {
+        // Max of 4 bits, got something longer
+        std::cerr << "Argument longer than expected 4 bits."
+            << "(line " << sourceLineNumber
+            << ", arg " << 4 - pos - 1
+            << ")" << std::endl;
+        return;
+    }
+    if ((pos >= 2 || !args[pos + 2].reserved) && value > 0xFF) {
+        // Max of 8 bits, got something longer
+        std::cerr << "Argument longer than expected 8 bits."
+            << "(line " << sourceLineNumber
+            << ", arg " << 4 - pos - 2
+            << ")" << std::endl;
+        return;
+    }
+    if ((pos >= 1 || !args[pos + 3].reserved) && value > 0xFFF) {
+        // Max of 12 bits, got something longer
+        std::cerr << "Argument longer than expected 12 bits."
+            << "(line " << sourceLineNumber
+            << ", arg " << 4 - pos - 2
+            << ")" << std::endl;
+        return;
+    }
+
     args[pos].value = value;
     args[pos].ready = true;
 }
 
 void Instruction::setNextValue(uint16_t value) {
     setValue(nextFree, value);
+
+    if (!args[nextFree].ready) return;
+    while (args[--nextFree].ready);
+}
+
+void Instruction::reserveNext() {
+    args[nextFree].reserved = true;
+    args[nextFree].ready    = true;
     while (args[--nextFree].ready);
 }
 

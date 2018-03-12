@@ -174,7 +174,7 @@ int main(int argc, char** argv) {
                 // Process instruction
                 if (!instr) {
                     // If we arent processing an instruction, start
-                    instructions.push_back(new Instruction(tok));
+                    instructions.push_back(new Instruction(tok, sourceLineNumber));
                     instr = instructions[logicalLineNumber];
 
                     ++logicalLineNumber;
@@ -183,7 +183,7 @@ int main(int argc, char** argv) {
                     // If we are processing an instruction, add an argument
                     if (instr->isSpecified()) {
                         // Unless its already fully specified
-                        std::cerr << "Too many arguments provided to instruction on line: " << sourceLineNumber << std::endl;
+                        std::cerr << "Too many arguments provided to instruction. (line " << sourceLineNumber << ")" << std::endl;
                         return 1;
                     }
                     instr->addArgument(tok);
@@ -192,7 +192,7 @@ int main(int argc, char** argv) {
         }
         if (instr && !instr->isSpecified()) {
             // If the line had an instruction, and its not fully specified
-            std::cerr << "Too few arguments provided to instruction on line: " << sourceLineNumber << std::endl;
+            std::cerr << "Too few arguments provided to instruction. (line " << sourceLineNumber << ")" << std::endl;
             return 1;
         }
 
