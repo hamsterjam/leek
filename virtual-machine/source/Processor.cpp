@@ -143,6 +143,26 @@ void Processor::exec(uint16_t instruction) {
                     inA >= 0x8000 && inB <  0x8000 && res <  0x8000;
         reg.setBit(RegisterManager::FLAGS, OVER_FLAG, over);
     }
+    else if (op == Operation::MUL) {
+        uint32_t prod = inA * inB;
+        uint16_t prodHi = res > 16;
+        uint16_t prodLo = res & ((1 << 16) - 1);
+
+        res = prodLo;
+        reg[RegisterManager::AUX] = prodHi;
+
+        setStateFlags = true;
+    }
+    else if (op == Operation::DIV) {
+        uint32_t divisor = reg[RegisterManager::AUX] << 16 | inA;
+        uint16_t quotient = divisor / inB;
+        uint16_t modulus  = divisor % inB;
+
+        res = quotient;
+        reg[RegisterManager::AUX] = modulus;
+
+        setStateFlags = true;
+    }
     else if (op == Operation::ROT || op == Operation::ROTi) {
         inB %= 16;
 
