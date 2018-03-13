@@ -42,11 +42,12 @@ print:
     REL     data        r1
     REL     printAddr   r3
     LOAD    r3          r3
+
     printlp:
         LOAD    r1      r2
         ADD     r2  r0  r0
         FJMP    fZERO
-        JMP-    1           ## HALT ##
+        HALT
         STORE   r2      r3
         WFI
         ADDi    r1  1   r1

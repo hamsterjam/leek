@@ -27,7 +27,7 @@ ADD     r2      r3      r3
 ADDi    r1      1       r1
 SUBi    r1      12      r0
 FJMP    fZERO
-JMP-    1
+HALT
 JMP     loop
 
 # Data

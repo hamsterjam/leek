@@ -142,6 +142,12 @@ Instruction::Instruction(std::string& opCode, unsigned int sourceLineNumber) {
         setNextValue(0x0);
         setNextValue(0xF);
     }
+    else if (opCode == "HALT") {
+        setNextValue(0x2);
+        setNextValue(0x0);
+        setNextValue(0x1);
+        setNextValue(0xF);
+    }
     else if (opCode == "LIT") {
         reserveNext();
         reserveNext();
