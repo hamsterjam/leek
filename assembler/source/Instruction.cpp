@@ -27,38 +27,66 @@ Instruction::Instruction(std::string& opCode, unsigned int sourceLineNumber) {
         setNextValue(0x0);
         setNextValue(0x1);
     }
-    else if (opCode == "ADD") {
+    else if (opCode == "REL+") {
         setNextValue(0x1);
+        reserveNext();
+        args[1].relative = true;
     }
-    else if (opCode == "ADDC") {
+    else if (opCode == "REL-" || opCode == "REL") {
         setNextValue(0x2);
+        reserveNext();
+        args[1].relative = true;
     }
-    else if (opCode == "ADDi") {
+    else if (opCode == "JMP+") {
+        setNextValue(0x1);
+        reserveNext();
+        setValue(0, 0xF);
+        args[1].relative = true;
+    }
+    else if (opCode == "JMP-" || opCode == "JMP") {
+        setNextValue(0x2);
+        reserveNext();
+        setValue(0, 0xF);
+        args[1].relative = true;
+    }
+    else if (opCode == "ADD") {
         setNextValue(0x3);
     }
-    else if (opCode == "SUB") {
+    else if (opCode == "ADDC") {
         setNextValue(0x4);
     }
-    else if (opCode == "SUBB") {
+    else if (opCode == "ADDi") {
         setNextValue(0x5);
     }
-    else if (opCode == "SUBi") {
+    else if (opCode == "SUB") {
         setNextValue(0x6);
     }
-    else if (opCode == "ROT") {
+    else if (opCode == "SUBB") {
         setNextValue(0x7);
     }
-    else if (opCode == "ROTi") {
+    else if (opCode == "SUBi") {
         setNextValue(0x8);
     }
-    else if (opCode == "OR") {
+    else if (opCode == "MUL") {
         setNextValue(0x9);
     }
-    else if (opCode == "AND") {
+    else if (opCode == "DIV") {
         setNextValue(0xA);
     }
-    else if (opCode == "XOR") {
+    else if (opCode == "ROT") {
         setNextValue(0xB);
+    }
+    else if (opCode == "ROTi") {
+        setNextValue(0xC);
+    }
+    else if (opCode == "OR") {
+        setNextValue(0xD);
+    }
+    else if (opCode == "AND") {
+        setNextValue(0xE);
+    }
+    else if (opCode == "XOR") {
+        setNextValue(0xF);
     }
     else if (opCode == "NOT") {
         setNextValue(0x0);
@@ -72,16 +100,6 @@ Instruction::Instruction(std::string& opCode, unsigned int sourceLineNumber) {
         setNextValue(0x0);
         setNextValue(0x4);
     }
-    else if (opCode == "LDR+") {
-        setNextValue(0xC);
-        reserveNext();
-        args[1].relative = true;
-    }
-    else if (opCode == "LDR-" || opCode == "LDR") {
-        setNextValue(0xD);
-        reserveNext();
-        args[1].relative = true;
-    }
     else if (opCode == "PUSH") {
         setNextValue(0x0);
         setNextValue(0x5);
@@ -91,18 +109,6 @@ Instruction::Instruction(std::string& opCode, unsigned int sourceLineNumber) {
         setNextValue(0x0);
         setNextValue(0x6);
         setNextValue(0xE);
-    }
-    else if (opCode == "JMP+") {
-        setNextValue(0xE);
-        reserveNext();
-        setValue(0, 0xF);
-        args[1].relative = true;
-    }
-    else if (opCode == "JMP-" || opCode == "JMP") {
-        setNextValue(0xF);
-        reserveNext();
-        setValue(0, 0xF);
-        args[1].relative = true;
     }
     else if (opCode == "FJMP") {
         setNextValue(0x0);
@@ -260,5 +266,5 @@ void Instruction::reserveNext() {
 }
 
 void Instruction::toggleRefDir() {
-    args[3].value ^= 0x1;
+    args[3].value ^= 0x3;
 }

@@ -1,7 +1,8 @@
 
 # Setup
 
-LDR     textOut         r9
+REL     textOut         r9
+LOAD    r9              r9
 MOV     r0              r1
 ADDi    r0      1       r2
 ADDi    r0      1       r3
