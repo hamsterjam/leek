@@ -59,46 +59,58 @@ int main(int argc, char** argv) {
     cout << "Testing MOV...   \t" << flush;
     testShortOp(0x1, Operation::MOV);
 
+    cout << "Testing REL+...  \t" << flush;
+    testLongOp(0x1, Operation::RELp);
+
+    cout << "Testing REL-...  \t" << flush;
+    testLongOp(0x2, Operation::RELm);
+
 
     cout << endl;
     cout << "Arithmetic opCodes:" << endl;
 
     cout << "Testing ADD...   \t" << flush;
-    testLongOp(0x1, Operation::ADD);
+    testLongOp(0x3, Operation::ADD);
 
     cout << "Testing ADDC...  \t" << flush;
-    testLongOp(0x2, Operation::ADDC);
+    testLongOp(0x4, Operation::ADDC);
 
     cout << "Testing ADDi...  \t" << flush;
-    testLongOp(0x3, Operation::ADDi);
+    testLongOp(0x5, Operation::ADDi);
 
     cout << "Testing SUB...   \t" << flush;
-    testLongOp(0x4, Operation::SUB);
+    testLongOp(0x6, Operation::SUB);
 
     cout << "Testing SUBB...  \t" << flush;
-    testLongOp(0x5, Operation::SUBB);
+    testLongOp(0x7, Operation::SUBB);
 
     cout << "Testing SUBi...  \t" << flush;
-    testLongOp(0x6, Operation::SUBi);
+    testLongOp(0x8, Operation::SUBi);
+
+    cout << "Testing MUL...   \t" << flush;
+    testLongOp(0x9, Operation::MUL);
+
+    cout << "Testing DIV...   \t" << flush;
+    testLongOp(0xa, Operation::DIV);
 
     cout << "Testing ROT...   \t" << flush;
-    testLongOp(0x7, Operation::ROT);
+    testLongOp(0xb, Operation::ROT);
 
     cout << "Testing ROTi...  \t" << flush;
-    testLongOp(0x8, Operation::ROTi);
+    testLongOp(0xc, Operation::ROTi);
 
 
     cout << endl;
     cout << "Logic opCodes:" << endl;
 
     cout << "Testing OR...    \t" << flush;
-    testLongOp(0x9, Operation::OR);
+    testLongOp(0xd, Operation::OR);
 
     cout << "Testing AND...   \t" << flush;
-    testLongOp(0xa, Operation::AND);
+    testLongOp(0xe, Operation::AND);
 
     cout << "Testing XOR...   \t" << flush;
-    testLongOp(0xb, Operation::XOR);
+    testLongOp(0xf, Operation::XOR);
 
     cout << "Testing NOT...   \t" << flush;
     testShortOp(0x2, Operation::NOT);
@@ -113,12 +125,6 @@ int main(int argc, char** argv) {
     cout << "Testing LOAD...  \t" << flush;
     testShortOp(0x4, Operation::LOAD);
 
-    cout << "Testing LDR+...  \t" << flush;
-    testLongOp(0xc, Operation::LDRf);
-
-    cout << "Testing LDR-...  \t" << flush;
-    testLongOp(0xd, Operation::LDRb);
-
     cout << "Testing PUSH...  \t" << flush;
     testShortOp(0x5, Operation::PUSH);
 
@@ -128,12 +134,6 @@ int main(int argc, char** argv) {
 
     cout << endl;
     cout << "Jump and flag opCodes:" << endl;
-
-    cout << "Testing JMP+...  \t" << flush;
-    testLongOp(0xe, Operation::JMPf);
-
-    cout << "Testing JMP-...  \t" << flush;
-    testLongOp(0xf, Operation::JMPb);
 
     cout << "Testing FJMP...  \t" << flush;
     testShortOp(0x7, Operation::FJMP);
@@ -145,14 +145,18 @@ int main(int argc, char** argv) {
     testShortOp(0x9, Operation::FCLR);
 
 
-    cout << endl;
-    cout << "Interrupt opCodes:" << endl;
-
     cout << "Testing FTOG...  \t" << flush;
     testShortOp(0xa, Operation::FTOG);
 
+
+    cout << endl;
+    cout << "Interrupt opCodes:" << endl;
+
     cout << "Testing INTER... \t" << flush;
     testShortOp(0xb, Operation::INTER);
+
+    cout << "Testing WFI...   \t" << flush;
+    testShortOp(0xc, Operation::WFI);
 
 
     cout << endl;
@@ -164,13 +168,17 @@ int main(int argc, char** argv) {
         // these variables are pairwise unique
         bool unique = true;
         unique = unique && Operation::NOP   != Operation::MOV;
-        unique = unique && Operation::MOV   != Operation::ADD;
+        unique = unique && Operation::MOV   != Operation::RELp;
+        unique = unique && Operation::RELp  != Operation::RELm;
+        unique = unique && Operation::RELm  != Operation::ADD;
         unique = unique && Operation::ADD   != Operation::ADDC;
         unique = unique && Operation::ADDC  != Operation::ADDi;
         unique = unique && Operation::ADDi  != Operation::SUB;
         unique = unique && Operation::SUB   != Operation::SUBB;
         unique = unique && Operation::SUBB  != Operation::SUBi;
-        unique = unique && Operation::SUBi  != Operation::ROT;
+        unique = unique && Operation::SUBi  != Operation::MUL;
+        unique = unique && Operation::MUL   != Operation::DIV;
+        unique = unique && Operation::DIV   != Operation::ROT;
         unique = unique && Operation::ROT   != Operation::ROTi;
         unique = unique && Operation::ROTi  != Operation::OR;
         unique = unique && Operation::OR    != Operation::AND;
@@ -178,13 +186,9 @@ int main(int argc, char** argv) {
         unique = unique && Operation::XOR   != Operation::NOT;
         unique = unique && Operation::NOT   != Operation::STORE;
         unique = unique && Operation::STORE != Operation::LOAD;
-        unique = unique && Operation::LOAD  != Operation::LDRf;
-        unique = unique && Operation::LDRf  != Operation::LDRb;
-        unique = unique && Operation::LDRb  != Operation::PUSH;
+        unique = unique && Operation::LOAD  != Operation::PUSH;
         unique = unique && Operation::PUSH  != Operation::POP;
-        unique = unique && Operation::POP   != Operation::JMPf;
-        unique = unique && Operation::JMPf  != Operation::JMPb;
-        unique = unique && Operation::JMPb  != Operation::FJMP;
+        unique = unique && Operation::POP   != Operation::FJMP;
         unique = unique && Operation::FJMP  != Operation::FSET;
         unique = unique && Operation::FSET  != Operation::FCLR;
         unique = unique && Operation::FCLR  != Operation::FTOG;

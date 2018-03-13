@@ -50,30 +50,30 @@ bool operator!=(Operation& lhs, Operation& rhs) {
 // Move and set operations
 Operation Operation::NOP(  0x0, RR);
 Operation Operation::MOV(  0x1, RR);
+Operation Operation::RELp( 0x1, IIR);
+Operation Operation::RELm( 0x2, IIR);
 // Arithmetic operations
-Operation Operation::ADD(  0x1, RRR);
-Operation Operation::ADDC( 0x2, RRR);
-Operation Operation::ADDi( 0x3, RIR);
-Operation Operation::SUB(  0x4, RRR);
-Operation Operation::SUBB( 0x5, RRR);
-Operation Operation::SUBi( 0x6, RIR);
-Operation Operation::ROT(  0x7, RRR);
-Operation Operation::ROTi( 0x8, RIR);
+Operation Operation::ADD(  0x3, RRR);
+Operation Operation::ADDC( 0x4, RRR);
+Operation Operation::ADDi( 0x5, RIR);
+Operation Operation::SUB(  0x6, RRR);
+Operation Operation::SUBB( 0x7, RRR);
+Operation Operation::SUBi( 0x8, RIR);
+Operation Operation::MUL(  0x9, RRR);
+Operation Operation::DIV(  0xa, RRR);
+Operation Operation::ROT(  0xb, RRR);
+Operation Operation::ROTi( 0xc, RIR);
 // Logic operations
-Operation Operation::OR(   0x9, RRR);
-Operation Operation::AND(  0xa, RRR);
-Operation Operation::XOR(  0xb, RRR);
+Operation Operation::OR(   0xd, RRR);
+Operation Operation::AND(  0xe, RRR);
+Operation Operation::XOR(  0xf, RRR);
 Operation Operation::NOT(  0x2, RR);
 // Memory operations
 Operation Operation::STORE(0x3, RR);
 Operation Operation::LOAD( 0x4, RR);
-Operation Operation::LDRf( 0xc, IIR);
-Operation Operation::LDRb( 0xd, IIR);
 Operation Operation::PUSH( 0x5, RR);
 Operation Operation::POP(  0x6, RR);
 // Jump and flag operations
-Operation Operation::JMPf( 0xe, IIR);
-Operation Operation::JMPb( 0xf, IIR);
 Operation Operation::FJMP( 0x7, IR);
 Operation Operation::FSET( 0x8, IR);
 Operation Operation::FCLR( 0x9, IR);

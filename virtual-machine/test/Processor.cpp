@@ -68,6 +68,45 @@ int main(int argc, char** argv) {
     }
 
     {
+        // Test JMP by attempting to jump from every address with every offset
+        cout << "Testing REL+/REL-... \t\t" << flush;
+
+        bool pass = true;
+
+        uint16_t  addr = 0;
+        uint8_t offset = 0;
+        do {
+            do {
+                uint16_t corrAddr;
+                test.set(RegisterManager::PC, addr);
+                test.exec(0x100f | offset << 4); // REL+ offset rPC
+
+                corrAddr = addr + offset;
+                if (test.inspect(15) != corrAddr) {
+                    pass = false;
+                    break;
+                }
+
+                test.set(RegisterManager::PC, addr);
+                test.exec(0x200f | offset << 4); // REL- offset rPC
+
+                corrAddr = addr - offset;
+                if (test.inspect(15) != corrAddr) {
+                    pass = false;
+                    break;
+                }
+            } while (++offset != 0);
+        } while (++addr != 0 && pass);
+
+        if (pass) {
+            cout << "OK!" << endl;
+        }
+        else {
+            cout << "Fail" << endl;
+        }
+    }
+
+    {
         // Test FSET, FCLR, and FTOG by calling each on every bit of every
         // possible value
         cout << "Testing flag operations... \t" << flush;
@@ -130,7 +169,7 @@ int main(int argc, char** argv) {
                 test.set(2, val2Hi << 8);
                 test.exec(0x080d);               // FCLR 0
                 test.exec(0x081d);               // FCLR 1
-                test.exec(0x1123);               // ADD 1 2 3
+                test.exec(0x3123);               // ADD 1 2 3
 
                 // Make sure the value is right
                 uint16_t corrRes = (val1Hi + val2Hi) << 8;
@@ -182,7 +221,7 @@ int main(int argc, char** argv) {
                 test.set(2, val2Hi << 8);
                 test.exec(0x080d);               // FCLR 0
                 test.exec(0x081d);               // FCLR 1
-                test.exec(0x4123);               // SUB 1 2 3
+                test.exec(0x6123);               // SUB 1 2 3
 
                 // Check we have the correct value
                 uint16_t corrRes = (val1Hi - val2Hi) << 8;
@@ -232,7 +271,7 @@ int main(int argc, char** argv) {
             for (uint8_t rot = 0; rot < 16; ++rot) {
                 test.set(1, val);
                 test.set(2, rot);
-                test.exec(0x7123);              // ROT 1 2 3
+                test.exec(0xb123);              // ROT 1 2 3
 
                 uint16_t corrRes = val << rot | val >> (16 - rot);
 
@@ -271,9 +310,9 @@ int main(int argc, char** argv) {
 
             do {
                 test.set(2, val2);
-                test.exec(0x9123);             // OR  1 2 3
-                test.exec(0xa124);             // AND 1 2 4
-                test.exec(0xb125);             // XOR 1 2 5
+                test.exec(0xd123);             // OR  1 2 3
+                test.exec(0xe124);             // AND 1 2 4
+                test.exec(0xf125);             // XOR 1 2 5
 
                 uint16_t corrOr  = val1 | val2;
                 uint16_t corrAnd = val1 & val2;
@@ -361,45 +400,6 @@ int main(int argc, char** argv) {
     }
 
     {
-        // Test JMP by attempting to jump from every address with every offset
-        cout << "Testing JMP+/JMP-... \t\t" << flush;
-
-        bool pass = true;
-
-        uint16_t  addr = 0;
-        uint8_t offset = 0;
-        do {
-            do {
-                uint16_t corrAddr;
-                test.set(RegisterManager::PC, addr);
-                test.exec(0xe00f | offset << 4); // JMP+ offset
-
-                corrAddr = addr + offset;
-                if (test.inspect(15) != corrAddr) {
-                    pass = false;
-                    break;
-                }
-
-                test.set(RegisterManager::PC, addr);
-                test.exec(0xf00f | offset << 4); // JMP- offset
-
-                corrAddr = addr - offset;
-                if (test.inspect(15) != corrAddr) {
-                    pass = false;
-                    break;
-                }
-            } while (++offset != 0);
-        } while (++addr != 0 && pass);
-
-        if (pass) {
-            cout << "OK!" << endl;
-        }
-        else {
-            cout << "Fail" << endl;
-        }
-    }
-
-    {
         // Just make sure it works with every flag in both positions
         cout << "Testing FJMP... \t\t" << flush;
 
@@ -448,10 +448,10 @@ int main(int argc, char** argv) {
 
         test.push(0x0101); // 1: MOV 0 1
         test.push(0x0102); // 2: MOV 0 2
-        test.push(0x3012); // 3: ADDi 0 1 2
-        test.push(0x1121); // 4: ADD 1 2 1
-        test.push(0x1122); // 5: ADD 1 2 2
-        test.push(0xf03f); // 6: JMP- $3    # line 4
+        test.push(0x5012); // 3: ADDi 0 1 2
+        test.push(0x3121); // 4: ADD 1 2 1
+        test.push(0x3122); // 5: ADD 1 2 2
+        test.push(0x203f); // 6: REL- $3 rPC    # line 4
 
         // tick 3 times to do the initial data set up, every 3 ticks after that
         // will calculate the next 2 fibonacci numbers. After n loops we should
@@ -474,7 +474,7 @@ int main(int argc, char** argv) {
         cout << "Bubble sort test... \t\t" << flush;
         test.set(RegisterManager::PC, 1);
         test.set(RegisterManager::STACK, 0x1337); // This is just a random address
-        test.exec(0x3e1a); // ADDi STACK 1 10
+        test.exec(0x5e1a); // ADDi STACK 1 10
 
         // Push the data
         test.push(5);
@@ -494,23 +494,23 @@ int main(int argc, char** argv) {
         // Push the program
         test.push(0x01a1); //  1: MOV 10 1
         test.push(0x085d); //  2: FSET 5
-        test.push(0x3112); //  3: ADDi 1 1 2
+        test.push(0x5112); //  3: ADDi 1 1 2
         test.push(0x0413); //  4: LOAD 1 3
         test.push(0x0424); //  5: LOAD 2 4
-        test.push(0x1400); //  6: ADD 4 0 0
+        test.push(0x3400); //  6: ADD 4 0 0
         test.push(0x070f); //  7: FJMP ZERO
-        test.push(0xe08f); //  8: JMP+ 8        # line 17
-        test.push(0x4340); //  9: SUB 3 4 0
+        test.push(0x108f); //  8: REL+ 8 rPC    # line 17
+        test.push(0x6340); //  9: SUB 3 4 0
         test.push(0x071f); // 10: FJMP NEG
-        test.push(0xe03f); // 11: JMP+ 3        # line 15
+        test.push(0x103f); // 11: REL+ 3 rPC    # line 15
         test.push(0x0341); // 12: STORE 4 1
         test.push(0x0332); // 13: STORE 3 2
         test.push(0x095d); // 14: FCLR 5
         test.push(0x0121); // 15: MOV 2 1
-        test.push(0xf0ef); // 16: JMP- 14       # line 3
+        test.push(0x20ef); // 16: REL- 14 rPC   # line 3
         test.push(0x075f); // 17: FJMP 5
-        test.push(0xf01f); // 18: JMP- 1        # halt
-        test.push(0xf13f); // 19: JMP- 19       # line 1
+        test.push(0x201f); // 18: REL- 1 rPC    # halt
+        test.push(0x213f); // 19: REL- 19 rPC   # line 1
 
         // Keep going till the PC gets stuck
         uint16_t prevPC = test.inspect(15);
@@ -523,7 +523,7 @@ int main(int argc, char** argv) {
         bool pass = true;
 
         test.exec(0x01ae); // MOV 10 STACK
-        test.exec(0x3e9e); // ADDi STACK 9 STACK
+        test.exec(0x5e9e); // ADDi STACK 9 STACK
         for (int i = 10; i >= 1; --i) {
             test.exec(0x06e1); // POP 1
             if (test.inspect(1) != i) {

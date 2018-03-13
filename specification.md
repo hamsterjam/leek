@@ -53,15 +53,14 @@ There are 16 registers. All are 16 bits in length. There are 6 special purpose r
 
 ```
 0  = 0x0 = MBZ
-10 = 0xa = AUX1
-11 = 0xb = AUX2
+11 = 0xb = AUX
 12 = 0xc = IHP
 13 = 0xd = FLAGS
 14 = 0xe = STACK
 15 = 0xf = PC
 ```
 The MBZ register is the **M**ust **B**e **Z**ero register. It will always hold the value 0, any attempts to write to it will be ignored.
-The AUX registers are reserved for latter use but have no current use.
+The AUX registers is reserved for latter use but has no current use.
 The IHP register is the **I**nterrupt **H**andler **P**ointer. It points to a subroutine in memory that is called when an interrupt occurs.
 The STACK register is used for PUSH and POP operations. It points to the most recently PUSHed value.
 The PC register is the program counter. This points to the next operation to be executed by the processor.
@@ -107,30 +106,30 @@ Opperations Reference
 |-----------|------|---------|
 | **NOP**   | RR   | 0x00    |
 | **MOV**   | RR   | 0x01    |
+| **REL+**  | IIR  | 0x1     |
+| **REL-**  | IIR  | 0x2     |
 ||||
-| **ADD**   | RRR  | 0x1     |
-| **ADDC**  | RRR  | 0x2     |
-| **ADDi**  | RIR  | 0x3     |
-| **SUB**   | RRR  | 0x4     |
-| **SUBB**  | RRR  | 0x5     |
-| **SUBi**  | RIR  | 0x6     |
-| **ROT**   | RRR  | 0x7     |
-| **ROTi**  | RIR  | 0x8     |
+| **ADD**   | RRR  | 0x3     |
+| **ADDC**  | RRR  | 0x4     |
+| **ADDi**  | RIR  | 0x5     |
+| **SUB**   | RRR  | 0x6     |
+| **SUBB**  | RRR  | 0x7     |
+| **SUBi**  | RIR  | 0x8     |
+| **MUL**   | RRR  | 0x9     |
+| **DIV**   | RRR  | 0xa     |
+| **ROT**   | RRR  | 0xb     |
+| **ROTi**  | RIR  | 0xc     |
 ||||
-| **OR**    | RRR  | 0x9     |
-| **AND**   | RRR  | 0xa     |
-| **XOR**   | RRR  | 0xb     |
+| **OR**    | RRR  | 0xd     |
+| **AND**   | RRR  | 0xe     |
+| **XOR**   | RRR  | 0xf     |
 | **NOT**   | RR   | 0x02    |
 ||||
 | **STORE** | RR   | 0x03    |
 | **LOAD**  | RR   | 0x04    |
-| **LDR+**  | IIR  | 0xc     |
-| **LDR-**  | IIR  | 0xd     |
 | **PUSH**  | RR   | 0x05    |
 | **POP**   | RR   | 0x06    |
 ||||
-| **JMP+**  | IIR  | 0xe     |
-| **JMP-**  | IIR  | 0xf     |
 | **FJMP**  | IR   | 0x07    |
 | **FSET**  | IR   | 0x08    |
 | **FCLR**  | IR   | 0x09    |
@@ -142,7 +141,7 @@ Opperations Reference
 Operations
 ----------
 
-### Move
+### Move and Set
 
 #### NOP
 `0000 0000 0000 0000`  
@@ -154,62 +153,82 @@ Does no opperation.
 RR type.  
 Copies the value of rA into rD.
 
+#### REL+
+`0001 [  off  ] [rD]`  
+IIR type.  
+Stores the value of rPC + off in rD. You can use this for unconditional jumps if rD is set to rPC.
+
+#### REL-
+`0010 [  off  ] [rD]`  
+IIR type.  
+Stores the value of rPC - off in rD. You can use this for unconditional jumps if rD is set to rPC.
+
 ### Arithmetic
 
 #### ADD
-`0001 [rA] [rB] [rD]`  
+`0011 [rA] [rB] [rD]`  
 RRR type.  
 Stores the result of rA+rB in register rD. Sets the carry, overflow, negative, and zero flags.
 
 #### ADDC
-`0010 [rA] [rB] [rD]`  
+`0100 [rA] [rB] [rD]`  
 RRR type.  
 Add with carry. Stores the result of rA+rB+fCARRY in register rD. Sets the carry, overflow, negative, and zero flags:
 
 #### ADDi
-`0011 [rA] [iB] [rD]`  
+`0101 [rA] [iB] [rD]`  
 RIR type.  
 Stores the result of rA+iB in register rD. Sets the carry, overflow, negative, and zero flags.
 
 #### SUB
-`0100 [rA] [rB] [rD]`  
+`0110 [rA] [rB] [rD]`  
 RRR type.  
 Stores the result of rA-rB in register rD. Sets the carry (for a borrow), overflow, negative, and zero flags.
 
 #### SUBB
-`0101 [rA] [rB] [rD]`  
+`0111 [rA] [rB] [rD]`  
 RRR type.  
 Subtraction with borrow. Stores the result of rA-rB-fCARRY in register rD. Sets the carry, overflow, negative, and zero flags.
 
 #### SUBi
-`0110 [rA] [iB] [rD]`  
+`1000 [rA] [iB] [rD]`  
 RIR type.  
 Stores the result of rA-iB in register rD. Sets the carry (for a borrow), overflow, negative, and zero flags.
 
+#### MUL
+`1001 [rA] [rB] [rD]`  
+RRR type.  
+Calculates the product of rA and rB. The lower word of the result is stored in rD. The upper word is stored in rAUX.
+
+#### DIV
+`1010 [rA] [rB] [rD]`  
+RRR type.  
+Computes the division rAUX:rA / rB. The quotient is stored in rD and the remainder is stored in rAUX.
+
 #### ROT
-`0111 [rA] [rB] [rD]`  
+`1011 [rA] [rB] [rD]`  
 RRR type.  
 Shifts rA to the left rB places (with wrapping) and stores the result in rD.
 
 #### ROTi
-`1000 [rA] [iB] [rD]`  
+`1100 [rA] [iB] [rD]`  
 RIR type.  
 Shifts rA to the left iB places (with wrapping) and stores the result in rD.
 
 ### Logic
 
 #### OR
-`1001 [rA] [rB] [rD]`  
+`1101 [rA] [rB] [rD]`  
 RRR type.  
 Performs a bitwise OR on rA and rB and stores the result in rD. Sets the zero flag.
 
 #### AND
-`1010 [rA] [rB] [rD]`  
+`1110 [rA] [rB] [rD]`  
 RRR type.  
 Performs a bitwise AND on rA and rB and stores the result in rD. Sets the zero flag.
 
 #### XOR
-`1011 [rA] [rB] [rD]`  
+`1111 [rA] [rB] [rD]`  
 RRR type.  
 Performs a bitwse XOR on rA and rB and stores the result in rD. Sets the zero flag.
 
@@ -230,16 +249,6 @@ Stores rA in the address ad in memory.
 RR type.  
 Stores the value at address ad in rD.
 
-#### LDR+
-`1100 [  off  ] [rD]`  
-IIR type.  
-Stores the value at memory address rPC + off into register rD.
-
-#### LDR-
-`1101 [  off  ] [rD]`  
-IIR type.  
-Stores the value at memory address rPC - off into register rD.
-
 #### PUSH
 `0000 0101 [rA] 1110`  
 RR type.  
@@ -250,17 +259,7 @@ Stores rA at the address in rSTACK, then increments rSTACK.
 RR type.  
 Stores the value at address rSTACK in rD, then decrements rSTACK.
 
-### Jump and Flags
-
-#### JMP+
-`1110 [  off  ] 1111`  
-IIR type.  
-Unconditional forward jump. Sets rPC to rPC + off.
-
-#### JMP-
-`1111 [  off  ] 1111`  
-IIR type.  
-Unconditional backward jump. Sets rPC to rPC - off.
+### Flag Operations
 
 #### FJMP
 `0000 0111 [iA] 1111`  

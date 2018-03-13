@@ -28,15 +28,15 @@ class Operation {
         Mode getMode();
 
         // Move operations
-        static Operation NOP, MOV;
+        static Operation NOP, MOV, RELp, RELm;
         // Arithmetic operations
-        static Operation ADD, ADDC, ADDi, SUB, SUBB, SUBi, ROT, ROTi;
+        static Operation ADD, ADDC, ADDi, SUB, SUBB, SUBi, MUL, DIV, ROT, ROTi;
         // Logic operations
         static Operation OR, AND, XOR, NOT;
         // Memory operations
-        static Operation STORE, LOAD, LDRf, LDRb, PUSH, POP;
-        // Jump and flag operations
-        static Operation JMPf, JMPb, FJMP, FSET, FCLR, FTOG;
+        static Operation STORE, LOAD, PUSH, POP;
+        // Flag operations
+        static Operation FJMP, FSET, FCLR, FTOG;
         // Interrupt operations
         static Operation INTER, WFI;
 

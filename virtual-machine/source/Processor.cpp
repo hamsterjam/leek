@@ -46,7 +46,7 @@ void Processor::exec(uint16_t instruction) {
     switch (op.getMode()) {
         case (Operation::IIR):
             inA = (litA << 4) | litB;
-            inB = reg[litC];
+            inB = reg[RegisterManager::PC];
             break;
         case (Operation::RIR):
             inA = reg[litA];
@@ -96,6 +96,12 @@ void Processor::exec(uint16_t instruction) {
     }
     else if (op == Operation::MOV) {
         res = inA;
+    }
+    else if (op == Operation::RELp) {
+        res = inB + inA;
+    }
+    else if (op == Operation::RELm) {
+        res = inB - inA;
     }
 
     //
@@ -177,12 +183,6 @@ void Processor::exec(uint16_t instruction) {
     else if (op == Operation::STORE || op == Operation::LOAD) {
         res = inA;
     }
-    else if (op == Operation::LDRf) {
-        res = mem[reg[RegisterManager::PC] + inA];
-    }
-    else if (op == Operation::LDRb) {
-        res = mem[reg[RegisterManager::PC] - inA];
-    }
     else if (op == Operation::PUSH) {
         res = inA;
         // Stack pointer is already incremeneted
@@ -195,12 +195,6 @@ void Processor::exec(uint16_t instruction) {
     //
     // Jump and Flags
     //
-    else if (op == Operation::JMPf) {
-        res = inB + inA;
-    }
-    else if (op == Operation::JMPb) {
-        res = inB - inA;
-    }
     else if (op == Operation::FJMP) {
         if (!reg.getBit(RegisterManager::FLAGS, inA)) {
             res = inB + 1;
