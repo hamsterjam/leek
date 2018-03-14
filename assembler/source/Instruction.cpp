@@ -110,7 +110,7 @@ Instruction::Instruction(std::string& opCode, unsigned int sourceLineNumber) {
         setNextValue(0x6);
         setNextValue(0xE);
     }
-    else if (opCode == "FJMP") {
+    else if (opCode == "FPRED") {
         setNextValue(0x0);
         setNextValue(0x7);
         setValue(0, 0xF);

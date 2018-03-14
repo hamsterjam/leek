@@ -74,7 +74,7 @@ Operation Operation::LOAD( 0x4, RR);
 Operation Operation::PUSH( 0x5, RR);
 Operation Operation::POP(  0x6, RR);
 // Jump and flag operations
-Operation Operation::FJMP( 0x7, IR);
+Operation Operation::FPRED(0x7, IR);
 Operation Operation::FSET( 0x8, IR);
 Operation Operation::FCLR( 0x9, IR);
 Operation Operation::FTOG( 0xa, IR);

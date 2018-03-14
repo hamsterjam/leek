@@ -36,7 +36,7 @@ class Operation {
         // Memory operations
         static Operation STORE, LOAD, PUSH, POP;
         // Flag operations
-        static Operation FJMP, FSET, FCLR, FTOG;
+        static Operation FPRED, FSET, FCLR, FTOG;
         // Interrupt operations
         static Operation INTER, WFI;
 

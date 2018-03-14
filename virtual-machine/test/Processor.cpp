@@ -401,7 +401,7 @@ int main(int argc, char** argv) {
 
     {
         // Just make sure it works with every flag in both positions
-        cout << "Testing FJMP... \t\t" << flush;
+        cout << "Testing FPRED... \t\t" << flush;
 
         bool pass = true;
 
@@ -413,7 +413,7 @@ int main(int argc, char** argv) {
             for (uint8_t flag = 0; flag < 16; ++flag) {
                 test.set(RegisterManager::PC, addr);
                 test.exec(0x010d);               // MOV 0 FLAGS
-                test.exec(0x070f | flag << 4);   // FJMP flag
+                test.exec(0x070f | flag << 4);   // FPRED flag
 
                 uint16_t corrAddr = addr + 1;
                 if (test.inspect(15) != corrAddr) {
@@ -423,7 +423,7 @@ int main(int argc, char** argv) {
 
                 test.set(RegisterManager::PC, addr);
                 test.exec(0x011d);               // MOV 1 FLAGS
-                test.exec(0x070f | flag << 4);   // FJMP flag
+                test.exec(0x070f | flag << 4);   // FPRED flag
 
                 if (test.inspect(15) != addr) {
                     pass = false;
@@ -498,17 +498,17 @@ int main(int argc, char** argv) {
         test.push(0x0413); //  4: LOAD 1 3
         test.push(0x0424); //  5: LOAD 2 4
         test.push(0x3400); //  6: ADD 4 0 0
-        test.push(0x070f); //  7: FJMP ZERO
+        test.push(0x070f); //  7: FPRED ZERO
         test.push(0x108f); //  8: REL+ 8 rPC    # line 17
         test.push(0x6340); //  9: SUB 3 4 0
-        test.push(0x071f); // 10: FJMP NEG
+        test.push(0x071f); // 10: FPRED NEG
         test.push(0x103f); // 11: REL+ 3 rPC    # line 15
         test.push(0x0341); // 12: STORE 4 1
         test.push(0x0332); // 13: STORE 3 2
         test.push(0x095d); // 14: FCLR 5
         test.push(0x0121); // 15: MOV 2 1
         test.push(0x20ef); // 16: REL- 14 rPC   # line 3
-        test.push(0x075f); // 17: FJMP 5
+        test.push(0x075f); // 17: FPRED 5
         test.push(0x201f); // 18: REL- 1 rPC    # halt
         test.push(0x213f); // 19: REL- 19 rPC   # line 1
 

@@ -30,7 +30,7 @@
 
 5111    # ADDi      r1      1       r1
 81C0    # SUBi      r1      12      r0
-070F    # FJMP      fZERO
+070F    # FPRED     fZERO
 201F    # JMP-      1
 20FF    # JMP-      15
 

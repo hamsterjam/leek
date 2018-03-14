@@ -215,7 +215,7 @@ void Processor::exec(uint16_t instruction) {
     //
     // Jump and Flags
     //
-    else if (op == Operation::FJMP) {
+    else if (op == Operation::FPRED) {
         if (!reg.getBit(RegisterManager::FLAGS, inA)) {
             res = inB + 1;
         }

@@ -135,8 +135,8 @@ int main(int argc, char** argv) {
     cout << endl;
     cout << "Jump and flag opCodes:" << endl;
 
-    cout << "Testing FJMP...  \t" << flush;
-    testShortOp(0x7, Operation::FJMP);
+    cout << "Testing FPRED...  \t" << flush;
+    testShortOp(0x7, Operation::FPRED);
 
     cout << "Testing FSET...  \t" << flush;
     testShortOp(0x8, Operation::FSET);
@@ -188,8 +188,8 @@ int main(int argc, char** argv) {
         unique = unique && Operation::STORE != Operation::LOAD;
         unique = unique && Operation::LOAD  != Operation::PUSH;
         unique = unique && Operation::PUSH  != Operation::POP;
-        unique = unique && Operation::POP   != Operation::FJMP;
-        unique = unique && Operation::FJMP  != Operation::FSET;
+        unique = unique && Operation::POP   != Operation::FPRED;
+        unique = unique && Operation::FPRED  != Operation::FSET;
         unique = unique && Operation::FSET  != Operation::FCLR;
         unique = unique && Operation::FCLR  != Operation::FTOG;
         unique = unique && Operation::FTOG  != Operation::INTER;

@@ -14,11 +14,11 @@ itteration:
     LOAD    r1      r3
     LOAD    r2      r4
     ADD     r4  r0  r0
-    FJMP    fZERO
+    FPRED   fZERO
     JMP     last
 
     SUB     r4  r3  r0
-    FJMP    fNEG
+    FPRED   fNEG
     JMP     swap
     JMP     next
 
@@ -33,7 +33,7 @@ next:
 
 last:
     ADD     r5  r0  r0
-    FJMP    fZERO
+    FPRED   fZERO
     JMP     print
     JMP     start
 
@@ -46,7 +46,7 @@ print:
     printlp:
         LOAD    r1      r2
         ADD     r2  r0  r0
-        FJMP    fZERO
+        FPRED   fZERO
         HALT
         STORE   r2      r3
         WFI

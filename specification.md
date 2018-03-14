@@ -130,7 +130,7 @@ Opperations Reference
 | **PUSH**  | RR   | 0x05    |
 | **POP**   | RR   | 0x06    |
 ||||
-| **FJMP**  | IR   | 0x07    |
+| **FPRED** | IR   | 0x07    |
 | **FSET**  | IR   | 0x08    |
 | **FCLR**  | IR   | 0x09    |
 | **FTOG**  | IR   | 0x0a    |
@@ -261,36 +261,38 @@ Stores the value at address rSTACK in rD, then decrements rSTACK.
 
 ### Flag Operations
 
-#### FJMP
+#### FPRED
 `0000 0111 [iA] 1111`  
 IR type.  
-If the iA'th bit of rFLAGS is not set, sets the rPC to rPC + 1.
+Flag Predicate. This predicates the following command on the iA'th bit in rFLAGS.
+If the bit is set, the following command will be executed. If the bit is not set, the following command will be skipped.
 
 #### FSET
 `0000 1000 [iA] 1101`  
 IR type.  
-Sets the iA'th bit of rFLAGS.
+Flag Set. Sets the iA'th bit of rFLAGS.
 
 #### FCLR
 `0000 1001 [iA] 1101`  
 IR type.  
-Clears the iA'th bit of rFLAGS.
+Flag Clear. Clears the iA'th bit of rFLAGS.
 
 #### FTOG
 `0000 1010 [iA] 1101`  
 IR type.  
-Toggles the iA'th bit of rFLAGS.
+Flag Toggle. Toggles the iA'th bit of rFLAGS.
 
 ### Interrupts
 
 #### INTER
 `0000 1011 1100 1111`  
 RR type.  
-Performs a software interrupt. This behaves exactly like a hardware interrupt, the corresponding Interrupt Signal Flag is ISFs.
+Interrupt. Performs a software interrupt. This behaves exactly like a hardware interrupt, the corresponding Interrupt Signal Flag is ISFs.
 
 #### WFI
 `0000 1100 0000 1111`  
 RR type.  
+Wait for Interrupt.
 Normal operation is suspended untill an interrupt is recieved.
 If fICF is set, it will handle the interrupt in the normal manner.
 if it is not set, operation will simply resume when the interrupt is recieved.
