@@ -2,7 +2,7 @@ NAME
         leek-vm - The Little Educational Electronic Komputer Virtual Machine
 
 SYNOPSIS
-        leek-vm [options] [file]
+        leek-vm [options]
 
 DESCRIPTION
         leek-vm is a virtual machine that emulates the LEEK16 architecture. It
@@ -10,14 +10,13 @@ DESCRIPTION
 
         This program is typically used to run a LEEK16 program with the command
 
-            leek-vm file
+            leek-vm -s file
 
         You can more generally start the virtual machine with
 
             leek-vm [options]
 
 OPTIONS
-
         {filename}
                         If no flag is used, the option is interpreted as the
                         filename to load

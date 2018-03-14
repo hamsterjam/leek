@@ -1,0 +1,31 @@
+NAME
+        leek-asm - The Little Educational Electronic Komputer Assembler
+
+SYNOPSIS
+        leek-asm [options]
+
+DESCRIPTION
+        leek-asm is an assembler for the LEEK16 architecture. It can read
+        assembly source code and output a binary file that can be read by a
+        LEEK16 computer. Normaly you would run the output file using the
+        leek-vm virtual machine.
+
+        This program is typically used to assemble a LEEK16 program using the
+        command
+
+            leek-asm inputfile -o outputfile
+
+        You can more generally run the assembler with
+
+            leek-asm [options]
+
+OPTIONS
+        {filename}
+                        If no flag is used, the option is interpreted as the
+                        input filename to be read.
+
+        -h
+                        Prints this help message then exits.
+
+        -o {filename}
+                        Declares the output filename.
