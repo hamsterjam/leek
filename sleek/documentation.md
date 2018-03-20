@@ -10,63 +10,90 @@ Variable Definitions
 --------------------
 
 The syntax for variable definitions is quite different to that of C like languages. The syntax is
-```
-    [variable name] : [type] = [initial value];
-```
+
+`[variable name] : [type] = [initial value];`
+
 And as an example, the following declares a `uint` variable named `foo` and assigns it the value `42`
-```
-    foo : uint = 42;
-```
+
+`foo : uint = 42;`
+
 Either the type, or the initial value may be ommited (but not both).
 If the initial value is ommited, then the variable is declared but not initialised.
-```
-    foo : uint;
-```
+
+`foo : uint;`
+
 If the type is ommited, the type is infered, similar to a C++11 `auto`. In the case of an integer, `int` is chosen over `uint`.
-```
-    foo := 42; // int
-```
+
+`foo := 42; // int`
+
 
 Functions
 ---------
 
-The syntax for a function in sleek is
+Functions can be defined with the syntax
 
+`[return type] ( [arg 1], [arg 2], ... [arg n] )`
+
+Where `arg n` is a variable definition.
+Functions will typically assigned a name using the function overload operator `::`, although, they may be defined as a variable.
+For example, the signature for the entry point of a sleek program is
 ```
-    [return type] ( [argument list] ) { [function  body] }
-```
-If the function does not return a value, the return type is `void`. However this may be omited for brevity
-This produces an annonymous function, you can assign it a name in the same way as a variable.
-For example, the main function of a sleek program is
-```
-    main := int(args : string[]) {
-        // Program body goes here
+    main :: int(args : string[]) {
+        return 0;
     }
 ```
-Although defining just a type is the typical way to define parameters, you can also use a general variable definition to, for example, define default values.
+The arguments are typically defined as above with just a type. However you may also include default values as in the following convoluted example
+```
+    incOrAdd :: int(lhs : int = 1, rhs : int = 1) {
+        return lhs + rhs;
+    }
+    
+    incOrAdd(2, 3); // 5
+    incOrAdd(2);    // 3
+    incOrAdd(, 3);  // 4
+```
+As the name of the operator implies, functions declared with the function overload operator may be overloaded (not true of functions declared as variables).
+The sole exception to this rule is the function `main` which must be declared with the above signature.
+Functions declared as variables have type that is impliclty `const`
 
-Functions do have types, but they cannot be assigned at runtime. The type of a function is
-```
-    [return type]([argument types])
-```
-Which is important to know if you want to make function references.
+`[return type]([argtype 1], [argtype 2], ..., [argtype n])`
 
-One can also define functions that run at compile time by replacing parentheses with angle brackets.
-Unlike regular functions, they may return the types `type`, `func` and other function types.
-The `func` type is used when the argument and/or return types are to be determined at compile time.
-This is useful for generic functions as in
+For instance, the type of the above `incOrAdd` function is `int(int, int)`.
+As these types are implicitly `const`, they may not be assigned at run time.
+If you need to assign functions at run time, consider using function references.
+The use of function variables is in their use with compile time functions.
+A function may be declared to run at compile time by replacing the parentheses `()` with angle brackets `<>`.
+The return type and arguments of these functions are implicitly `const` and they may not reference any constants out of their scope that are not `const`.
+However, the upside is they may (must) return a `const` value including functions and types.
+This can be used to define generics
 ```
-    inc := func<T : type> {
-        return (arg : &T) {
-            arg += 1;
+    add :: func<T : type> {
+        return T(lhs : T, rhs : T) {
+            return lhs + rhs;
+        }
+    }
+```
+The type `func` is a special type that can be considered a parent type of all function types.
+This is nessecary as the signature of generic functions is... generic.
+Note that this lets you do full on functional programming (at compile time).
+```
+    swapArgs :: func<retT : type, lhsT : type, rhsT : type> {
+        return func<f : retT(lhsT, rhsT)> {
+            return retT(lhs : rhsT, rhs : lhsT) {
+                return f(rhs, lhs);
+            }
         }
     }
 
-    foo := 5;
-    inc<uint>(foo); // foo == 6
-```
+    pow :: int(lhs : int, rhs : int) {
+        ret := 1;
+        for (i := 0; i < rhs; ++i) ret *= lhs;
+        return ret;
+    }
 
-A useful pattern is to create an anonymous compile time function and immediatly call it to create a compile time block
+    swapArgs<int, int, int><pow>(2, 3); // 9
+```
+Another useful pattern is to declare and immediatly call an anonymous compile time function to create blocks that will run at compile time.
 ```
     <>{
         // Code here runs at compile time
@@ -92,9 +119,9 @@ If the variable is assigned a value of the appropriate reference type, it will a
     ref = 22;    // bar now has value 22
 ```
 Notably, the default value of a reference variable is a special null reference that cannot be assigned a value so the following is an error.
-```
-    ref : &int = 21; // Error: cannot assign values to null
-```
+
+`ref : &int = 21; // Error: cannot assign values to null`
+
 However, you may *initalise* a reference variable without using the `&` operator. This is useful for passing values by reference to a function
 ```
     inc := (val : &int) {
