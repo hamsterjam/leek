@@ -163,3 +163,98 @@ two := funcRef(1);
 Special care should be taken with the types of function references.
 For example, the type `&int(int)` is a function that takes a single `int` as an argument and returns an `&int`.
 In contrast, the type `&(int(int))` is a reference to a function that takes a single `int` as an argument and returns an `int`.
+
+Classes
+-------
+
+Data structures in sleek are known as classes.
+Although they are called classes, by default they behave more like a C struct.
+However, you may define constructors, destructors and classes may have members which are functions.
+To define a class, use the `class` keyword to define a new type.
+You can assign this type to a variable in the usual manner.
+```
+Point := class {
+    x : int;
+    y : int;
+}
+
+vec : Point;
+vec.x = 5;
+vec.y = 2;
+```
+To define a constructor, overload the `this` keyword with a function inside the class body.
+To define a destructor, do the same with `~this`.
+Class constructors and destructors may return values, but this is usually discarded.
+To construct an object, use the new keyword. Note that unlike in C++, this *staticaly* allocates an object.
+
+There is a `this` keyword which refers to the object itself. More specifically,
+if a function member is called, the `this` keyword is a reference to the object that called the function as you would expect.
+If a constructor is called, the `this` keyword is a reference to the object to be created.
+If a destructor is called, the `this keyword is a reference to the object to be destroyed.
+
+Note that by default class members are public. If you want to declare a member private you may prepend the `private` keyword onto the definition.
+A rather pointless example follows
+```
+Point := class {
+    this :: (x : int, y : int) {
+        this.x = x;
+        this.y = y;
+    }
+
+    sqrLength :: int() {
+        return x*x + y*y;
+    }
+
+    private x : int;
+    private y : int;
+}
+
+vec := new Point(3, 4);
+vec.sqrLength(); // 25
+vec.x = 5;       // Error, x is private
+```
+
+Operators can be overloaded in sleek. The names of the operator functions are `op` with the operator appended to it.
+For example, to make a functor we can overload the `()` operator.
+```
+Adder := class {
+    this :: (val : int) {
+        this.val = val;
+    }
+
+    op() :: int(lhs : int) {
+        return lhs + val;
+    }
+
+    private val : int;
+}
+
+add5 := new Adder(5);
+
+add5(3); // 8
+```
+Generic clases can be created by simply returning a `type` from a compile time function.
+A simple vector class follows as an example
+```
+Vector := type<T : type> {
+    return class {
+        this :: (x : T, y : T) {
+            this.x = x;
+            this.y = y;
+        }
+
+        op+= :: (rhs : &T) {
+            this.x := this.x + rhs.x;
+            this.y := this.y + rhs.y;
+        }
+            
+        private x : T;
+        private y : T;
+    }
+}
+
+p := new Vector<int>(1, 2);
+q := new Vector<int>(3, 4);
+
+p += q; // p contains a Vector<int> with x = 4, y = 6
+```
