@@ -79,6 +79,8 @@ The following is the context free grammar for sleek in Bachus-Naur form.
                | <raw-identifier>"."<identifier>
                | "op"<unary-op>
                | "op"<binary-op>
+               | "op()"
+               | "op[]"
 
 <number> ::= "0x[0-9a-fA-F]+"
            | "0b[01]+"
