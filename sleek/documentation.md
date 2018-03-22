@@ -190,7 +190,7 @@ To construct an object, use the new keyword. Note that unlike in C++, this *stat
 There is a `this` keyword which refers to the object itself. More specifically,
 if a function member is called, the `this` keyword is a reference to the object that called the function as you would expect.
 If a constructor is called, the `this` keyword is a reference to the object to be created.
-If a destructor is called, the `this keyword is a reference to the object to be destroyed.
+If a destructor is called, the `this` keyword is a reference to the object to be destroyed.
 
 Note that by default class members are public. If you want to declare a member private you may prepend the `private` keyword onto the definition.
 A rather pointless example follows
@@ -246,7 +246,7 @@ Vector := type<T : type> {
             this.x := this.x + rhs.x;
             this.y := this.y + rhs.y;
         }
-            
+
         private x : T;
         private y : T;
     }
