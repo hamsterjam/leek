@@ -167,7 +167,7 @@ In contrast, the type `&(int(int))` is a reference to a function that takes a si
 Classes
 -------
 
-Data structures in sleek are known as classes.
+Data structures in sleek are implemented using classes.
 Although they are called classes, by default they behave more like a C struct.
 However, you may define constructors, destructors and classes may have members which are functions.
 To define a class, use the `class` keyword to define a new type.
@@ -213,7 +213,6 @@ vec := new Point(3, 4);
 vec.sqrLength(); // 25
 vec.x = 5;       // Error, x is private
 ```
-
 Operators can be overloaded in sleek. The names of the operator functions are `op` with the operator appended to it.
 For example, to make a functor we can overload the `()` operator.
 ```
@@ -243,7 +242,7 @@ Vector := type<T : type> {
             this.y = y;
         }
 
-        op+= :: (rhs : &T) {
+        op+= :: (rhs : &Vector<T>) {
             this.x := this.x + rhs.x;
             this.y := this.y + rhs.y;
         }
