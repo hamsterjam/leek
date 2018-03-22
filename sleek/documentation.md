@@ -164,6 +164,35 @@ Special care should be taken with the types of function references.
 For example, the type `&int(int)` is a function that takes a single `int` as an argument and returns an `&int`.
 In contrast, the type `&(int(int))` is a reference to a function that takes a single `int` as an argument and returns an `int`.
 
+Arrays
+------
+
+Array types in sleek, similar to C, are simply a way to access offseted memory.
+You can create a static array by appending the length of the array in square brackets `[]` to the end of the type.
+To access elements of the array, use the `[]` operator.
+For example, to declare an array of 20 `int`s you could simply do
+```
+myArray : int[20]
+myArray[15] = 1;
+```
+This will reserve space for 20 `int`s in memory and set one of them to a value of 1.
+Do note that the type of `myArray` is just `&int`.
+
+This just does simple pointer arithmetic as would be done in a language like C.
+It makes no checks to see if the index is in the bounds of the array.
+If it is not, you may get a runtime errorr and you will almost certainly get strange behaviour.
+
+To declare arrays of dynamic length, call the bultin `malloc` function.
+```
+length := 25;
+myDynamicArray := malloc<int>(length);
+defer free(myDynamicArray);
+```
+All memory management is manual in sleek. If you do not free data allocated with malloc, you will leak memory.
+To assist in this, the defer keyword makes a statement run when the scope ends.
+
+Dynamic arrays can be accessed and modified just as static arrays can, but if you overrun the array bounds super bad things could happen.
+
 Classes
 -------
 

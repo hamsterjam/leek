@@ -13,6 +13,7 @@ The following is the context free grammar for sleek in Bachus-Naur form.
 
 <block>     ::= <statement> | <statement> <block>
 <statement> ::= <expression> ";"
+              | "defer" <ws> <expression>
               | <line-definition> ";"
               | <block-definition>
               | <control-statement>
@@ -23,6 +24,7 @@ The following is the context free grammar for sleek in Bachus-Naur form.
                | <class-exp>
                | <function-exp>
                | "(" <expression> ")"
+               | <expression> "[" <expression "]"
                | <identifier> ":" <expression> "=" <expression>
                | <identifier> ":=" <expression>
                | <identifier> "(" <arg-list> ")"
@@ -42,7 +44,7 @@ The following is the context free grammar for sleek in Bachus-Naur form.
 
 <class-exp>       ::= "{" <class-block> "}"
 <class-block>     ::= <class-statment> | <class-statement> <class-block>
-<class-statement> ::= <visibility> <line-definition> ";" | <visibility> <block-definition>
+<class-statement> ::= <visibility> <ws> <line-definition> ";" | <visibility> <block-definition>
 
 <visibility> ::= "" | "private" | "static"
 
