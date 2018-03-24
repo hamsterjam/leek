@@ -35,7 +35,7 @@ bool isLetter(char test) {
 
 void Lexer::lexIdentifier(bool definition) {
     unsigned int lineNumber = in.getLine();
-    unsigned int colNumber  = in.getColoumn();
+    unsigned int colNumber  = in.getColumn();
 
     if (!isLetter(in.peek())) {
         // ERROR: Not a valid identifier

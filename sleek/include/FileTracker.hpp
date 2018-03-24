@@ -17,14 +17,14 @@ class FileTracker {
         int eof();
 
         unsigned int getLine();
-        unsigned int getColoumn();
+        unsigned int getColumn();
 
     private:
         std::ifstream fin;
         std::stringstream  lin;
 
         unsigned int line;
-        unsigned int coloumn;
+        unsigned int column;
 
         void newLine();
 };

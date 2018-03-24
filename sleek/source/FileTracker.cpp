@@ -39,7 +39,7 @@ int FileTracker::get() {
         return '\n';
     }
 
-    coloumn += 1;
+    column += 1;
     return lin.get();
 }
 
@@ -51,12 +51,12 @@ unsigned int FileTracker::getLine() {
     return line;
 }
 
-unsigned int FileTracker::getColoumn() {
-    return coloumn;
+unsigned int FileTracker::getColumn() {
+    return column;
 }
 
 void FileTracker::newLine() {
-    coloumn = 1;
+    column = 1;
     line += 1;
 
     std::string linestring;
