@@ -25,10 +25,8 @@ The following is the context free grammar for sleek in Bachus-Naur form.
                | <function-exp>
                | "(" <expression> ")"
                | <expression> "[" <expression "]"
-               | <identifier> ":" <expression> "=" <expression>
-               | <identifier> ":=" <expression>
-               | <identifier> "(" <arg-list> ")"
-               | <idenfifier> "<" <arg-list> ">"
+               | <expression> "(" <arg-list> ")"
+               | <expression> "<" <arg-list> ">"
                | <unary-op> <expression>
                | <expression> <binary-op> <expression>
 
