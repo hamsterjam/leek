@@ -8,23 +8,14 @@
 #define FS_EOF (std::ifstream::traits_type::eof())
 
 FileTracker::FileTracker(const char* filename): fin(filename) {
+    line = 0;
     newLine();
 }
 
 
 void FileTracker::eatWhitespace() {
-    while(true) {
-        lin >> std::ws;
-        if (lin.peek() == SS_EOF) {
-            if (fin.peek() == FS_EOF) {
-                break;
-            }
-            newLine();
-        }
-        else {
-            coloumn += lin.gcount();
-            break;
-        }
+    while (std::isspace(peek())) {
+        get();
     }
 }
 

@@ -34,9 +34,13 @@ bool isLetter(char test) {
 }
 
 void Lexer::lexIdentifier(bool definition) {
+    unsigned int lineNumber = in.getLine();
+    unsigned int colNumber  = in.getColoumn();
+
     if (!isLetter(in.peek())) {
         // ERROR: Not a valid identifier
-        std::cerr << "Invaild identifier" << std::endl;
+        std::cerr << "Invaild identifier ";
+        std::cerr << "at (" << lineNumber << ", " << colNumber << ")" << std::endl;
     }
 
     std::stringstream buff;
@@ -62,7 +66,8 @@ void Lexer::lexIdentifier(bool definition) {
         }
         catch (std::out_of_range e) {
             // ERROR: Variable already exists
-            std::cerr << "Variable \"" << id << "\" redefined" << std::endl;
+            std::cerr << "Variable \"" << id << "\" redefined ";
+            std::cerr << "at (" << lineNumber << ", " << colNumber << ")" << std::endl;
         }
     }
     else {
