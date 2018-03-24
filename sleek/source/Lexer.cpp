@@ -3,8 +3,8 @@
 
 #include <queue>
 #include <stdexcept>
-#include <fstream>
 #include <sstream>
+#include <string>
 #include <iostream>
 
 Lexer::Lexer(const char* filename, SymbolTable& sym) : in(filename) {
@@ -72,5 +72,5 @@ void Lexer::lexIdentifier(bool definition) {
     tokQueue.push(ret);
 
     // Discard any optional whitespace
-    in >> std::ws;
+    in.eatWhitespace();
 }

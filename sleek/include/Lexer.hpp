@@ -2,9 +2,9 @@
 #define LEEK_SLEEK_LEXER_H_DEFINED
 
 #include "Token.hpp"
+#include "FileTracker.hpp"
 
 #include <queue>
-#include <fstream>
 
 class SymbolTable;
 
@@ -18,7 +18,7 @@ class Lexer {
         void lexIdentifier(bool definition);
     private:
         std::queue<Token> tokQueue;
-        std::ifstream in;
+        FileTracker in;
         SymbolTable* sym;
 
 };

@@ -5,6 +5,11 @@
 #include <stdexcept>
 #include <map>
 
+SymbolTable::SymbolTable() {
+    parent = NULL;
+    child  = NULL;
+}
+
 SymbolTable::~SymbolTable() {
     SymbolTable* curr = this;
 

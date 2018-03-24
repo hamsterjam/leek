@@ -1,0 +1,76 @@
+#include "FileTracker.hpp"
+
+#include <string>
+#include <fstream>
+#include <sstream>
+
+#define SS_EOF (std::stringstream::traits_type::eof())
+#define FS_EOF (std::ifstream::traits_type::eof())
+
+FileTracker::FileTracker(const char* filename): fin(filename) {
+    newLine();
+}
+
+
+void FileTracker::eatWhitespace() {
+    while(true) {
+        lin >> std::ws;
+        if (lin.peek() == SS_EOF) {
+            if (fin.peek() == FS_EOF) {
+                break;
+            }
+            newLine();
+        }
+        else {
+            coloumn += lin.gcount();
+            break;
+        }
+    }
+}
+
+int FileTracker::peek() {
+    if (lin.peek() == SS_EOF) {
+        if (fin.peek() == FS_EOF) {
+            return eof();
+        }
+        return '\n';
+    }
+
+    return lin.peek();
+}
+
+int FileTracker::get() {
+    if (lin.peek() == SS_EOF) {
+        if (fin.peek() == FS_EOF) {
+            return eof();
+        }
+        newLine();
+        return '\n';
+    }
+
+    coloumn += 1;
+    return lin.get();
+}
+
+int FileTracker::eof() {
+    return -1;
+}
+
+unsigned int FileTracker::getLine() {
+    return line;
+}
+
+unsigned int FileTracker::getColoumn() {
+    return coloumn;
+}
+
+void FileTracker::newLine() {
+    coloumn = 1;
+    line += 1;
+
+    std::string linestring;
+    std::getline(fin, linestring);
+    std::stringstream newLine(std::move(linestring));
+
+    lin = std::move(newLine);
+}

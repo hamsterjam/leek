@@ -8,6 +8,7 @@
 
 class SymbolTable {
     public:
+        SymbolTable();
         ~SymbolTable();
 
         SymbolTable* enterScope();
