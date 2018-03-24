@@ -15,7 +15,9 @@ class Lexer {
         Token get();
         void operator>>(Token& out);
 
+        void lexWhitespace();
         void lexIdentifier(bool definition);
+        void lexNumber();
     private:
         std::queue<Token> tokQueue;
         FileTracker in;

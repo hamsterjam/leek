@@ -29,8 +29,17 @@ bool isNumber(char test) {
     return test >= '0' && test <= '9';
 }
 
+bool isHexNumber(char test) {
+    return isNumber(test) || (test >= 'a' && test <= 'f') || (test >= 'A' && test <= 'F');
+}
+
 bool isLetter(char test) {
     return (test >= 'a' && test <= 'z') || (test >= 'A' && test <= 'Z');
+}
+
+void Lexer::lexWhitespace() {
+    // Just discard it, whitespace has no meaning in sleek
+    in.eatWhitespace();
 }
 
 void Lexer::lexIdentifier(bool definition) {
@@ -41,6 +50,7 @@ void Lexer::lexIdentifier(bool definition) {
         // ERROR: Not a valid identifier
         std::cerr << "Invaild identifier ";
         std::cerr << "at (" << lineNumber << ", " << colNumber << ")" << std::endl;
+        return;
     }
 
     std::stringstream buff;
@@ -68,6 +78,7 @@ void Lexer::lexIdentifier(bool definition) {
             // ERROR: Variable already exists
             std::cerr << "Variable \"" << id << "\" redefined ";
             std::cerr << "at (" << lineNumber << ", " << colNumber << ")" << std::endl;
+            return;
         }
     }
     else {
@@ -75,7 +86,69 @@ void Lexer::lexIdentifier(bool definition) {
     }
 
     tokQueue.push(ret);
+}
 
-    // Discard any optional whitespace
-    in.eatWhitespace();
+void Lexer::lexNumber() {
+    unsigned int lineNumber = in.getLine();
+    unsigned int colNumber  = in.getColumn();
+
+    if (!isNumber(in.peek())) {
+        // ERROR: invalid number
+        std::cerr << "Invalid number ";
+        std::cerr << "at (" << lineNumber << ", " << colNumber << ")" << std::endl;
+        return;
+    }
+
+    int base = 10;
+    if (in.peek() == '0') {
+        // Check the next symbol for the base
+
+        // Discard the 0
+        in.get();
+
+        // If the next char is a number, its not a base specifier
+        if (!isNumber(in.peek())) {
+            char specifier = in.get();
+            switch (specifier) {
+                case 'x':
+                case 'X':
+                    base = 16;
+                    break;
+                case 'o':
+                case 'O':
+                    base = 8;
+                    break;
+                case 'b':
+                case 'B':
+                    base = 2;
+                    break;
+                default:
+                    std::cerr << "Invalid number: unrecognised base specifier \"" << specifier << "\" ";
+                    std::cerr << "at (" << lineNumber << ", " << colNumber << ")" << std::endl;
+                    return;
+            }
+        }
+    }
+
+    std::stringstream buff;
+    while (isHexNumber(in.peek())) {
+        buff << (char) in.get();
+    }
+
+    std::string numString;
+    buff >> numString;
+
+    unsigned long retVal = std::stoul(numString, 0, base);
+
+    if (retVal > 0xffff) {
+        std::cerr << "Number is bigger than 16 bits ";
+        std::cerr << "at (" << lineNumber << ", " << colNumber << ")" << std::endl;
+        return;
+    }
+
+    Token ret;
+    ret.type = Token::Type::INTEGER;
+    ret.intVal = retVal;
+
+    tokQueue.push(ret);
 }
