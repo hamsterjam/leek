@@ -42,9 +42,16 @@ The following is the context free grammar for sleek in Bachus-Naur form.
 
 <class-exp>       ::= "{" <class-block> "}"
 <class-block>     ::= <class-statment> | <class-statement> <class-block>
-<class-statement> ::= <visibility> <ws> <line-definition> ";" | <visibility> <block-definition>
+<class-statement> ::= <visibility> <line-definition> ";" | <visibility> <block-definition>
 
-<visibility> ::= "" | "private" | "static"
+<visibility> ::= ""
+               | "[" <visibility-list> "]"
+
+<visibility-list> ::= ""
+                    | <visibility-specifier>
+                    | <visibility-specifier> <visibility-list>
+
+<visibility-specifier> ::= "R" | "W"
 
 <function-exp> ::= <identifier> "(" <param-list> ")" <block>
 
