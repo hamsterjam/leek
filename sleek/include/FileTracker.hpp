@@ -1,10 +1,9 @@
 #ifndef LEEK_SLEEK_FILE_TRACKER_H_DEFINED
 #define LEEK_SLEEK_FILE_TRACKER_H_DEFINED
 
+#include <string>
 #include <fstream>
 #include <sstream>
-
-//TODO// This doesn't deal with eof very well....
 
 class FileTracker {
     public:

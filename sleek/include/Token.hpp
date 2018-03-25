@@ -10,13 +10,15 @@ struct Token {
     enum class Type {
         IDENTIFIER,
         INTEGER,
-        KEYWORD,
+        CLASS,
+        UNARY_OPERATOR,
+        BINARY_OPERATOR,
         END_OF_FILE
     };
 
     Type type;
     union {
-        char keywordVal[8];
+        char stringVal[8];
         Variable* varVal;
         uint16_t intVal;
     };

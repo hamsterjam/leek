@@ -16,6 +16,8 @@ class Lexer {
         void operator>>(Token& out);
 
         void lexWhitespace();
+        void lexUnaryOperator();
+        void lexBinaryOperator();
         void lexIdentifier(bool definition);
         void lexNumber();
     private:

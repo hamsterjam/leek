@@ -7,6 +7,8 @@
 #include <string>
 #include <iostream>
 
+#include <cstring>
+
 Lexer::Lexer(const char* filename, SymbolTable& sym) : in(filename) {
     this->sym = &sym;
 }
@@ -42,6 +44,86 @@ void Lexer::lexWhitespace() {
     in.eatWhitespace();
 }
 
+void Lexer::lexUnaryOperator() {
+    unsigned int lineNumber = in.getLine();
+    unsigned int colNumber  = in.getColumn();
+
+    Token ret;
+    ret.type = Token::Type::UNARY_OPERATOR;
+    char peek = in.peek();
+    switch (peek) {
+        case '&':
+        case '-':
+        case '!':
+            ret.stringVal[0] = peek;
+            ret.stringVal[1] = 0;
+            break;
+        default:
+            std::cerr << "Invalid unary operator ";
+            std::cerr << "at (" << lineNumber << ", " << colNumber << ")" << std::endl;
+            return;
+    }
+
+    tokQueue.push(ret);
+}
+
+void Lexer::lexBinaryOperator() {
+    unsigned int lineNumber = in.getLine();
+    unsigned int colNumber  = in.getColumn();
+
+    Token ret;
+    ret.type = Token::Type::BINARY_OPERATOR;
+
+    std::string id = "";
+
+    char first = in.peek();
+    switch (first) {
+        case '+':
+        case '-':
+        case '*':
+        case '/': // May be succeded by an '='
+        case '%':
+        case '^':
+        case '=':
+            id += in.get();
+            if (in.peek() == '=') {
+                id += in.get();
+            }
+            break;
+        case '&':
+        case '|': // May be succeded by itself or an '='
+        case '<':
+        case '>':
+            id += in.get();
+            if (in.peek() == '=') {
+                id += in.get();
+            }
+            else if (in.peek() == first) {
+                id += in.get();
+            }
+            break;
+        case '!': // Must be succesded by an '='
+            id += in.get();
+            if (in.peek() == '=') {
+                id += in.get();
+                break;
+            }
+            // Else fall through to default (error)
+        default:
+            std::cerr << "Invalid Binary Operator ";
+            std::cerr << "at (" << lineNumber << ", " << colNumber << ")" << std::endl;
+            return;
+    }
+
+    int i = 0;
+    for (; i < id.length(); ++i) {
+        ret.stringVal[i] = id[i];
+    }
+    ret.stringVal[i] = 0;
+
+    tokQueue.push(ret);
+}
+
 void Lexer::lexIdentifier(bool definition) {
     unsigned int lineNumber = in.getLine();
     unsigned int colNumber  = in.getColumn();
@@ -68,6 +150,21 @@ void Lexer::lexIdentifier(bool definition) {
     }
 
     Token ret;
+
+    // Handle keywords
+    if (id == "class") {
+        ret.type = Token::Type::CLASS;
+        tokQueue.push(ret);
+        return;
+    }
+    if (id == "const") {
+        ret.type = Token::Type::UNARY_OPERATOR;
+        strncpy(ret.stringVal, "const", 8);
+        tokQueue.push(ret);
+        return;
+    }
+
+
     ret.type = Token::Type::IDENTIFIER;
 
     if (definition) {
