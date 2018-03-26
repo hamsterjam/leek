@@ -24,6 +24,9 @@ struct Token {
         CLOSING_PARAM_LIST,
         OPENING_PARAM_LIST_CT,
         CLOSING_PARAM_LIST_CT,
+        COMMA,
+        DEFINITION,
+        OVERLOAD,
         UNARY_OPERATOR,
         BINARY_OPERATOR,
         END_OF_FILE

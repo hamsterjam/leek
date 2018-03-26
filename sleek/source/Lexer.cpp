@@ -271,12 +271,87 @@ void Lexer::lexExpression() {
 }
 
 void Lexer::lexDefinition() {
+    lexIdentifier(true);
+    lexWhitespace();
+
+    if (in.peek() != ':') {
+        // ERROR: Missing colon
+        std::cerr << "Malformed definition, expected ':' character ";
+        std::cerr << "at (" << in.getLine() << ", " << in.getColumn() << ")" << std::endl;
+        return;
+    }
+
+    // Discard the : character. Don't touch that whitespace yo
+    in.get();
+
+    if (in.peek() == ':') {
+        Token defOp;
+        defOp.type = Token::Type::OVERLOAD;
+        tokQueue.push(defOp);
+
+        // Discard the additional ':'
+        in.get();
+        lexWhitespace();
+
+        // Get the value
+        lexExpression();
+    }
+    else {
+        lexWhitespace();
+
+        Token defOp;
+        defOp.type = Token::Type::DEFINITION;
+        tokQueue.push(defOp);
+
+        // Get the type (unless type is to be infered)
+        if (in.peek() != '=') {
+            lexExpression();
+        }
+
+        if (in.peek() == '=') {
+            // Discard the = character
+            in.get();
+            lexWhitespace();
+
+            Token op;
+            op.type = Token::Type::BINARY_OPERATOR;
+            strncpy(op.stringVal, "=", 8);
+            tokQueue.push(op);
+
+            // Get the value
+            lexExpression();
+        }
+    }
 }
 
 void Lexer::lexArgList() {
+    lexExpression();
+    if (in.peek() == ',') {
+        Token sep;
+        sep.type = Token::Type::COMMA;
+        tokQueue.push(sep);
+
+        // Discard the , character
+        in.get();
+        lexWhitespace();
+
+        lexArgList();
+    }
 }
 
 void Lexer::lexParamList() {
+    lexDefinition();
+    if (in.peek() == ',') {
+        Token sep;
+        sep.type = Token::Type::COMMA;
+        tokQueue.push(sep);
+
+        // Discard the , character
+        in.get();
+        lexWhitespace();
+
+        lexParamList();
+    }
 }
 
 /*
@@ -307,6 +382,10 @@ void Lexer::lexUnaryOperator() {
             std::cerr << "at (" << lineNumber << ", " << colNumber << ")" << std::endl;
             return;
     }
+
+    // Discard the character
+    in.get();
+    lexWhitespace();
 
     tokQueue.push(ret);
 }
