@@ -108,6 +108,7 @@ void Lexer::lexExpression() {
 
             // Discard the ) character
             in.get();
+            lexWhitespace();
 
             Token close;
             close.type = Token::Type::CLOSING_PARAM_LIST;
@@ -132,6 +133,7 @@ void Lexer::lexExpression() {
 
             // Discard the ) character
             in.get();
+            lexWhitespace();
 
             Token close;
             close.type = Token::Type::CLOSING_PAREN;
@@ -165,11 +167,15 @@ void Lexer::lexExpression() {
 
         // Discard the > character
         in.get();
+        lexWhitespace();
 
         Token close;
         close.type = Token::Type::CLOSING_PARAM_LIST_CT;
         tokQueue.push(close);
     }
+
+    // Post expression stuff
+
 }
 
 void Lexer::lexDefinition() {
