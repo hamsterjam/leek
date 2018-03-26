@@ -12,6 +12,8 @@ struct Token {
         KEYWORD,
         INTEGER,
         CLASS,
+        OPENING_BLOCK,
+        CLOSING_BLOCK,
         OPENING_PAREN,
         CLOSING_PAREN,
         OPENING_INDEX_BRACKET,
@@ -29,6 +31,7 @@ struct Token {
         OVERLOAD,
         UNARY_OPERATOR,
         BINARY_OPERATOR,
+        END_OF_STATEMENT,
         END_OF_FILE
     };
 

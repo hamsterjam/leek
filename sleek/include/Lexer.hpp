@@ -16,6 +16,7 @@ class Lexer {
         void operator>>(Token& out);
 
         // Recursive Lexers
+        void lexStatement();
         void lexExpression();
         void lexDefinition();
         void lexArgList();

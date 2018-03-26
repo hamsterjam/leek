@@ -8,8 +8,8 @@ int main(int argc, char** argv) {
     SymbolTable sym;
     Lexer lex("test", sym);
 
-    lex.lexDefinition();
-    lex.lexExpression();
+    lex.lexStatement();
+    lex.lexStatement();
 
     return 0;
 }

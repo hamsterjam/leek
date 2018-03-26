@@ -32,6 +32,52 @@ void Lexer::operator>>(Token& out) {
  * Recursive Lexers
  */
 
+void Lexer::lexStatement() {
+    char peek = in.peek();
+    if (isLetter(peek)) {
+        in.bufferIdentifier();
+        lexWhitespace();
+
+        if (in.peek() == ':') {
+            // We have a definition
+            lexDefinition();
+            lexWhitespace();
+        }
+        else {
+            if (in.getBufferedIdentifier() == "defer") {
+                // Still an expression, but we need to push a defer token
+                in.clearBuffer();
+                Token defer;
+                defer.type = Token::Type::KEYWORD;
+                strncpy(defer.stringVal, "defer", 8);
+                tokQueue.push(defer);
+            }
+            lexExpression();
+            lexWhitespace();
+        }
+        //TODO// Control structures
+    }
+
+    // If the last token from the statement wasn't a }, we require a ;
+    if (tokQueue.back().type != Token::Type::CLOSING_BLOCK) {
+        if (in.peek() != ';') {
+            // ERROR: Missing semicolon
+            std::cerr << "Expected ';' character ";
+            std::cerr << "at (" << in.getLine() << ", " << in.getColumn() << ")" << std::endl;
+            return;
+        }
+
+        // Discard the ; character
+        in.get();
+        lexWhitespace();
+    }
+
+    // Push a end of statement token regardless
+    Token eos;
+    eos.type = Token::Type::END_OF_STATEMENT;
+    tokQueue.push(eos);
+}
+
 void Lexer::lexExpression() {
     char peek = in.peek();
 
