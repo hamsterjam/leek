@@ -11,3 +11,9 @@ bool isHexNumber(char test) {
 bool isLetter(char test) {
     return (test >= 'a' && test <= 'z') || (test >= 'A' && test <= 'Z');
 }
+
+bool isOperatorChar(char test) {
+    return test == '+' || test == '-' || test == '*' || test == '/'
+        || test == '%' || test == '&' || test == '|' || test == '^'
+        || test == '=' || test == '!' || test == '<' || test == '>';
+}

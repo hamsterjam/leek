@@ -35,38 +35,8 @@ void Lexer::operator>>(Token& out) {
 void Lexer::lexExpression() {
     char peek = in.peek();
 
-    // If we have an opening paren here, it is an actual paren, not a function call
-    if (peek == '(') {
-        Token open;
-        open.type = Token::Type::OPENING_PAREN;
-        tokQueue.push(open);
-
-        // Discard the opening paren
-        in.get();
-
-        lexWhitespace();
-        lexExpression();
-        lexWhitespace();
-
-        if (in.peek() != ')') {
-            // ERROR: no closing paren
-            std::cerr << "Missing closing parentheses ";
-            std::cerr << "at (" << in.getLine() << ", " << in.getColumn() << ")" << std::endl;
-            return;
-        }
-
-        Token close;
-        close.type = Token::Type::CLOSING_PAREN;
-        tokQueue.push(close);
-
-        // Discard the closing paren
-        in.get();
-
-        lexWhitespace();
-    }
-
     // If the first character is a letter, treat it as an identifier
-    else if (isLetter(peek)) {
+    if (isLetter(peek) || in.isBuffered()) {
         lexIdentifier(false);
         lexWhitespace();
 
@@ -88,6 +58,124 @@ void Lexer::lexExpression() {
         lexNumber();
         lexWhitespace();
     }
+
+    else if (isOperatorChar(peek)) {
+        lexUnaryOperator();
+        lexWhitespace();
+        lexExpression();
+    }
+
+    // An opening paren here means either it is an actual paren, or it is a
+    // function expression (returning void)
+    else if (peek == '(') {
+        // Discard the ( and any whitespace
+        in.get();
+        lexWhitespace();
+
+        bool isFunction = false;
+
+        if (isLetter(in.peek())) {
+            // If there is an identifier, buffer it. It's either an expression
+            // or a definition depending on what the paren represents
+            in.bufferIdentifier();
+            lexWhitespace();
+
+            if (in.peek() == ':') {
+                // It was a definition, we should treat this as a function
+                isFunction = true;
+            }
+        }
+
+        if (isFunction) {
+            // This is a paramater list of a function
+            Token retType;
+            retType.type = Token::Type::KEYWORD;
+            strncpy(retType.stringVal, "void", 8);
+            tokQueue.push(retType);
+
+            Token open;
+            open.type = Token::Type::OPENING_PARAM_LIST;
+            tokQueue.push(open);
+
+            lexParamList();
+
+            if (in.peek() != ')') {
+                // ERROR: missing closing paren
+                std::cerr << "Missing ')' character ";
+                std::cerr << "at (" << in.getLine() << ", " << in.getColumn() << ")" << std::endl;
+                return;
+            }
+
+            // Discard the ) character
+            in.get();
+
+            Token close;
+            close.type = Token::Type::CLOSING_PARAM_LIST;
+            tokQueue.push(close);
+
+            //TODO// Lex the actual function
+        }
+        else {
+            // This is just some parens
+            Token open;
+            open.type = Token::Type::OPENING_PAREN;
+            tokQueue.push(open);
+
+            lexExpression();
+
+            if (in.peek() != ')') {
+                // ERROR: missing closing paren
+                std::cerr << "Missing ')' character ";
+                std::cerr << "at (" << in.getLine() << ", " << in.getColumn() << ")" << std::endl;
+                return;
+            }
+
+            // Discard the ) character
+            in.get();
+
+            Token close;
+            close.type = Token::Type::CLOSING_PAREN;
+            tokQueue.push(close);
+        }
+    }
+    else if (peek == '<') {
+        // Has to be a compile time function returning void
+
+        // Discard the < charachter
+        in.get();
+        lexWhitespace();
+
+        Token retType;
+        retType.type = Token::Type::KEYWORD;
+        strncpy(retType.stringVal, "void", 8);
+        tokQueue.push(retType);
+
+        Token open;
+        open.type = Token::Type::OPENING_PARAM_LIST_CT;
+        tokQueue.push(open);
+
+        lexParamList();
+
+        if (in.peek() != '>') {
+            // ERROR: missing closing bracket
+            std::cerr << "Missing '>' character ";
+            std::cerr << "at (" << in.getLine() << ", " << in.getColumn() << ")" << std::endl;
+            return;
+        }
+
+        // Discard the > character
+        in.get();
+
+        Token close;
+        close.type = Token::Type::CLOSING_PARAM_LIST_CT;
+        tokQueue.push(close);
+    }
+}
+
+void Lexer::lexDefinition() {
+}
+
+void Lexer::lexParamList() {
 }
 
 /*
