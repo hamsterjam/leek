@@ -97,6 +97,7 @@ void Lexer::lexExpression() {
             open.type = Token::Type::OPENING_PARAM_LIST;
             tokQueue.push(open);
 
+            //TODO// Before this we need to enter a new scope
             lexParamList();
 
             if (in.peek() != ')') {
@@ -156,6 +157,7 @@ void Lexer::lexExpression() {
         open.type = Token::Type::OPENING_PARAM_LIST_CT;
         tokQueue.push(open);
 
+        //TODO// Before this we need to enter a new scope
         lexParamList();
 
         if (in.peek() != '>') {
@@ -175,10 +177,103 @@ void Lexer::lexExpression() {
     }
 
     // Post expression stuff
+    peek = in.peek();
+    if (isOperatorChar(peek)) {
+        // Must be a Binary Operator
+        lexBinaryOperator();
+        lexWhitespace();
+        lexExpression();
+    }
+    else if (peek == '[') {
+        // Must be an array index
 
+        // Discard the [ character
+        in.get();
+        lexWhitespace();
+
+        Token open;
+        open.type = Token::Type::OPENING_INDEX_BRACKET;
+        tokQueue.push(open);
+
+        lexExpression();
+
+        if (in.peek() != ']') {
+            // ERROR: missing closing bracket
+            std::cerr << "Missing ']' character ";
+            std::cerr << "at (" << in.getLine() << ", " << in.getColumn() << ")" << std::endl;
+            return;
+        }
+
+        // Discard the ] character
+        in.get();
+        lexWhitespace();
+
+        Token close;
+        close.type = Token::Type::CLOSING_INDEX_BRACKET;
+        tokQueue.push(close);
+    }
+    else if (peek == '(') {
+        // Function call
+
+        // Discard the ( character
+        in.get();
+        lexWhitespace();
+
+        Token open;
+        open.type = Token::Type::OPENING_ARG_LIST;
+        tokQueue.push(open);
+
+        lexArgList();
+
+        if (in.peek() != ')') {
+            // ERROR: missing closing paren
+            std::cerr << "Missing ')' character ";
+            std::cerr << "at (" << in.getLine() << ", " << in.getColumn() << ")" << std::endl;
+            return;
+        }
+
+        // Discard the ) character
+        in.get();
+        lexWhitespace();
+
+        Token close;
+        close.type = Token::Type::CLOSING_ARG_LIST;
+        tokQueue.push(close);
+    }
+    else if (peek == '<') {
+        // Compile time function call
+
+        // Discard the < character
+        in.get();
+        lexWhitespace();
+
+        Token open;
+        open.type = Token::Type::OPENING_ARG_LIST_CT;
+        tokQueue.push(open);
+
+        lexArgList();
+
+        if (in.peek() != '>') {
+            // ERROR: missing closing bracket
+            std::cerr << "Missing '<' character ";
+            std::cerr << "at (" << in.getLine() << ", " << in.getColumn() << ")" << std::endl;
+            return;
+        }
+
+        // Discard the > character
+        in.get();
+        lexWhitespace();
+
+        Token close;
+        close.type = Token::Type::CLOSING_ARG_LIST_CT;
+        tokQueue.push(close);
+    }
 }
 
 void Lexer::lexDefinition() {
+}
+
+void Lexer::lexArgList() {
 }
 
 void Lexer::lexParamList() {

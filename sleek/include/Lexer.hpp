@@ -18,6 +18,7 @@ class Lexer {
         // Recursive Lexers
         void lexExpression();
         void lexDefinition();
+        void lexArgList();
         void lexParamList();
 
         // Terminal Lexers
