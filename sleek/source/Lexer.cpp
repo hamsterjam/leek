@@ -39,6 +39,72 @@ bool isLetter(char test) {
     return (test >= 'a' && test <= 'z') || (test >= 'A' && test <= 'Z');
 }
 
+/*
+ * Recursive Lexers
+ */
+
+void Lexer::lexExpression() {
+    char peek = in.peek();
+
+    // If we have an opening paren here, it is an actual paren, not a function call
+    if (peek == '(') {
+        Token open;
+        open.type = Token::Type::OPENING_PAREN;
+        tokQueue.push(open);
+
+        // Discard the opening paren
+        in.get();
+
+        lexWhitespace();
+        lexExpression();
+        lexWhitespace();
+
+        if (in.peek() != ')') {
+            // ERROR: no closing paren
+            std::cerr << "Missing closing parentheses ";
+            std::cerr << "at (" << in.getLine() << ", " << in.getColumn() << ")" << std::endl;
+            return;
+        }
+
+        Token close;
+        close.type = Token::Type::CLOSING_PAREN;
+        tokQueue.push(close);
+
+        // Discard the closing paren
+        in.get();
+
+        lexWhitespace();
+    }
+
+    // If the first character is a letter, treat it as an identifier
+    else if (isLetter(peek)) {
+        lexIdentifier(false);
+        lexWhitespace();
+
+        // Check that it actually was an identifier, it's possible that it was
+        // a keyword instead
+        Token id = tokQueue.back();
+        if (id.type == Token::Type::UNARY_OPERATOR) {
+            // Keyword style unary op (such as const)
+            lexExpression();
+        }
+        else if (id.type == Token::Type::CLASS) {
+            // class keyword
+            //TODO// Lex classes
+        }
+    }
+
+    // If the first character is a number, treat it as a number
+    else if (isNumber(peek)) {
+        lexNumber();
+        lexWhitespace();
+    }
+}
+
+/*
+ * Terminal Lexers
+ */
+
 void Lexer::lexWhitespace() {
     // Just discard it, whitespace has no meaning in sleek
     in.eatWhitespace();

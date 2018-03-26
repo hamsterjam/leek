@@ -15,6 +15,10 @@ class Lexer {
         Token get();
         void operator>>(Token& out);
 
+        // Recursive Lexers
+        void lexExpression();
+
+        // Terminal Lexers
         void lexWhitespace();
         void lexUnaryOperator();
         void lexBinaryOperator();

@@ -11,6 +11,8 @@ struct Token {
         IDENTIFIER,
         INTEGER,
         CLASS,
+        OPENING_PAREN,
+        CLOSING_PAREN,
         UNARY_OPERATOR,
         BINARY_OPERATOR,
         END_OF_FILE
