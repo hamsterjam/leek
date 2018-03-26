@@ -15,12 +15,25 @@ class FileTracker {
         int get();
         int eof();
 
+        void bufferIdentifier();
+        void clearBuffer();
+        bool isBuffered();
+        std::string getBufferedIdentifier();
+
+        unsigned int getBufferLine();
+        unsigned int getBufferColumn();
+
         unsigned int getLine();
         unsigned int getColumn();
 
     private:
         std::ifstream fin;
         std::stringstream  lin;
+
+        bool buffered;
+        std::string buffer;
+        unsigned int bufferLine;
+        unsigned int bufferColumn;
 
         unsigned int line;
         unsigned int column;

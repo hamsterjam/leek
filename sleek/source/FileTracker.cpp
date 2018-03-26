@@ -1,4 +1,5 @@
 #include "FileTracker.hpp"
+#include "helper.hpp"
 
 #include <string>
 #include <fstream>
@@ -11,7 +12,6 @@ FileTracker::FileTracker(const char* filename): fin(filename) {
     line = 0;
     newLine();
 }
-
 
 void FileTracker::eatWhitespace() {
     while (std::isspace(peek())) {
@@ -45,6 +45,44 @@ int FileTracker::get() {
 
 int FileTracker::eof() {
     return -1;
+}
+
+/*
+ * Buffer
+ */
+
+void FileTracker::bufferIdentifier() {
+    bufferLine    = line;
+    bufferColumn  = column;
+    buffered    = true;
+
+    buffer = "";
+
+    char peek = this->peek();
+    while (isLetter(peek) || isNumber(peek) || peek == '_' || peek == '-') {
+        buffer += (char) get();
+        peek = this->peek();
+    }
+}
+
+void FileTracker::clearBuffer() {
+    buffered = false;
+}
+
+bool FileTracker::isBuffered() {
+    return buffered;
+}
+
+std::string FileTracker::getBufferedIdentifier() {
+    return buffer;
+}
+
+unsigned int FileTracker::getBufferLine() {
+    return bufferLine;
+}
+
+unsigned int FileTracker::getBufferColumn() {
+    return bufferColumn;
 }
 
 unsigned int FileTracker::getLine() {

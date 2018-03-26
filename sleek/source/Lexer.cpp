@@ -1,5 +1,6 @@
 #include "Lexer.hpp"
 #include "SymbolTable.hpp"
+#include "helper.hpp"
 
 #include <queue>
 #include <stdexcept>
@@ -25,18 +26,6 @@ Token Lexer::get() {
 
 void Lexer::operator>>(Token& out) {
     out = get();
-}
-
-bool isNumber(char test) {
-    return test >= '0' && test <= '9';
-}
-
-bool isHexNumber(char test) {
-    return isNumber(test) || (test >= 'a' && test <= 'f') || (test >= 'A' && test <= 'F');
-}
-
-bool isLetter(char test) {
-    return (test >= 'a' && test <= 'z') || (test >= 'A' && test <= 'Z');
 }
 
 /*
@@ -191,28 +180,17 @@ void Lexer::lexBinaryOperator() {
 }
 
 void Lexer::lexIdentifier(bool definition) {
-    unsigned int lineNumber = in.getLine();
-    unsigned int colNumber  = in.getColumn();
+    if (!in.isBuffered()) in.bufferIdentifier();
 
-    if (!isLetter(in.peek())) {
-        // ERROR: Not a valid identifier
-        std::cerr << "Invaild identifier ";
-        std::cerr << "at (" << lineNumber << ", " << colNumber << ")" << std::endl;
-        return;
-    }
+    unsigned int lineNumber = in.getBufferLine();
+    unsigned int colNumber  = in.getBufferColumn();
 
-    std::stringstream buff;
-    char peek = in.peek();
-    while (isLetter(peek) || isNumber(peek) || peek == '_' || peek == '-') {
-        buff << (char) in.get();
-        peek = in.peek();
-    }
-
-    std::string id;
-    buff >> id;
+    std::string id = in.getBufferedIdentifier();
+    in.clearBuffer();
 
     if (id == "op") {
         // Operator identifier
+        //TODO//
     }
 
     Token ret;
@@ -229,7 +207,6 @@ void Lexer::lexIdentifier(bool definition) {
         tokQueue.push(ret);
         return;
     }
-
 
     ret.type = Token::Type::IDENTIFIER;
 
