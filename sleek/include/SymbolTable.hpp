@@ -4,6 +4,7 @@
 #include "Variable.hpp"
 
 #include <string>
+#include <set>
 #include <map>
 
 class SymbolTable {
@@ -11,21 +12,25 @@ class SymbolTable {
         SymbolTable();
         ~SymbolTable();
 
-        SymbolTable* enterScope();
+        SymbolTable* newScope();
         SymbolTable* exitScope();
+        SymbolTable* getRoot();
 
         bool exists(std::string key);
 
         Variable& get(std::string key);
         Variable& define(std::string key);
 
+        bool isFunctionExpression;
+        bool isFunctionExpressionCT;
+
     private:
+        SymbolTable* root;
         SymbolTable* parent;
-        SymbolTable* child;
+        std::set<SymbolTable*> children;
+        std::map<std::string, Variable> data;
 
         Variable* getPointer(std::string key);
-
-        std::map<std::string, Variable> data;
 
 };
 

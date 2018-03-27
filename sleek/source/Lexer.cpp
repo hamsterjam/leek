@@ -12,6 +12,10 @@
 
 Lexer::Lexer(const char* filename, SymbolTable& sym) : in(filename) {
     this->sym = &sym;
+    scopeLevel = 0;
+
+    lexingParamList = false;
+    lexingArgList   = false;
 }
 
 Token Lexer::peek() {
@@ -57,9 +61,48 @@ void Lexer::lexStatement() {
         }
         //TODO// Control structures
     }
+    else if (peek == '{') {
+        // Discard the { character
+        in.get();
+        lexWhitespace();
 
-    // If the last token from the statement wasn't a }, we require a ;
-    if (tokQueue.back().type != Token::Type::CLOSING_BLOCK) {
+        scopeLevel += 1;
+        sym = sym->newScope();
+
+        Token open;
+        open.type = Token::Type::OPENING_BLOCK;
+        tokQueue.push(open);
+    }
+    else if (peek == '}') {
+        if (scopeLevel == 0) {
+            // ERROR: Exiting global scope
+            std::cerr << "Unexpected '}' character, no matching '{' character ";
+            std::cerr << "at (" << in.getLine() << ", " << in.getColumn() << ")" << std::endl;
+            return;
+        }
+        // Discard the } character
+        in.get();
+        lexWhitespace();
+
+        scopeLevel -= 1;
+        sym = sym->exitScope();
+
+        Token close;
+        close.type = Token::Type::CLOSING_BLOCK;
+        tokQueue.push(close);
+    }
+    else if (peek == ';') {
+        // Empty statement
+    }
+    else {
+        // Just treat it as an expression
+        lexExpression();
+        lexWhitespace();
+    }
+
+    // If the last token from the statement wasn't a { or a }, we require a ;
+    Token::Type lastType = tokQueue.back().type;
+    if (lastType != Token::Type::OPENING_BLOCK && lastType != Token::Type::CLOSING_BLOCK) {
         if (in.peek() != ';') {
             // ERROR: Missing semicolon
             std::cerr << "Expected ';' character ";
@@ -105,7 +148,8 @@ void Lexer::lexExpression() {
         lexWhitespace();
     }
 
-    else if (isOperatorChar(peek)) {
+    // There is no Unary < and we need that for CT functions
+    else if (isOperatorChar(peek) && peek != '<') {
         lexUnaryOperator();
         lexWhitespace();
         lexExpression();
@@ -143,7 +187,11 @@ void Lexer::lexExpression() {
             open.type = Token::Type::OPENING_PARAM_LIST;
             tokQueue.push(open);
 
-            //TODO// Before this we need to enter a new scope
+            // Enter a new scope
+            sym = sym->newScope();
+            sym->isFunctionExpression = true;
+            scopeLevel += 1;
+
             lexParamList();
 
             if (in.peek() != ')') {
@@ -161,7 +209,23 @@ void Lexer::lexExpression() {
             close.type = Token::Type::CLOSING_PARAM_LIST;
             tokQueue.push(close);
 
-            //TODO// Lex the actual function
+            if (in.peek() != '{') {
+                // ERROR: No function definition
+                std::cerr << "Expected function definition after function declaration ";
+                std::cerr << "at (" << in.getLine() << ", " << in.getColumn() << ")" << std::endl;
+                return;
+            }
+
+            // Discard the { character
+            in.get();
+            lexWhitespace();
+
+            Token openBlock;
+            openBlock.type = Token::Type::OPENING_BLOCK;
+            tokQueue.push(openBlock);
+
+            // Stop here, next call to lexStatement will lex more tokens
+            return;
         }
         else {
             // This is just some parens
@@ -190,7 +254,7 @@ void Lexer::lexExpression() {
     else if (peek == '<') {
         // Has to be a compile time function returning void
 
-        // Discard the < charachter
+        // Discard the < character
         in.get();
         lexWhitespace();
 
@@ -203,27 +267,79 @@ void Lexer::lexExpression() {
         open.type = Token::Type::OPENING_PARAM_LIST_CT;
         tokQueue.push(open);
 
-        //TODO// Before this we need to enter a new scope
-        lexParamList();
+        // Enter a new scope
+        sym = sym->newScope();
+        sym->isFunctionExpressionCT = true;
+        scopeLevel += 1;
 
-        if (in.peek() != '>') {
-            // ERROR: missing closing bracket
-            std::cerr << "Missing '>' character ";
+        lexParamList();
+        lexWhitespace();
+
+        // If we don't already have a closing token, we need one
+        if (tokQueue.back().type != Token::Type::CLOSING_PARAM_LIST_CT) {
+            if (in.peek() != '>') {
+                // ERROR: missing closing bracket
+                std::cerr << "Missing '>' character ";
+                std::cerr << "at (" << in.getLine() << ", " << in.getColumn() << ")" << std::endl;
+                return;
+            }
+
+            // Discard the > character
+            in.get();
+            lexWhitespace();
+
+            Token close;
+            close.type = Token::Type::CLOSING_PARAM_LIST_CT;
+            tokQueue.push(close);
+        }
+
+        if (in.peek() != '{') {
+            // ERROR: No function definition
+            std::cerr << "Expected function definition after function declaration ";
             std::cerr << "at (" << in.getLine() << ", " << in.getColumn() << ")" << std::endl;
             return;
         }
 
-        // Discard the > character
+        // Discard the { character
         in.get();
         lexWhitespace();
 
-        Token close;
-        close.type = Token::Type::CLOSING_PARAM_LIST_CT;
-        tokQueue.push(close);
+        Token openBlock;
+        openBlock.type = Token::Type::OPENING_BLOCK;
+        tokQueue.push(openBlock);
+
+        // Stop here, next call to lexStatement will lex more tokens
+        return;
     }
 
-    // Post expression stuff
-    peek = in.peek();
+    // The > is interpreted as a binary op, but it could actually be the end
+    // of a param or arg list as well
+    else if ((lexingParamList || lexingArgList) && tokQueue.back().type == Token::Type::BINARY_OPERATOR
+                                                && tokQueue.back().stringVal[0] == '>'
+                                                && tokQueue.back().stringVal[1] == 0)
+    {
+        // The previous token wasn't a bin op
+        if (lexingParamList) {
+            tokQueue.back().type = Token::Type::CLOSING_PARAM_LIST_CT;
+        }
+        else {
+            tokQueue.back().type = Token::Type::CLOSING_ARG_LIST_CT;
+        }
+        // In either case, we should not run the postExpression stuff
+        return;
+    }
+    else {
+        // ERROR: Unexpectd char
+        std::cerr << "Malformed expression, unexpected character '" << peek << "' ";
+        std::cerr << "at (" << in.getLine() << ", " << in.getColumn() << ")" << std::endl;
+        return;
+    }
+
+    lexPostExpression();
+}
+
+void Lexer::lexPostExpression() {
+    char peek = in.peek();
     if (isOperatorChar(peek)) {
         // Must be a Binary Operator
         lexBinaryOperator();
@@ -259,6 +375,7 @@ void Lexer::lexExpression() {
         tokQueue.push(close);
     }
     else if (peek == '(') {
+        //TODO// This could also be a function expression!
         // Function call
 
         // Discard the ( character
@@ -287,6 +404,7 @@ void Lexer::lexExpression() {
         tokQueue.push(close);
     }
     else if (peek == '<') {
+        //TODO// This could also be a function expression!
         // Compile time function call
 
         // Discard the < character
@@ -371,6 +489,7 @@ void Lexer::lexDefinition() {
 }
 
 void Lexer::lexArgList() {
+    lexingArgList = true;
     lexExpression();
     if (in.peek() == ',') {
         Token sep;
@@ -383,9 +502,11 @@ void Lexer::lexArgList() {
 
         lexArgList();
     }
+    lexingArgList = false;
 }
 
 void Lexer::lexParamList() {
+    lexingParamList = true;
     lexDefinition();
     if (in.peek() == ',') {
         Token sep;
@@ -398,6 +519,7 @@ void Lexer::lexParamList() {
 
         lexParamList();
     }
+    lexingParamList = false;
 }
 
 /*

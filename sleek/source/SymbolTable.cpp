@@ -3,39 +3,36 @@
 
 #include <string>
 #include <stdexcept>
+#include <set>
 #include <map>
 
 SymbolTable::SymbolTable() {
+    root   = this;
     parent = NULL;
-    child  = NULL;
+
+    isFunctionExpression   = false;
+    isFunctionExpressionCT = false;
 }
 
 SymbolTable::~SymbolTable() {
-    SymbolTable* curr = this;
-
-    while (curr->child) curr = curr->child;
-
-    while (curr->parent) {
-        curr = curr->parent;
-        delete curr->child;
+    for (SymbolTable* child : children) {
+        delete child;
     }
 }
 
-SymbolTable* SymbolTable::enterScope() {
-    if (!child) {
-        child = new SymbolTable();
-        this->child->parent = this;
-
-        return child;
-    }
+SymbolTable* SymbolTable::newScope() {
+    SymbolTable* child = new SymbolTable();
+    child->parent = this;
+    children.insert(child);
     return child;
 }
 
 SymbolTable* SymbolTable::exitScope() {
-    if (parent) {
-        return parent;
-    }
-    return NULL;
+    return parent;
+}
+
+SymbolTable* SymbolTable::getRoot() {
+    return root;
 }
 
 Variable& SymbolTable::get(std::string key) {

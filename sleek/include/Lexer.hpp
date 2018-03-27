@@ -18,6 +18,7 @@ class Lexer {
         // Recursive Lexers
         void lexStatement();
         void lexExpression();
+        void lexPostExpression();
         void lexDefinition();
         void lexArgList();
         void lexParamList();
@@ -33,6 +34,10 @@ class Lexer {
         FileTracker in;
         SymbolTable* sym;
 
+        bool lexingArgList;
+        bool lexingParamList;
+
+        unsigned int scopeLevel;
 };
 
 #endif
