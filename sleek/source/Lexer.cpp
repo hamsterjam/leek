@@ -113,12 +113,13 @@ void Lexer::lexStatement() {
         // Discard the ; character
         in.get();
         lexWhitespace();
+
+        // Push an end of statement token
+        Token eos;
+        eos.type = Token::Type::END_OF_STATEMENT;
+        tokQueue.push(eos);
     }
 
-    // Push a end of statement token regardless
-    Token eos;
-    eos.type = Token::Type::END_OF_STATEMENT;
-    tokQueue.push(eos);
 }
 
 void Lexer::lexExpression() {
@@ -344,7 +345,77 @@ void Lexer::lexPostExpression() {
         // Must be a Binary Operator
         lexBinaryOperator();
         lexWhitespace();
-        lexExpression();
+        // If it was a < operation...
+        if (tokQueue.back().stringVal[0] == '<' && tokQueue.back().stringVal[1] == 0) {
+            // It might be a function call instead of an operator, keep track
+            // of the last token so we can change it later
+            Token& unknown = tokQueue.back();
+            bool isFunctionCall = false;
+            if (in.peek() == '>') {
+                // Then it's an empty argument list
+                isFunctionCall = true;
+            }
+            else {
+                // Lex an expression, we are interested in the character *after* it
+                bool prevLexingArgList = lexingArgList;
+                lexingArgList = true;
+                lexExpression();
+                lexWhitespace();
+                lexingArgList = prevLexingArgList;
+
+                if (in.peek() == ',') {
+                    isFunctionCall = true;
+
+                    // Discard the , character
+                    in.get();
+                    lexWhitespace();
+
+                    Token sep;
+                    sep.type = Token::Type::COMMA;
+                    tokQueue.push(sep);
+
+                    // Read the rest of the arg list
+                    lexArgList();
+                }
+                else if (in.peek() == '>') {
+                    isFunctionCall = true;
+                }
+                else if (tokQueue.back().type == Token::Type::CLOSING_ARG_LIST_CT) {
+                    isFunctionCall = true;
+                }
+                // else it is just a regular greater than operator, we don't
+                // have to do anything more
+            }
+
+            //TODO// Could also be a function expression!
+
+            if (isFunctionCall) {
+                unknown.type = Token::Type::OPENING_ARG_LIST_CT;
+
+                // Arg list should already be lexed, check if we have a closing
+                // token
+                if (tokQueue.back().type != Token::Type::CLOSING_ARG_LIST_CT) {
+                    if (in.peek() != '>') {
+                        std::cerr << "Missing '>' character ";
+                        std::cerr << "at (" << in.getLine() << ", " << in.getColumn() << ")" << std::endl;
+                        return;
+                    }
+
+                    // Discard the > character
+                    in.get();
+                    lexWhitespace();
+
+                    Token close;
+                    close.type = Token::Type::CLOSING_ARG_LIST_CT;
+                    tokQueue.push(close);
+                }
+            }
+        }
+        else {
+            // For other operators there is nothing fancy going on, just lex an
+            // expression
+            lexExpression();
+        }
     }
     else if (peek == '[') {
         // Must be an array index
@@ -403,35 +474,7 @@ void Lexer::lexPostExpression() {
         close.type = Token::Type::CLOSING_ARG_LIST;
         tokQueue.push(close);
     }
-    else if (peek == '<') {
-        //TODO// This could also be a function expression!
-        // Compile time function call
-
-        // Discard the < character
-        in.get();
-        lexWhitespace();
-
-        Token open;
-        open.type = Token::Type::OPENING_ARG_LIST_CT;
-        tokQueue.push(open);
-
-        lexArgList();
-
-        if (in.peek() != '>') {
-            // ERROR: missing closing bracket
-            std::cerr << "Missing '<' character ";
-            std::cerr << "at (" << in.getLine() << ", " << in.getColumn() << ")" << std::endl;
-            return;
-        }
-
-        // Discard the > character
-        in.get();
-        lexWhitespace();
-
-        Token close;
-        close.type = Token::Type::CLOSING_ARG_LIST_CT;
-        tokQueue.push(close);
-    }
+    // else do nothing. We allow an empty post expression
 }
 
 void Lexer::lexDefinition() {
@@ -489,8 +532,15 @@ void Lexer::lexDefinition() {
 }
 
 void Lexer::lexArgList() {
+    if (in.peek() == '>' || in.peek() == ')') {
+        // Empty arg list, just immediatly end
+        return;
+    }
+
+    bool prevLexingArgList = lexingArgList;
     lexingArgList = true;
     lexExpression();
+
     if (in.peek() == ',') {
         Token sep;
         sep.type = Token::Type::COMMA;
@@ -502,10 +552,15 @@ void Lexer::lexArgList() {
 
         lexArgList();
     }
-    lexingArgList = false;
+    lexingArgList = prevLexingArgList;
 }
 
 void Lexer::lexParamList() {
+    if (in.peek() == '>' || in.peek() == ')') {
+        // Empty param list, just immediatly end
+        return;
+    }
+    bool prevLexingParamList = lexingParamList;
     lexingParamList = true;
     lexDefinition();
     if (in.peek() == ',') {
@@ -519,7 +574,7 @@ void Lexer::lexParamList() {
 
         lexParamList();
     }
-    lexingParamList = false;
+    lexingParamList = prevLexingParamList;
 }
 
 /*
