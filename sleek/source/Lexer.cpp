@@ -369,7 +369,45 @@ void Lexer::lexPostExpression() {
 
             if (isFunctionExp) {
                 unknown.type = Token::Type::OPENING_PARAM_LIST_CT;
-                //TODO// Lex function expression here
+
+                sym = sym->newScope();
+                sym->isFunctionExpressionCT = true;
+                scopeLevel += 1;
+
+                lexParamList();
+                lexWhitespace();
+
+                if (tokQueue.back().type != Token::Type::CLOSING_PARAM_LIST_CT) {
+                    if (in.peek() != '>') {
+                        // ERROR: unclosed param list
+                        std::cerr << "Missing '>' character ";
+                        std::cerr << "at (" << in.getLine() << ", " << in.getColumn() << ")" << std::endl;
+                        return;
+                    }
+
+                    // Discard the > character
+                    in.get();
+                    lexWhitespace();
+
+                    Token close;
+                    close.type = Token::Type::CLOSING_PARAM_LIST_CT;
+                    tokQueue.push(close);
+                }
+
+                if (in.peek() != '{') {
+                    // ERROR: no function definition
+                    std::cerr << "Expected function definition after function declaration ";
+                    std::cerr << "at (" << in.getLine() << ", " << in.getColumn() << ")" << std::endl;
+                    return;
+                }
+
+                // Discard the { character
+                in.get();
+                lexWhitespace();
+
+                Token openBlock;
+                openBlock.type = Token::Type::OPENING_BLOCK;
+                tokQueue.push(openBlock);
             }
             else if (in.peek() == '>') {
                 // Then it's an empty argument list
@@ -482,7 +520,48 @@ void Lexer::lexPostExpression() {
         }
 
         if (isExpression) {
-            //TODO// Lex function expression
+            // It's a function expression
+            Token open;
+            open.type = Token::Type::OPENING_PARAM_LIST;
+            tokQueue.push(open);
+
+            // Enter a new scope
+            sym = sym->newScope();
+            sym->isFunctionExpression = true;
+            scopeLevel += 1;
+
+            lexParamList();
+            lexWhitespace();
+
+            if (in.peek() != ')') {
+                // ERROR: unclosed param list
+                std::cerr << "Missing '(' character ";
+                std::cerr << "at (" << in.getLine() << ", " << in.getColumn() << ")" << std::endl;
+                return;
+            }
+
+            // Discard the ) character
+            in.get();
+            lexWhitespace();
+
+            Token close;
+            close.type = Token::Type::CLOSING_PARAM_LIST;
+            tokQueue.push(close);
+
+            if (in.peek() != '{') {
+                // ERROR: no function definition
+                std::cerr << "Expected function definition after function declaration ";
+                std::cerr << "at (" << in.getLine() << ", " << in.getColumn() << ")" << std::endl;
+                return;
+            }
+
+            // Discard the { character
+            in.get();
+            lexWhitespace();
+
+            Token openBlock;
+            openBlock.type = Token::Type::OPENING_BLOCK;
+            tokQueue.push(openBlock);
         }
         else {
             // It's a function call
