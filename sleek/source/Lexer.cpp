@@ -65,7 +65,6 @@ void Lexer::lexStatement() {
         // Discard the { character
         in.get();
         lexWhitespace();
-
         scopeLevel += 1;
         sym = sym->newScope();
 
@@ -84,12 +83,18 @@ void Lexer::lexStatement() {
         in.get();
         lexWhitespace();
 
+        bool wasFunction = sym->isFunctionExpression || sym->isFunctionExpressionCT;
+
         scopeLevel -= 1;
         sym = sym->exitScope();
 
         Token close;
         close.type = Token::Type::CLOSING_BLOCK;
         tokQueue.push(close);
+
+        if (wasFunction) {
+            lexPostExpression();
+        }
     }
     else if (peek == ';') {
         // Empty statement
@@ -149,8 +154,7 @@ void Lexer::lexExpression() {
         lexWhitespace();
     }
 
-    // There is no Unary < and we need that for CT functions
-    else if (isOperatorChar(peek) && peek != '<') {
+    else if (isUnaryOperatorChar(peek)) {
         lexUnaryOperator();
         lexWhitespace();
         lexExpression();
@@ -252,6 +256,22 @@ void Lexer::lexExpression() {
             tokQueue.push(close);
         }
     }
+    // The > is interpreted as a binary op, but it could actually be the end
+    // of a param or arg list as well
+    else if ((lexingParamList || lexingArgList) && tokQueue.back().type == Token::Type::BINARY_OPERATOR
+                                                && tokQueue.back().stringVal[0] == '>'
+                                                && tokQueue.back().stringVal[1] == 0)
+    {
+        // The previous token wasn't a bin op
+        if (lexingParamList) {
+            tokQueue.back().type = Token::Type::CLOSING_PARAM_LIST_CT;
+        }
+        else {
+            tokQueue.back().type = Token::Type::CLOSING_ARG_LIST_CT;
+        }
+        // In either case, we should not run the postExpression stuff
+        return;
+    }
     else if (peek == '<') {
         // Has to be a compile time function returning void
 
@@ -313,22 +333,6 @@ void Lexer::lexExpression() {
         return;
     }
 
-    // The > is interpreted as a binary op, but it could actually be the end
-    // of a param or arg list as well
-    else if ((lexingParamList || lexingArgList) && tokQueue.back().type == Token::Type::BINARY_OPERATOR
-                                                && tokQueue.back().stringVal[0] == '>'
-                                                && tokQueue.back().stringVal[1] == 0)
-    {
-        // The previous token wasn't a bin op
-        if (lexingParamList) {
-            tokQueue.back().type = Token::Type::CLOSING_PARAM_LIST_CT;
-        }
-        else {
-            tokQueue.back().type = Token::Type::CLOSING_ARG_LIST_CT;
-        }
-        // In either case, we should not run the postExpression stuff
-        return;
-    }
     else {
         // ERROR: Unexpectd char
         std::cerr << "Malformed expression, unexpected character '" << peek << "' ";
@@ -351,7 +355,23 @@ void Lexer::lexPostExpression() {
             // of the last token so we can change it later
             Token& unknown = tokQueue.back();
             bool isFunctionCall = false;
-            if (in.peek() == '>') {
+            bool isFunctionExp  = false;
+
+            // We need to tell if we have an expression or a definition so we
+            // can decided between function expression and call
+            if (isLetter(in.peek())) {
+                in.bufferIdentifier();
+                lexWhitespace();
+                if (in.peek() == ':') {
+                    isFunctionExp = true;
+                }
+            }
+
+            if (isFunctionExp) {
+                unknown.type = Token::Type::OPENING_PARAM_LIST_CT;
+                //TODO// Lex function expression here
+            }
+            else if (in.peek() == '>') {
                 // Then it's an empty argument list
                 isFunctionCall = true;
             }
@@ -387,8 +407,6 @@ void Lexer::lexPostExpression() {
                 // have to do anything more
             }
 
-            //TODO// Could also be a function expression!
-
             if (isFunctionCall) {
                 unknown.type = Token::Type::OPENING_ARG_LIST_CT;
 
@@ -409,6 +427,7 @@ void Lexer::lexPostExpression() {
                     close.type = Token::Type::CLOSING_ARG_LIST_CT;
                     tokQueue.push(close);
                 }
+                lexPostExpression();
             }
         }
         else {
@@ -446,33 +465,48 @@ void Lexer::lexPostExpression() {
         tokQueue.push(close);
     }
     else if (peek == '(') {
-        //TODO// This could also be a function expression!
-        // Function call
+        // Function call or expression
 
         // Discard the ( character
         in.get();
         lexWhitespace();
 
-        Token open;
-        open.type = Token::Type::OPENING_ARG_LIST;
-        tokQueue.push(open);
+        bool isExpression = false;
 
-        lexArgList();
-
-        if (in.peek() != ')') {
-            // ERROR: missing closing paren
-            std::cerr << "Missing ')' character ";
-            std::cerr << "at (" << in.getLine() << ", " << in.getColumn() << ")" << std::endl;
-            return;
+        if (isLetter(in.peek())) {
+            in.bufferIdentifier();
+            lexWhitespace();
+            if (in.peek() == ':') {
+                isExpression = true;
+            }
         }
 
-        // Discard the ) character
-        in.get();
-        lexWhitespace();
+        if (isExpression) {
+            //TODO// Lex function expression
+        }
+        else {
+            // It's a function call
+            Token open;
+            open.type = Token::Type::OPENING_ARG_LIST;
+            tokQueue.push(open);
 
-        Token close;
-        close.type = Token::Type::CLOSING_ARG_LIST;
-        tokQueue.push(close);
+            lexArgList();
+
+            if (in.peek() != ')') {
+                // ERROR: missing closing paren
+                std::cerr << "Missing ')' character ";
+                std::cerr << "at (" << in.getLine() << ", " << in.getColumn() << ")" << std::endl;
+                return;
+            }
+
+            // Discard the ) character
+            in.get();
+            lexWhitespace();
+
+            Token close;
+            close.type = Token::Type::CLOSING_ARG_LIST;
+            tokQueue.push(close);
+        }
     }
     // else do nothing. We allow an empty post expression
 }

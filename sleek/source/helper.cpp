@@ -17,3 +17,7 @@ bool isOperatorChar(char test) {
         || test == '%' || test == '&' || test == '|' || test == '^'
         || test == '=' || test == '!' || test == '<' || test == '>';
 }
+
+bool isUnaryOperatorChar(char test) {
+    return test == '&' || test == '-' || test == '!';
+}
