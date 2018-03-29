@@ -366,6 +366,49 @@ void Lexer::lexPostExpression() {
                     isFunctionExp = true;
                 }
             }
+            else if (in.peek() == '>') {
+                // Could either be an empty param list or an empty arg list
+                // For now, discard the > character.
+                in.get();
+                lexWhitespace();
+
+                if (in.peek() == '{') {
+                    // It was a param list
+                    unknown.type = Token::Type::OPENING_PARAM_LIST_CT;
+
+                    Token close;
+                    close.type = Token::Type::CLOSING_PARAM_LIST_CT;
+                    tokQueue.push(close);
+
+                    // Discard the { character
+                    in.get();
+                    lexWhitespace();
+
+                    Token blockOpen;
+                    blockOpen.type = Token::Type::OPENING_BLOCK;
+                    tokQueue.push(blockOpen);
+
+                    // Increase the scope level
+                    sym = sym->newScope();
+                    sym->isFunctionExpressionCT = true;
+                    scopeLevel += 1;
+
+                    // For now, stop
+                    return;
+                }
+                else {
+                    // It was an arg list
+                    unknown.type = Token::Type::OPENING_ARG_LIST_CT;
+
+                    Token close;
+                    close.type = Token::Type::CLOSING_ARG_LIST_CT;
+                    tokQueue.push(close);
+
+                    // Lex another postExpression and stop
+                    lexPostExpression();
+                    return;
+                }
+            }
 
             if (isFunctionExp) {
                 unknown.type = Token::Type::OPENING_PARAM_LIST_CT;
@@ -516,6 +559,53 @@ void Lexer::lexPostExpression() {
             lexWhitespace();
             if (in.peek() == ':') {
                 isExpression = true;
+            }
+        }
+        else if (in.peek() == ')') {
+            // It's either an opening param list or an opening arg list
+            // For now, discard that symbol as well
+            in.get();
+            lexWhitespace();
+
+            if (in.peek() == '{') {
+                // It was an empty param list
+                Token open;
+                open.type = Token::Type::OPENING_PARAM_LIST;
+                tokQueue.push(open);
+
+                Token close;
+                close.type = Token::Type::CLOSING_PARAM_LIST;
+                tokQueue.push(close);
+
+                // Discard the { character
+                in.get();
+                lexWhitespace();
+
+                Token blockOpen;
+                blockOpen.type = Token::Type::OPENING_BLOCK;
+                tokQueue.push(blockOpen);
+
+                // Increase the scope
+                sym = sym->newScope();
+                sym->isFunctionExpression = true;
+                scopeLevel += 1;
+
+                // Stop here
+                return;
+            }
+            else {
+                // It was an empty arg list
+                Token open;
+                open.type = Token::Type::OPENING_ARG_LIST;
+                tokQueue.push(open);
+
+                Token close;
+                close.type = Token::Type::CLOSING_ARG_LIST;
+                tokQueue.push(close);
+
+                // lex the post expression stuff again and then stop
+                lexPostExpression();
+                return;
             }
         }
 
