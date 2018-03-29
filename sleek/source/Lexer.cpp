@@ -948,8 +948,8 @@ void Lexer::lexNumber() {
                 case 'X':
                     base = 16;
                     break;
-                case 'o':
-                case 'O':
+                case 'c':
+                case 'C':
                     base = 8;
                     break;
                 case 'b':
