@@ -18,6 +18,7 @@ class Symbol {
 
         void aliasTo(Symbol val);
         bool isDefinition();
+        Variable& getValue();
 
     private:
         bool definition;
@@ -50,6 +51,7 @@ class SymbolTable {
         std::map<std::string, Symbol> data;
 
         Symbol* getRaw(std::string key);
+        void aliasAllForwardRefs(std::string& key, Symbol& val);
 };
 
 #endif

@@ -38,6 +38,10 @@ bool Symbol::isDefinition() {
     return definition;
 }
 
+Variable& Symbol::getValue() {
+    return *value;
+}
+
 SymbolTable::SymbolTable() {
     root   = this;
     parent = NULL;
@@ -95,42 +99,31 @@ Symbol& SymbolTable::get(std::string key) {
 }
 
 Symbol& SymbolTable::define(std::string key) {
-    // For now assume that this isnt a redefinition
-    data[key] = Symbol(true);
+    // Check this scope and all parent scopes for a variable of the same name
+    SymbolTable* curr = this;
+    while (curr) {
+        if (data.count(key)) {
+            throw std::out_of_range("SymbolTable::define");
+        }
+        curr = curr->parent;
+    }
+
+    // Define the new symbol
+    Symbol& ret = data[key];
+    ret = Symbol(true);
+
+    // Alias all variables in children scopes to ret (link forward references)
+    aliasAllForwardRefs(key, ret);
 
     return data[key];
 }
 
-/*
-Variable& SymbolTable::get(std::string key) {
-    Variable* ret = getPointer(key);
-
-    if (!ret) {
-        ret = &define(key);
-        ret->defined = false;
-    }
-
-    return *ret;
-}
-
-Variable& SymbolTable::define(std::string key) {
+void SymbolTable::aliasAllForwardRefs(std::string& key, Symbol& val) {
     if (data.count(key)) {
-        throw std::out_of_range("SymbolTable::define");
+        data[key].aliasTo(val);
     }
 
-    Variable& ret = data[key];
-    ret.defined = true;
+    for (auto child : children) {
+        child->aliasAllForwardRefs(key, val);
+    }
 }
-
-Variable* SymbolTable::getPointer(std::string key) {
-    if (data.count(key)) {
-        return &data[key];
-    }
-
-    if (parent) {
-        return parent->getPointer(key);
-    }
-
-    return NULL;
-}
-*/

@@ -38,6 +38,12 @@ void Lexer::operator>>(Token& out) {
     out = get();
 }
 
+void Lexer::lexAll() {
+    do {
+        lexStatement();
+    } while (tokQueue.back().type != Token::Type::END_OF_FILE);
+}
+
 /*
  * Recursive Lexers
  */
