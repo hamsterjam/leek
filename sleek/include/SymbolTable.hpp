@@ -7,6 +7,25 @@
 #include <set>
 #include <map>
 
+class Symbol;
+class SymbolTable;
+
+class Symbol {
+    public:
+        Symbol();
+        Symbol(bool isDefinition);
+        ~Symbol();
+
+        void aliasTo(Symbol val);
+        bool isDefinition();
+
+    private:
+        bool definition;
+        Variable* value;
+
+        friend SymbolTable;
+};
+
 class SymbolTable {
     public:
         SymbolTable();
@@ -18,8 +37,8 @@ class SymbolTable {
 
         bool exists(std::string key);
 
-        Variable& get(std::string key);
-        Variable& define(std::string key);
+        Symbol& get(std::string key);
+        Symbol& define(std::string key);
 
         bool isFunctionExpression;
         bool isFunctionExpressionCT;
@@ -28,10 +47,9 @@ class SymbolTable {
         SymbolTable* root;
         SymbolTable* parent;
         std::set<SymbolTable*> children;
-        std::map<std::string, Variable> data;
+        std::map<std::string, Symbol> data;
 
-        Variable* getPointer(std::string key);
-
+        Symbol* getRaw(std::string key);
 };
 
 #endif

@@ -4,7 +4,7 @@
 #include <string>
 #include <cstdint>
 
-class Variable;
+class Symbol;
 
 struct Token {
     enum class Type {
@@ -38,7 +38,7 @@ struct Token {
     Type type;
     union {
         char stringVal[8];
-        Variable* varVal;
+        Symbol* varVal;
         uint16_t intVal;
     };
 };
