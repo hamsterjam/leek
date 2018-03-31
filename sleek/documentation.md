@@ -26,81 +26,6 @@ If the type is ommited, the type is infered, similar to a C++11 `auto`. In the c
 
 `foo := 42; // int`
 
-
-Functions
----------
-
-Functions can be defined with the syntax
-
-`[return type] ( [arg 1], [arg 2], ... [arg n] )`
-
-Where `arg n` is a variable definition.
-Functions will typically assigned a name using the function overload operator `::`, although, they may be defined as a variable.
-For example, the signature for the entry point of a sleek program is
-```
-main :: int(args : string[]) {
-    return 0;
-}
-```
-The arguments are typically defined as above with just a type. However you may also include default values as in the following convoluted example
-```
-incOrAdd :: int(lhs : int = 1, rhs : int = 1) {
-    return lhs + rhs;
-}
-
-incOrAdd(2, 3); // 5
-incOrAdd(2);    // 3
-incOrAdd(, 3);  // 4
-```
-As the name of the operator implies, functions declared with the function overload operator may be overloaded (not true of functions declared as variables).
-The sole exception to this rule is the function `main` which must be declared with the above signature.
-Functions declared as variables have type that is impliclty `const`
-
-`[return type]([argtype 1], [argtype 2], ..., [argtype n])`
-
-For instance, the type of the above `incOrAdd` function is `int(int, int)`.
-As these types are implicitly `const`, they may not be assigned at run time.
-If you need to assign functions at run time, consider using function references.
-The use of function variables is in their use with compile time functions.
-
-A function may be declared to run at compile time by replacing the parentheses `()` with angle brackets `<>`.
-The return type and arguments of these functions are implicitly `const` and they may not reference any variables out of their scope that are not `const`.
-However, the upside is they may (must) return a `const` value including functions and types.
-This can be used to define generics
-```
-add :: func<T : type> {
-    return T(lhs : T, rhs : T) {
-        return lhs + rhs;
-    }
-}
-```
-The type `func` is a special type that can be considered a parent type of all function types.
-This is nessecary as the signature of generic functions is... generic.
-Note that this lets you do full on functional programming (at compile time).
-```
-swapArgs :: func<retT : type, lhsT : type, rhsT : type> {
-    return func<f : retT(lhsT, rhsT)> {
-        return retT(lhs : rhsT, rhs : lhsT) {
-            return f(rhs, lhs);
-        }
-    }
-}
-
-pow :: int(lhs : int, rhs : int) {
-    ret := 1;
-    for (i := 0; i < rhs; ++i) ret *= lhs;
-    return ret;
-}
-
-swapArgs<int, int, int><pow>(2, 3); // 9
-```
-Another useful pattern is to declare and immediatly call an anonymous compile time function to create blocks that will run at compile time.
-```
-<>{
-    // Code here runs at compile time
-}<>
-```
-
 References
 ----------
 
@@ -193,6 +118,82 @@ To assist in this, the defer keyword makes a statement run when the scope ends.
 
 Dynamic arrays can be accessed and modified just as static arrays can, but if you overrun the array bounds super bad things could happen.
 
+Functions
+---------
+
+Functions can be defined with the syntax
+
+`[return type] ( [arg 1], [arg 2], ... [arg n] )`
+
+Where `arg n` is a variable definition.
+Functions will typically assigned a name using the function overload operator `::`, although, they may be defined as a variable.
+For example, the signature for the entry point of a sleek program is
+```
+main :: int(args : string[]) {
+    return 0;
+}
+```
+The arguments are typically defined as above with just a type. However you may also include default values as in the following convoluted example
+```
+incOrAdd :: int(lhs : int = 1, rhs : int = 1) {
+    return lhs + rhs;
+}
+
+incOrAdd(2, 3); // 5
+incOrAdd(2);    // 3
+incOrAdd(, 3);  // 4
+```
+As the name of the operator implies, functions declared with the function overload operator may be overloaded (not true of functions declared as variables).
+The sole exception to this rule is the function `main` which must be declared with the above signature.
+Functions declared as variables have type that is impliclty `const`
+
+`[return type]([argtype 1], [argtype 2], ..., [argtype n])`
+
+For instance, the type of the above `incOrAdd` function is `int(int, int)`.
+As these types are implicitly `const`, they may not be assigned at run time.
+If you need to assign functions at run time, consider using function references.
+The use of function variables is in their use with compile time functions.
+
+A function may be declared to run at compile time by replacing the parentheses `()` with angle brackets `<>`.
+The return type and arguments of these functions are implicitly `const` and they may not reference any variables out of their scope that are not `const`.
+However, the upside is they may (must) return a `const` value including functions and types.
+This can be used to define generics
+```
+add :: func<T : type> {
+    return T(lhs : T, rhs : T) {
+        return lhs + rhs;
+    }
+}
+```
+The type `func` is a special type that can be considered a parent type of all function types.
+This is nessecary as the signature of generic functions is... generic.
+
+Compile time functions can be used to do functional style programing.
+Just remember that compile time functions return a new function that is part of the generated code.
+As such, excesive calls to compile time functions can make your executable size large
+```
+map :: func<f : int(int)> {
+    return (vals : &int, length : uint) {
+        for (i := 0; i < length; i += 1) {
+            vals[i] = f(vals[i]);
+        }
+    }
+}
+
+square :: int(x : int) {
+    return x * x;
+}
+
+seq : int[10];
+for (i := 0; i < 10; i += 1) {
+    seq[i] = i;
+}
+
+map<square>(seq, 10);
+
+// seq now contains [1, 4, 9, 16, 25, 36, 49, 64, 81, 100]
+```
+
 Classes
 -------
 
@@ -221,8 +222,13 @@ if a function member is called, the `this` keyword is a reference to the object 
 If a constructor is called, the `this` keyword is a reference to the object to be created.
 If a destructor is called, the `this` keyword is a reference to the object to be destroyed.
 
-Note that by default class members are public. If you want to declare a member private you may prepend the `private` keyword onto the definition.
-A rather pointless example follows
+The default visibility in sleek is what other programming languages would refer to as *public*.
+In sleek, this is refered to as *unprotected*.
+The programmer can protect a variable from being read or written to from external sources with an access specifier.
+A set of square brackets before a declaration in a class block designates an access specifier.
+An `R` inside the brackets specifies that it should be read protected, a `W` specfies write protection.
+For example, prefixing `[RW]` to the start of a variable definition is the equivalent of *private* in other languages.
+However, this syntax also allows you to specify read only or write only variables
 ```
 Point := class {
     this :: (x : int, y : int) {
@@ -234,13 +240,14 @@ Point := class {
         return x*x + y*y;
     }
 
-    private x : int;
-    private y : int;
+    [W] x : int;
+    [W] y : int;
 }
 
 vec := new Point(3, 4);
 vec.sqrLength(); // 25
-vec.x = 5;       // Error, x is private
+vec.x;           // 3
+vec.x = 5;       // Error, x is write protected
 ```
 Operators can be overloaded in sleek. The names of the operator functions are `op` with the operator appended to it.
 For example, to make a functor we can overload the `()` operator.
@@ -254,7 +261,7 @@ Adder := class {
         return lhs + val;
     }
 
-    private val : int;
+    [RW] val : int;
 }
 
 add5 := new Adder(5);
@@ -262,7 +269,7 @@ add5 := new Adder(5);
 add5(3); // 8
 ```
 Generic clases can be created by simply returning a `type` from a compile time function.
-A simple vector class follows as an example
+A simple generic vector class follows as an example
 ```
 Vector := type<T : type> {
     return class {
@@ -276,8 +283,8 @@ Vector := type<T : type> {
             this.y := this.y + rhs.y;
         }
 
-        private x : T;
-        private y : T;
+        x : T;
+        y : T;
     }
 }
 
