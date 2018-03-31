@@ -13,7 +13,6 @@ class FileTracker {
 
         int peek();
         int get();
-        int eof();
 
         void bufferIdentifier();
         void clearBuffer();
@@ -25,6 +24,8 @@ class FileTracker {
 
         unsigned int getLine();
         unsigned int getColumn();
+
+        static int eof();
 
     private:
         std::ifstream fin;

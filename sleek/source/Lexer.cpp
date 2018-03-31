@@ -16,6 +16,8 @@ Lexer::Lexer(const char* filename, SymbolTable& sym) : in(filename) {
 
     lexingParamList = false;
     lexingArgList   = false;
+
+    lexWhitespace();
 }
 
 Token Lexer::peek() {
@@ -23,6 +25,10 @@ Token Lexer::peek() {
 }
 
 Token Lexer::get() {
+    while (tokQueue.size() < 1) {
+        lexStatement();
+        lexWhitespace();
+    }
     Token ret = tokQueue.front();
     tokQueue.pop();
     return ret;
@@ -37,7 +43,8 @@ void Lexer::operator>>(Token& out) {
  */
 
 void Lexer::lexStatement() {
-    char peek = in.peek();
+    // Can't be a char because eof isnt a char
+    int peek = in.peek();
     if (isLetter(peek)) {
         in.bufferIdentifier();
         lexWhitespace();
@@ -98,6 +105,14 @@ void Lexer::lexStatement() {
     }
     else if (peek == ';') {
         // Empty statement
+    }
+    else if (peek == FileTracker::eof()) {
+        Token eof;
+        eof.type = Token::Type::END_OF_FILE;
+        tokQueue.push(eof);
+
+        // No need to do anything else
+        return;
     }
     else {
         // Just treat it as an expression

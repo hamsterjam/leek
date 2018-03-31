@@ -22,7 +22,7 @@ void FileTracker::eatWhitespace() {
 int FileTracker::peek() {
     if (lin.peek() == SS_EOF) {
         if (fin.peek() == FS_EOF) {
-            return eof();
+            return FileTracker::eof();
         }
         return '\n';
     }
@@ -33,7 +33,7 @@ int FileTracker::peek() {
 int FileTracker::get() {
     if (lin.peek() == SS_EOF) {
         if (fin.peek() == FS_EOF) {
-            return eof();
+            return FileTracker::eof();
         }
         newLine();
         return '\n';

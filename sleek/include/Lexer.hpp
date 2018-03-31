@@ -15,6 +15,14 @@ class Lexer {
         Token get();
         void operator>>(Token& out);
 
+    private:
+        std::queue<Token> tokQueue;
+        FileTracker in;
+        SymbolTable* sym;
+
+        bool lexingArgList;
+        bool lexingParamList;
+
         // Recursive Lexers
         void lexStatement();
         void lexExpression();
@@ -29,13 +37,6 @@ class Lexer {
         void lexBinaryOperator();
         void lexIdentifier(bool definition);
         void lexNumber();
-    private:
-        std::queue<Token> tokQueue;
-        FileTracker in;
-        SymbolTable* sym;
-
-        bool lexingArgList;
-        bool lexingParamList;
 
         unsigned int scopeLevel;
 };
