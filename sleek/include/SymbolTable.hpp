@@ -36,10 +36,8 @@ class SymbolTable {
         SymbolTable* exitScope();
         SymbolTable* getRoot();
 
-        bool exists(std::string key);
-
-        Symbol& get(std::string key);
-        Symbol& define(std::string key);
+        Symbol& get(std::string& key);
+        Symbol& define(std::string& key);
 
         bool isFunctionExpression;
         bool isFunctionExpressionCT;

@@ -25,6 +25,7 @@ bool isUnaryOperatorChar(char test) {
 
 bool isKeyword(std::string& test) {
     if      (test == "class")  return true;
+    else if (test == "defer")  return true;
     // Control statements
     else if (test == "return") return true;
     else if (test == "if")     return true;

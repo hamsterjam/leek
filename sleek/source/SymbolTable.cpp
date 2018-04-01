@@ -86,7 +86,7 @@ Symbol* SymbolTable::getRaw(std::string& key) {
     return NULL;
 }
 
-Symbol& SymbolTable::get(std::string key) {
+Symbol& SymbolTable::get(std::string& key) {
     Symbol* ret = getRaw(key);
 
     if (!ret) {
@@ -98,7 +98,7 @@ Symbol& SymbolTable::get(std::string key) {
     return *ret;
 }
 
-Symbol& SymbolTable::define(std::string key) {
+Symbol& SymbolTable::define(std::string& key) {
     // Check this scope and all parent scopes for a variable of the same name
     SymbolTable* curr = this;
     while (curr) {

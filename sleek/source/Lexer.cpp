@@ -61,16 +61,24 @@ void Lexer::lexStatement() {
             lexWhitespace();
         }
         else {
-            if (in.getBufferedIdentifier() == "defer") {
+            std::string id = in.getBufferedIdentifier();
+            if (id == "defer") {
                 // Still an expression, but we need to push a defer token
-                in.clearBuffer();
-                Token defer;
-                defer.type = Token::Type::KEYWORD;
-                strncpy(defer.stringVal, "defer", 8);
-                tokQueue.push(defer);
+                lexKeyword();
+                lexExpression();
+                lexWhitespace();
             }
-            lexExpression();
-            lexWhitespace();
+            else if (id == "return") {
+                // Still an expression, but push the return token
+                lexKeyword();
+                lexExpression();
+                lexWhitespace();
+            }
+            else {
+                // It's just an expression
+                lexExpression();
+                lexWhitespace();
+            }
         }
         //TODO// Control structures
     }
