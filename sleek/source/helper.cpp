@@ -1,4 +1,5 @@
 #include "helper.hpp"
+#include <string>
 
 bool isNumber(char test) {
     return test >= '0' && test <= '9';
@@ -20,4 +21,30 @@ bool isOperatorChar(char test) {
 
 bool isUnaryOperatorChar(char test) {
     return test == '&' || test == '-' || test == '!';
+}
+
+bool isKeyword(std::string& test) {
+    if      (test == "class")  return true;
+    // Control statements
+    else if (test == "return") return true;
+    else if (test == "if")     return true;
+    else if (test == "else")   return true;
+    else if (test == "elif")   return true;
+    else if (test == "while")  return true;
+    else if (test == "do")     return true;
+    else if (test == "for")    return true;
+    // Types
+    else if (test == "void")   return true;
+    else if (test == "int")    return true;
+    else if (test == "uint")   return true;
+    else if (test == "type")   return true;
+    else if (test == "func")   return true;
+
+    return false;
+}
+
+bool isKeywordOperator(std::string& test) {
+    if (test == "const") return true;
+
+    return false;
 }

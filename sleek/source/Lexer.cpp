@@ -815,6 +815,17 @@ void Lexer::lexIdentifier(bool definition) {
     unsigned int colNumber  = in.getBufferColumn();
 
     std::string id = in.getBufferedIdentifier();
+
+    // Handle Keywords
+    if (isKeyword(id)) {
+        lexKeyword();
+        return;
+    }
+    if (isKeywordOperator(id)) {
+        lexKeywordOperator();
+        return;
+    }
+
     in.clearBuffer();
 
     if (id == "op") {
@@ -825,10 +836,6 @@ void Lexer::lexIdentifier(bool definition) {
     }
 
     Token ret;
-
-    // Handle keywords
-    if (lexIfKeyword(id)) return;
-
     ret.type = Token::Type::IDENTIFIER;
 
     if (definition) {
@@ -849,49 +856,23 @@ void Lexer::lexIdentifier(bool definition) {
     tokQueue.push(ret);
 }
 
-bool Lexer::lexIfKeyword(std::string id) {
-    bool isKeyword = false;
-    if      (id == "class")  isKeyword = true;
-    // Control statements
-    else if (id == "return") isKeyword = true;
-    else if (id == "if")     isKeyword = true;
-    else if (id == "else")   isKeyword = true;
-    else if (id == "elif")   isKeyword = true;
-    else if (id == "while")  isKeyword = true;
-    else if (id == "do")     isKeyword = true;
-    else if (id == "for")    isKeyword = true;
-    // Types
-    else if (id == "void")   isKeyword = true;
-    else if (id == "int")    isKeyword = true;
-    else if (id == "uint")   isKeyword = true;
-    else if (id == "type")   isKeyword = true;
-    else if (id == "func")   isKeyword = true;
+void Lexer::lexKeyword() {
+    if (!in.isBuffered()) in.bufferIdentifier();
 
-    if (isKeyword) {
-        Token keyword;
-        keyword.type = Token::Type::KEYWORD;
-        strncpy(keyword.stringVal, id.c_str(), 8);
-        tokQueue.push(keyword);
+    unsigned int lineNumber = in.getBufferLine();
+    unsigned int colNumber  = in.getBufferColumn();
 
-        return true;
-    }
+    Token ret;
+    ret.type = Token::Type::KEYWORD;
+    strncpy(ret.stringVal, in.getBufferedIdentifier().c_str(), 8);
+    tokQueue.push(ret);
 
-    // String Operators
-    bool isStringOperator = false;
-    if      (id == "const") isStringOperator = true;
-    else if (id == "const") isStringOperator = true;
+    in.clearBuffer();
+}
 
-    if (isStringOperator) {
-        Token op;
-        op.type = Token::Type::UNARY_OPERATOR;
-        strncpy(op.stringVal, id.c_str(), 8);
-        tokQueue.push(op);
-
-        return true;
-    }
-
-    // Not a keyword
-    return false;
+void Lexer::lexKeywordOperator() {
+    lexKeyword();
+    tokQueue.back().type = Token::Type::UNARY_OPERATOR;
 }
 
 void Lexer::lexNumber() {

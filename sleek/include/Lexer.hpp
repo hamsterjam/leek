@@ -44,9 +44,9 @@ class Lexer {
         void lexUnaryOperator();
         void lexBinaryOperator();
         void lexIdentifier(bool definition);
+        void lexKeyword();
+        void lexKeywordOperator();
         void lexNumber();
-
-        bool lexIfKeyword(std::string id);
 
         unsigned int scopeLevel;
 };
