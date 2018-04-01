@@ -33,12 +33,20 @@ class Lexer {
         void lexArgList();
         void lexParamList();
 
+        // Function Expression Lexers
+        void lexVoidFunctionExpression(bool compileTime);
+        void lexFunctionExpression(bool compileTime);
+        void lexFunctionExpressionFromList(bool compileTime);
+        void lexFunctionExpressionFromBlock(bool compileTime);
+
         // Terminal Lexers
         void lexWhitespace();
         void lexUnaryOperator();
         void lexBinaryOperator();
         void lexIdentifier(bool definition);
         void lexNumber();
+
+        bool lexIfKeyword(std::string id);
 
         unsigned int scopeLevel;
 };

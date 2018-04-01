@@ -204,51 +204,7 @@ void Lexer::lexExpression() {
 
         if (isFunction) {
             // This is a paramater list of a function
-            Token retType;
-            retType.type = Token::Type::KEYWORD;
-            strncpy(retType.stringVal, "void", 8);
-            tokQueue.push(retType);
-
-            Token open;
-            open.type = Token::Type::OPENING_PARAM_LIST;
-            tokQueue.push(open);
-
-            // Enter a new scope
-            sym = sym->newScope();
-            sym->isFunctionExpression = true;
-            scopeLevel += 1;
-
-            lexParamList();
-
-            if (in.peek() != ')') {
-                // ERROR: missing closing paren
-                std::cerr << "Missing ')' character ";
-                std::cerr << "at (" << in.getLine() << ", " << in.getColumn() << ")" << std::endl;
-                return;
-            }
-
-            // Discard the ) character
-            in.get();
-            lexWhitespace();
-
-            Token close;
-            close.type = Token::Type::CLOSING_PARAM_LIST;
-            tokQueue.push(close);
-
-            if (in.peek() != '{') {
-                // ERROR: No function definition
-                std::cerr << "Expected function definition after function declaration ";
-                std::cerr << "at (" << in.getLine() << ", " << in.getColumn() << ")" << std::endl;
-                return;
-            }
-
-            // Discard the { character
-            in.get();
-            lexWhitespace();
-
-            Token openBlock;
-            openBlock.type = Token::Type::OPENING_BLOCK;
-            tokQueue.push(openBlock);
+            lexVoidFunctionExpression(false);
 
             // Stop here, next call to lexStatement will lex more tokens
             return;
@@ -295,60 +251,7 @@ void Lexer::lexExpression() {
     }
     else if (peek == '<') {
         // Has to be a compile time function returning void
-
-        // Discard the < character
-        in.get();
-        lexWhitespace();
-
-        Token retType;
-        retType.type = Token::Type::KEYWORD;
-        strncpy(retType.stringVal, "void", 8);
-        tokQueue.push(retType);
-
-        Token open;
-        open.type = Token::Type::OPENING_PARAM_LIST_CT;
-        tokQueue.push(open);
-
-        // Enter a new scope
-        sym = sym->newScope();
-        sym->isFunctionExpressionCT = true;
-        scopeLevel += 1;
-
-        lexParamList();
-        lexWhitespace();
-
-        // If we don't already have a closing token, we need one
-        if (tokQueue.back().type != Token::Type::CLOSING_PARAM_LIST_CT) {
-            if (in.peek() != '>') {
-                // ERROR: missing closing bracket
-                std::cerr << "Missing '>' character ";
-                std::cerr << "at (" << in.getLine() << ", " << in.getColumn() << ")" << std::endl;
-                return;
-            }
-
-            // Discard the > character
-            in.get();
-            lexWhitespace();
-
-            Token close;
-            close.type = Token::Type::CLOSING_PARAM_LIST_CT;
-            tokQueue.push(close);
-        }
-
-        if (in.peek() != '{') {
-            // ERROR: No function definition
-            std::cerr << "Expected function definition after function declaration ";
-            std::cerr << "at (" << in.getLine() << ", " << in.getColumn() << ")" << std::endl;
-            return;
-        }
-
-        // Discard the { character
-        in.get();
-        lexWhitespace();
-
-        Token openBlock;
-        openBlock.type = Token::Type::OPENING_BLOCK;
-        tokQueue.push(openBlock);
+        lexVoidFunctionExpression(true);
 
         // Stop here, next call to lexStatement will lex more tokens
         return;
@@ -394,25 +297,28 @@ void Lexer::lexPostExpression() {
                 lexWhitespace();
 
                 if (in.peek() == '{') {
-                    // It was a param list
+                    // It was an empty param list
+
+                    /*
+                     * Note that this will get called if the previously lexed
+                     * expression was a function expression (as if the type of
+                     * this function is the previous function). Although that
+                     * is an incorrect interpretation, it still produces the
+                     * correct token stream so all is fine
+                     */
+
                     unknown.type = Token::Type::OPENING_PARAM_LIST_CT;
 
                     Token close;
                     close.type = Token::Type::CLOSING_PARAM_LIST_CT;
                     tokQueue.push(close);
 
-                    // Discard the { character
-                    in.get();
-                    lexWhitespace();
-
-                    Token blockOpen;
-                    blockOpen.type = Token::Type::OPENING_BLOCK;
-                    tokQueue.push(blockOpen);
-
-                    // Increase the scope level
+                    // Increase the scope
                     sym = sym->newScope();
-                    sym->isFunctionExpressionCT = true;
+                    sym->isFunctionExpression = true;
                     scopeLevel += 1;
+
+                    lexFunctionExpressionFromBlock(true);
 
                     // For now, stop
                     return;
@@ -434,44 +340,7 @@ void Lexer::lexPostExpression() {
             if (isFunctionExp) {
                 unknown.type = Token::Type::OPENING_PARAM_LIST_CT;
 
-                sym = sym->newScope();
-                sym->isFunctionExpressionCT = true;
-                scopeLevel += 1;
-
-                lexParamList();
-                lexWhitespace();
-
-                if (tokQueue.back().type != Token::Type::CLOSING_PARAM_LIST_CT) {
-                    if (in.peek() != '>') {
-                        // ERROR: unclosed param list
-                        std::cerr << "Missing '>' character ";
-                        std::cerr << "at (" << in.getLine() << ", " << in.getColumn() << ")" << std::endl;
-                        return;
-                    }
-
-                    // Discard the > character
-                    in.get();
-                    lexWhitespace();
-
-                    Token close;
-                    close.type = Token::Type::CLOSING_PARAM_LIST_CT;
-                    tokQueue.push(close);
-                }
-
-                if (in.peek() != '{') {
-                    // ERROR: no function definition
-                    std::cerr << "Expected function definition after function declaration ";
-                    std::cerr << "at (" << in.getLine() << ", " << in.getColumn() << ")" << std::endl;
-                    return;
-                }
-
-                // Discard the { character
-                in.get();
-                lexWhitespace();
-
-                Token openBlock;
-                openBlock.type = Token::Type::OPENING_BLOCK;
-                tokQueue.push(openBlock);
+                lexFunctionExpressionFromList(true);
             }
             else if (in.peek() == '>') {
                 // Then it's an empty argument list
@@ -590,6 +459,15 @@ void Lexer::lexPostExpression() {
 
             if (in.peek() == '{') {
                 // It was an empty param list
+
+                /*
+                 * Note that this will get called if the previously lexed
+                 * expression was a function expression (as if the type of
+                 * this function is the previous function). Although that
+                 * is an incorrect interpretation, it still produces the
+                 * correct token stream so all is fine
+                 */
+
                 Token open;
                 open.type = Token::Type::OPENING_PARAM_LIST;
                 tokQueue.push(open);
@@ -598,18 +476,12 @@ void Lexer::lexPostExpression() {
                 close.type = Token::Type::CLOSING_PARAM_LIST;
                 tokQueue.push(close);
 
-                // Discard the { character
-                in.get();
-                lexWhitespace();
-
-                Token blockOpen;
-                blockOpen.type = Token::Type::OPENING_BLOCK;
-                tokQueue.push(blockOpen);
-
                 // Increase the scope
                 sym = sym->newScope();
                 sym->isFunctionExpression = true;
                 scopeLevel += 1;
+
+                lexFunctionExpressionFromBlock(false);
 
                 // Stop here
                 return;
@@ -632,47 +504,7 @@ void Lexer::lexPostExpression() {
 
         if (isExpression) {
             // It's a function expression
-            Token open;
-            open.type = Token::Type::OPENING_PARAM_LIST;
-            tokQueue.push(open);
-
-            // Enter a new scope
-            sym = sym->newScope();
-            sym->isFunctionExpression = true;
-            scopeLevel += 1;
-
-            lexParamList();
-            lexWhitespace();
-
-            if (in.peek() != ')') {
-                // ERROR: unclosed param list
-                std::cerr << "Missing '(' character ";
-                std::cerr << "at (" << in.getLine() << ", " << in.getColumn() << ")" << std::endl;
-                return;
-            }
-
-            // Discard the ) character
-            in.get();
-            lexWhitespace();
-
-            Token close;
-            close.type = Token::Type::CLOSING_PARAM_LIST;
-            tokQueue.push(close);
-
-            if (in.peek() != '{') {
-                // ERROR: no function definition
-                std::cerr << "Expected function definition after function declaration ";
-                std::cerr << "at (" << in.getLine() << ", " << in.getColumn() << ")" << std::endl;
-                return;
-            }
-
-            // Discard the { character
-            in.get();
-            lexWhitespace();
-
-            Token openBlock;
-            openBlock.type = Token::Type::OPENING_BLOCK;
-            tokQueue.push(openBlock);
+            lexFunctionExpression(false);
         }
         else {
             // It's a function call
@@ -802,6 +634,88 @@ void Lexer::lexParamList() {
 }
 
 /*
+ * Function Expression Lexers
+ */
+
+void Lexer::lexVoidFunctionExpression(bool compileTime) {
+    Token retType;
+    retType.type = Token::Type::KEYWORD;
+    strncpy(retType.stringVal, "void", 8);
+    tokQueue.push(retType);
+
+    lexFunctionExpression(compileTime);
+}
+
+void Lexer::lexFunctionExpression(bool compileTime) {
+    // Assume it is a function expression but the opening char may or may not
+    // have been discarded
+    char openChar = (compileTime) ? '<' : '(';
+    if (in.peek() == openChar) {
+        in.get();
+        lexWhitespace();
+    }
+
+    Token open;
+    if (compileTime) open.type = Token::Type::OPENING_PARAM_LIST_CT;
+    else             open.type = Token::Type::OPENING_PARAM_LIST;
+    tokQueue.push(open);
+
+    lexFunctionExpressionFromList(compileTime);
+}
+
+void Lexer::lexFunctionExpressionFromList(bool compileTime) {
+    // Enter a new scope
+    sym = sym->newScope();
+    if (compileTime) sym->isFunctionExpressionCT = true;
+    else             sym->isFunctionExpression   = true;
+    scopeLevel += 1;
+
+    lexParamList();
+    lexWhitespace();
+
+    char closeChar = (compileTime) ? '>' : ')';
+    Token::Type closeType;
+    if (compileTime) closeType = Token::Type::CLOSING_PARAM_LIST_CT;
+    else             closeType = Token::Type::CLOSING_PARAM_LIST;
+
+    if (tokQueue.back().type != closeType) {
+        if (in.peek() != closeChar) {
+            // ERROR: missing closing bracket
+            std::cerr << "Malformed function expression, unclosed param list. Expected '" << closeChar << "' character ";
+            std::cerr << "at (" << in.getLine() << ", " << in.getColumn() << ")" << std::endl;
+            return;
+        }
+
+        // Discard the closeChar character
+        in.get();
+        lexWhitespace();
+
+        Token close;
+        close.type = closeType;
+        tokQueue.push(close);
+    }
+
+    lexFunctionExpressionFromBlock(compileTime);
+}
+
+void Lexer::lexFunctionExpressionFromBlock(bool compileTime) {
+    if (in.peek() != '{') {
+        // ERROR: No function definition
+        std::cerr << "Malformed function expression, no function definition ";
+        std::cerr << "at (" << in.getLine() << ", " << in.getColumn() << ")" << std::endl;
+        return;
+    }
+
+    // Discard the { character
+    in.get();
+    lexWhitespace();
+
+    Token openBlock;
+    openBlock.type = Token::Type::OPENING_BLOCK;
+    tokQueue.push(openBlock);
+}
+
+/*
  * Terminal Lexers
  */
 
@@ -905,23 +819,15 @@ void Lexer::lexIdentifier(bool definition) {
 
     if (id == "op") {
         // Operator identifier
-        //TODO//
+        while (isOperatorChar(in.peek())) {
+            id += in.get();
+        }
     }
 
     Token ret;
 
     // Handle keywords
-    if (id == "class") {
-        ret.type = Token::Type::CLASS;
-        tokQueue.push(ret);
-        return;
-    }
-    if (id == "const") {
-        ret.type = Token::Type::UNARY_OPERATOR;
-        strncpy(ret.stringVal, "const", 8);
-        tokQueue.push(ret);
-        return;
-    }
+    if (lexIfKeyword(id)) return;
 
     ret.type = Token::Type::IDENTIFIER;
 
@@ -941,6 +847,51 @@ void Lexer::lexIdentifier(bool definition) {
     }
 
     tokQueue.push(ret);
+}
+
+bool Lexer::lexIfKeyword(std::string id) {
+    bool isKeyword = false;
+    if      (id == "class")  isKeyword = true;
+    // Control statements
+    else if (id == "return") isKeyword = true;
+    else if (id == "if")     isKeyword = true;
+    else if (id == "else")   isKeyword = true;
+    else if (id == "elif")   isKeyword = true;
+    else if (id == "while")  isKeyword = true;
+    else if (id == "do")     isKeyword = true;
+    else if (id == "for")    isKeyword = true;
+    // Types
+    else if (id == "void")   isKeyword = true;
+    else if (id == "int")    isKeyword = true;
+    else if (id == "uint")   isKeyword = true;
+    else if (id == "type")   isKeyword = true;
+    else if (id == "func")   isKeyword = true;
+
+    if (isKeyword) {
+        Token keyword;
+        keyword.type = Token::Type::KEYWORD;
+        strncpy(keyword.stringVal, id.c_str(), 8);
+        tokQueue.push(keyword);
+
+        return true;
+    }
+
+    // String Operators
+    bool isStringOperator = false;
+    if      (id == "const") isStringOperator = true;
+    else if (id == "const") isStringOperator = true;
+
+    if (isStringOperator) {
+        Token op;
+        op.type = Token::Type::UNARY_OPERATOR;
+        strncpy(op.stringVal, id.c_str(), 8);
+        tokQueue.push(op);
+
+        return true;
+    }
+
+    // Not a keyword
+    return false;
 }
 
 void Lexer::lexNumber() {

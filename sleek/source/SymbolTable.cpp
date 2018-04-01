@@ -71,7 +71,7 @@ SymbolTable* SymbolTable::getRoot() {
     return root;
 }
 
-Symbol* SymbolTable::getRaw(std::string key) {
+Symbol* SymbolTable::getRaw(std::string& key) {
     // If a sybol with that name exists in this scope, return it
     if (data.count(key)) {
         return &data[key];
