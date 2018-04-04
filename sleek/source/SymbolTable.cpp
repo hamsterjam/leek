@@ -3,6 +3,7 @@
 
 #include <string>
 #include <stdexcept>
+#include <utility>
 #include <set>
 #include <map>
 
@@ -11,6 +12,7 @@ Symbol::Symbol() : Symbol(false){
 
 Symbol::Symbol(bool isDefinition) {
     this->definition = isDefinition;
+    scope = NULL;
 
     if (isDefinition) {
         value = new Variable;
@@ -24,12 +26,42 @@ Symbol::~Symbol() {
     if (definition) {
         delete value;
     }
+
+    if (scope) {
+        delete scope;
+    }
 }
 
 void Symbol::aliasTo(Symbol val) {
     // This only makes sense if val is a definition and this is not
     if (definition || !val.definition)
         return;
+
+    // First we need to alias the symbol scopes
+
+    // If only one variable has a scope, use that scope
+    if (this->scope && !val.scope) {
+        this->scope = val.scope;
+        val.scope = NULL;
+    }
+    // If they both have a scope, take a union
+    else if (this->scope && val.scope) {
+        for (auto p : val.scope->data) {
+            std::string key = p.first;
+            Symbol      sym = p.second;
+
+            // If this symbol exists in our scope as well, alias those symbols
+            if (this->scope->data.count(key)) {
+                this->scope->data[key].aliasTo(sym);
+            }
+            // Otherwise create a (non deifnition) symbol in this scope
+            else {
+                Symbol dummy(false);
+                this->scope->data[key] = dummy;
+            }
+        }
+    }
+
 
     this->value = val.value;
 }
@@ -40,6 +72,14 @@ bool Symbol::isDefinition() {
 
 Variable& Symbol::getValue() {
     return *value;
+}
+
+SymbolTable* Symbol::getScope() {
+    if (!scope) {
+        scope = new SymbolTable;
+    }
+
+    return scope;
 }
 
 SymbolTable::SymbolTable() {

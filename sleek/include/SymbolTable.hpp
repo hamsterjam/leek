@@ -19,12 +19,12 @@ class Symbol {
         void aliasTo(Symbol val);
         bool isDefinition();
         Variable& getValue();
+        SymbolTable* getScope();
 
     private:
         bool definition;
         Variable* value;
-
-        friend SymbolTable;
+        SymbolTable* scope;
 };
 
 class SymbolTable {
@@ -43,6 +43,8 @@ class SymbolTable {
         bool isFunctionExpressionCT;
 
     private:
+        friend Symbol;
+
         SymbolTable* root;
         SymbolTable* parent;
         std::set<SymbolTable*> children;
