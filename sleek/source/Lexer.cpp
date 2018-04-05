@@ -62,14 +62,8 @@ void Lexer::lexStatement() {
         }
         else {
             std::string id = in.getBufferedIdentifier();
-            if (id == "defer") {
-                // Still an expression, but we need to push a defer token
-                lexKeyword();
-                lexExpression();
-                lexWhitespace();
-            }
-            else if (id == "return") {
-                // Still an expression, but push the return token
+            if (id == "defer" || id == "return") {
+                // Still an expression, but we need to push a keyword token
                 lexKeyword();
                 lexExpression();
                 lexWhitespace();
@@ -171,10 +165,7 @@ void Lexer::lexExpression() {
             // Keyword style unary op (such as const)
             lexExpression();
         }
-        else if (id.type == Token::Type::CLASS) {
-            // class keyword
-            //TODO// Lex classes
-        }
+        //TODO// Lex classes
     }
 
     // If the first character is a number, treat it as a number
@@ -862,6 +853,23 @@ void Lexer::lexIdentifier(bool definition) {
     }
 
     tokQueue.push(ret);
+
+    if (in.peek() == '.') {
+        // This is a property acces
+        Token prop;
+        prop.type = Token::Type::PROPERTY_ACCESS;
+        tokQueue.push(prop);
+
+        // Discard the . character
+        in.get();
+
+        SymbolTable* currSym = sym;
+        sym = ret.varVal->getScope();
+
+        lexIdentifier(false);
+
+        sym = currSym;
+    }
 }
 
 void Lexer::lexKeyword() {

@@ -53,7 +53,7 @@ void Symbol::aliasTo(Symbol val) {
     else if (this->scope && val.scope) {
         for (auto p : this->scope->data) {
             std::string key = p.first;
-            Symbol      sym = p.second;
+            Symbol&     sym = p.second;
 
             // If this symbol exists in vals scope as well, alias those symbols
             if (val.scope->data.count(key)) {
@@ -69,6 +69,7 @@ void Symbol::aliasTo(Symbol val) {
         // Set our scope to point to the (unioned) scope in val
         if (this->ownsScope) {
             // Note that we can guarantee that the scopes are not aliased
+            // this delete isn't deleting the scope in val
             this->ownsScope = false;
             delete this->scope;
         }
