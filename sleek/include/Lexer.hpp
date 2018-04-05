@@ -25,10 +25,17 @@ class Lexer {
         bool lexingArgList;
         bool lexingParamList;
 
+        unsigned int scopeLevel;
+        bool inClassBlock;
+
         // Recursive Lexers
         void lexStatement();
+        void lexRegularStatement();
+        void lexClassStatement();
+
         void lexExpression();
         void lexPostExpression();
+
         void lexDefinition();
         void lexArgList();
         void lexParamList();
@@ -47,8 +54,6 @@ class Lexer {
         void lexKeyword();
         void lexKeywordOperator();
         void lexNumber();
-
-        unsigned int scopeLevel;
 };
 
 #endif

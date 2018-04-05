@@ -103,6 +103,8 @@ SymbolTable::SymbolTable() {
 
     isFunctionExpression   = false;
     isFunctionExpressionCT = false;
+
+    isClassScope = false;
 }
 
 SymbolTable::~SymbolTable() {

@@ -43,6 +43,8 @@ class SymbolTable {
         bool isFunctionExpression;
         bool isFunctionExpressionCT;
 
+        bool isClassScope;
+
     private:
         friend Symbol;
 

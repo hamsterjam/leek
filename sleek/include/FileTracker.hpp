@@ -28,8 +28,8 @@ class FileTracker {
         static int eof();
 
     private:
-        std::ifstream fin;
-        std::stringstream  lin;
+        std::ifstream     fin;
+        std::stringstream lin;
 
         bool buffered;
         std::string buffer;

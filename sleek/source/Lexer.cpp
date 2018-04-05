@@ -49,6 +49,20 @@ void Lexer::lexAll() {
  */
 
 void Lexer::lexStatement() {
+    if (sym->isClassScope) {
+        lexClassStatement();
+    }
+    else {
+        lexRegularStatement();
+    }
+}
+
+void Lexer::lexClassStatement() {
+    // Similar to a regular statement, but we only allow definitions (and we
+    // have to support access specifiers)
+}
+
+void Lexer::lexRegularStatement() {
     // Can't be a char because eof isnt a char
     int peek = in.peek();
     if (isLetter(peek)) {
@@ -99,6 +113,7 @@ void Lexer::lexStatement() {
         lexWhitespace();
 
         bool wasFunction = sym->isFunctionExpression || sym->isFunctionExpressionCT;
+        bool wasClass    = sym->isClassScope;
 
         scopeLevel -= 1;
         sym = sym->exitScope();
@@ -107,7 +122,7 @@ void Lexer::lexStatement() {
         close.type = Token::Type::CLOSING_BLOCK;
         tokQueue.push(close);
 
-        if (wasFunction) {
+        if (wasFunction || wasClass) {
             lexPostExpression();
         }
     }
@@ -147,7 +162,6 @@ void Lexer::lexStatement() {
         eos.type = Token::Type::END_OF_STATEMENT;
         tokQueue.push(eos);
     }
-
 }
 
 void Lexer::lexExpression() {
@@ -165,7 +179,35 @@ void Lexer::lexExpression() {
             // Keyword style unary op (such as const)
             lexExpression();
         }
-        //TODO// Lex classes
+        else if (id.type == Token::Type::KEYWORD) {
+            // Some keywords have special properties
+            if (!strncmp(id.stringVal, "new", 8)) {
+                // Just lex an expression from here
+                lexExpression();
+                return;
+            }
+            else if (!strncmp(id.stringVal, "class", 8)) {
+                // Expect an opening block
+                if (in.peek() != '{') {
+                    // ERROR: no opening block
+                    std::cerr << "No class definition, expected '{' character ";
+                    std::cerr << "at (" << in.getLine() << ", " << in.getColumn() << ")" << std::endl;
+                    return;
+                }
+
+                // Discard the { character
+                in.get();
+                lexWhitespace();
+
+                // Increase the scope
+                sym = sym->newScope();
+                sym->isClassScope = true;
+                scopeLevel += 1;
+
+                // Stop here
+                return;
+            }
+        }
     }
 
     // If the first character is a number, treat it as a number
