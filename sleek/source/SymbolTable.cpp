@@ -12,6 +12,8 @@ Symbol::Symbol() : Symbol(false){
 
 Symbol::Symbol(bool isDefinition) {
     this->definition = isDefinition;
+
+    ownsScope = false;
     scope = NULL;
 
     if (isDefinition) {
@@ -27,7 +29,7 @@ Symbol::~Symbol() {
         delete value;
     }
 
-    if (scope) {
+    if (scope && ownsScope) {
         delete scope;
     }
 }
@@ -37,32 +39,43 @@ void Symbol::aliasTo(Symbol val) {
     if (definition || !val.definition)
         return;
 
-    // First we need to alias the symbol scopes
+    // Alias the symbol scopes
 
-    // If only one variable has a scope, use that scope
-    if (this->scope && !val.scope) {
+    // If the scopes are aliases, we don't need to do anything
+    if (this->scope == val.scope) {
+    }
+    // If val owns a scope, and we don't, just use that scope
+    // ownership remains with val
+    else if (!this->scope && val.scope) {
         this->scope = val.scope;
-        val.scope = NULL;
     }
     // If they both have a scope, take a union
     else if (this->scope && val.scope) {
-        for (auto p : val.scope->data) {
+        for (auto p : this->scope->data) {
             std::string key = p.first;
             Symbol      sym = p.second;
 
-            // If this symbol exists in our scope as well, alias those symbols
-            if (this->scope->data.count(key)) {
-                this->scope->data[key].aliasTo(sym);
+            // If this symbol exists in vals scope as well, alias those symbols
+            if (val.scope->data.count(key)) {
+                sym.aliasTo(val.scope->data[key]);
             }
-            // Otherwise create a (non deifnition) symbol in this scope
+            // Otherwise create a (non deifnition) symbol in vals scope
             else {
-                Symbol dummy(false);
+                Symbol dummy;
                 this->scope->data[key] = dummy;
             }
         }
+
+        // Set our scope to point to the (unioned) scope in val
+        if (this->ownsScope) {
+            // Note that we can guarantee that the scopes are not aliased
+            this->ownsScope = false;
+            delete this->scope;
+        }
+        this->scope = val.scope;
     }
 
-
+    // Alias the values
     this->value = val.value;
 }
 
@@ -76,6 +89,7 @@ Variable& Symbol::getValue() {
 
 SymbolTable* Symbol::getScope() {
     if (!scope) {
+        ownsScope = true;
         scope = new SymbolTable;
     }
 

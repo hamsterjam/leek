@@ -23,6 +23,7 @@ class Symbol {
 
     private:
         bool definition;
+        bool ownsScope;
         Variable* value;
         SymbolTable* scope;
 };
