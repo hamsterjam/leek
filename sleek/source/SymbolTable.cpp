@@ -34,7 +34,7 @@ Symbol::~Symbol() {
     }
 }
 
-void Symbol::aliasTo(Symbol val) {
+void Symbol::aliasTo(Symbol& val) {
     // This only makes sense if val is a definition and this is not
     if (definition || !val.definition)
         return;
@@ -48,6 +48,12 @@ void Symbol::aliasTo(Symbol val) {
     // ownership remains with val
     else if (!this->scope && val.scope) {
         this->scope = val.scope;
+    }
+    // If we have a scope and val does not, we are going to give it our scope.
+    else if (this->scope && !val.scope) {
+        val.scope = this->scope;
+        val.ownsScope = this->ownsScope;
+        this->ownsScope = false;
     }
     // If they both have a scope, take a union
     else if (this->scope && val.scope) {

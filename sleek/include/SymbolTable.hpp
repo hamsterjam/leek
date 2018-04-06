@@ -16,7 +16,7 @@ class Symbol {
         Symbol(bool isDefinition);
         ~Symbol();
 
-        void aliasTo(Symbol val);
+        void aliasTo(Symbol& val);
         bool isDefinition();
         Variable& getValue();
         SymbolTable* getScope();
