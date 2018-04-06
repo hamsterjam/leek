@@ -963,7 +963,7 @@ void Lexer::lexIdentifier(bool definition) {
 
     // Handle Keywords
     // "this" is handled seperatley (since it is kind of a variables)
-    if (isKeyword(id) && id != "this") {
+    if (isKeyword(id)) {
         lexKeyword();
         return;
     }
