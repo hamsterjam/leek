@@ -279,8 +279,8 @@ Vector := type<T : type> {
         }
 
         op+= :: (rhs : &Vector<T>) {
-            this.x := this.x + rhs.x;
-            this.y := this.y + rhs.y;
+            this.x = this.x + rhs.x;
+            this.y = this.y + rhs.y;
         }
 
         x : T;

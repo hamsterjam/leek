@@ -32,6 +32,9 @@ class Lexer {
         void lexStatement();
         void lexRegularStatement();
         void lexClassStatement();
+        void lexPostStatement();
+
+        void lexAccessSpecifier();
 
         void lexExpression();
         void lexPostExpression();

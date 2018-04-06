@@ -60,6 +60,95 @@ void Lexer::lexStatement() {
 void Lexer::lexClassStatement() {
     // Similar to a regular statement, but we only allow definitions (and we
     // have to support access specifiers)
+
+    if (in.peek() == '[') {
+        lexAccessSpecifier();
+        lexWhitespace();
+    }
+
+    int peek = in.peek();
+    if (isLetter(peek)) {
+        // Then it *must* be a definition (if not its a lex error)
+        lexDefinition();
+        lexWhitespace();
+    }
+    else if (peek == '}') {
+        // Finish the class de
+        if (scopeLevel == 0) {
+            // ERROR: Exiting global scope
+            // should be unreachable
+            std::cerr << "Unexpected '}' character, no matching '{' character ";
+            std::cerr << "at (" << in.getLine() << ", " << in.getColumn() << ")" << std::endl;
+            return;
+        }
+
+        // Discard the } character
+        in.get();
+        lexWhitespace();
+
+        scopeLevel -= 1;
+        sym = sym->exitScope();
+
+        Token close;
+        close.type = Token::Type::CLOSING_BLOCK;
+        tokQueue.push(close);
+
+        // This scope must be a class scope, so lex a post expression
+        lexPostExpression();
+    }
+    else if (peek == ';') {
+        // Empty statement
+    }
+
+    lexPostStatement();
+}
+
+void Lexer::lexAccessSpecifier() {
+    // As always, assume that this *is* an access specifier
+
+    // Discard the [ character
+    in.get();
+    lexWhitespace();
+
+    // Push the opening token
+    Token open;
+    open.type = Token::Type::OPENING_ACCESS_SPECIFIER;
+    tokQueue.push(open);
+
+    // Loop till the specifier ends
+    while (in.peek() != ']') {
+        char next = in.get();
+
+        Token tok;
+        tok.type = Token::Type::KEYWORD;
+
+        switch (next) {
+            case 'R':
+            case 'W':
+                tok.stringVal[0] = next;
+                tok.stringVal[1] = 0;
+                break;
+
+            default:
+                // ERROR: unrecognised access specifier
+                std::cerr << "Unknown access specifier '" << next << "' ";
+                std::cerr << "at (" << in.getLine() << ", " << in.getColumn() << ")" << std::endl;
+                return;
+        }
+
+        lexWhitespace();
+
+        tokQueue.push(tok);
+    }
+
+    // Discard the ] character
+    in.get();
+    lexWhitespace();
+
+    // Push a closing token
+    Token close;
+    close.type = Token::Type::CLOSING_ACCESS_SPECIFIER;
+    tokQueue.push(close);
 }
 
 void Lexer::lexRegularStatement() {
@@ -142,7 +231,10 @@ void Lexer::lexRegularStatement() {
         lexExpression();
         lexWhitespace();
     }
+    lexPostStatement();
+}
 
+void Lexer::lexPostStatement() {
     // If the last token from the statement wasn't a { or a }, we require a ;
     Token::Type lastType = tokQueue.back().type;
     if (lastType != Token::Type::OPENING_BLOCK && lastType != Token::Type::CLOSING_BLOCK) {
@@ -198,6 +290,10 @@ void Lexer::lexExpression() {
                 // Discard the { character
                 in.get();
                 lexWhitespace();
+
+                Token open;
+                open.type = Token::Type::OPENING_BLOCK;
+                tokQueue.push(open);
 
                 // Increase the scope
                 sym = sym->newScope();
@@ -383,8 +479,16 @@ void Lexer::lexPostExpression() {
 
                 lexFunctionExpressionFromList(true);
             }
-            else if (in.peek() == '>') {
+            else if (in.peek() == '>' && !in.isBuffered()) {
                 // Then it's an empty argument list
+                isFunctionCall = true;
+            }
+            else if (in.peek() == '>' && in.isBuffered()) {
+                // If we just let this lex as an expression, the > character
+                // would become an operator and break everything
+
+                // lex the buffered identifier
+                lexIdentifier(false);
                 isFunctionCall = true;
             }
             else {
@@ -448,7 +552,7 @@ void Lexer::lexPostExpression() {
             lexExpression();
         }
     }
-    else if (peek == '[') {
+    else if (peek == '[' && tokQueue.back().type != Token::Type::CLOSING_BLOCK) {
         // Must be an array index
 
         // Discard the [ character
@@ -858,7 +962,8 @@ void Lexer::lexIdentifier(bool definition) {
     std::string id = in.getBufferedIdentifier();
 
     // Handle Keywords
-    if (isKeyword(id)) {
+    // "this" is handled seperatley (since it is kind of a variables)
+    if (isKeyword(id) && id != "this") {
         lexKeyword();
         return;
     }
