@@ -49,6 +49,11 @@ void Lexer::lexAll() {
  */
 
 void Lexer::lexStatement() {
+    lexRawStatement();
+    lexPostStatement();
+}
+
+void Lexer::lexRawStatement() {
     if (sym->isClassScope) {
         lexClassStatement();
     }
@@ -99,8 +104,6 @@ void Lexer::lexClassStatement() {
     else if (peek == ';') {
         // Empty statement
     }
-
-    lexPostStatement();
 }
 
 void Lexer::lexAccessSpecifier() {
@@ -171,13 +174,104 @@ void Lexer::lexRegularStatement() {
                 lexExpression();
                 lexWhitespace();
             }
+            else if (id == "if" || id == "elif" || id == "while") {
+                // Expect an expression (for the condition) and a statement
+                lexKeyword();
+                lexWhitespace();
+                lexExpression();
+                lexWhitespace();
+                // Specifically disallow a closing block here
+                if (in.peek() == '}') {
+                    // ERROR
+                    std::cerr << "Unexpected '}' character, expected a statement ";
+                    std::cerr << "at (" << in.getLine() << ", " << in.getColumn() << ")" << std::endl;
+                    return;
+                }
+                lexRawStatement();
+                lexWhitespace();
+            }
+            else if (id == "do" || id == "else") {
+                // Expect a statement for the body, the condition will be lexed
+                // on a later call to lexStatement
+                lexKeyword();
+                lexWhitespace();
+                // Specifically disallow a closing block here
+                if (in.peek() == '}') {
+                    // ERROR
+                    std::cerr << "Unexpected '}' character, expected a statement ";
+                    std::cerr << "at (" << in.getLine() << ", " << in.getColumn() << ")" << std::endl;
+                    return;
+                }
+                lexRawStatement();
+                lexWhitespace();
+            }
+            else if (id == "for") {
+                // Expect 3 statements seperated by semicolons (ALWAYS) in
+                // parens followed by a body statement. For now, don't allow
+                // block statements inside the parens
+                lexKeyword();
+                lexWhitespace();
+
+                if (in.peek() != '(') {
+                    // ERROR: No for loop head
+                    std::cerr << "Malformed 'for' statement, expected '(' character at ";
+                    std::cerr << "at (" << in.getLine() << ", " << in.getColumn() << ")" << std::endl;
+                    return;
+                }
+
+                // Discard the ( character
+                in.get();
+                lexWhitespace();
+
+                for (int i = 0; i < 3; ++i) {
+                    // Disallow closing blocks
+                    if (in.peek() == '}') {
+                        // ERROR
+                        std::cerr << "Unexpected '}' character, expected a statement ";
+                        std::cerr << "at (" << in.getLine() << ", " << in.getColumn() << ")" << std::endl;
+                        return;
+                    }
+
+                    lexRawStatement();
+
+                    // Disallow any statements that open a scope
+                    if (tokQueue.back().type == Token::Type::OPENING_BLOCK) {
+                        // ERROR: no opening blocks in if statements
+                        std::cerr << "Statments that open new scopes are not forbidden in for statements, ";
+                        std::cerr << "at (" << in.getLine() << ", " << in.getColumn() << ")" << std::endl;
+                        return;
+                    }
+
+                    lexWhitespace();
+
+                    // We don't want a semicolon on the last loop
+                    if (i >= 2) break;
+
+                    if (in.peek() != ';') {
+                        // ERROR: no semicolon
+                        std::cerr << "Expected ';' character ";
+                        std::cerr << "at (" << in.getLine() << ", " << in.getColumn() << ")" << std::endl;
+                        return;
+                    }
+
+                    // Discard the ; character
+                    in.get();
+                    lexWhitespace();
+
+                    Token sep;
+                    sep.type = Token::Type::END_OF_STATEMENT;
+                    tokQueue.push(sep);
+                }
+
+                // Last we need a statement for the body
+                lexRawStatement();
+            }
             else {
                 // It's just an expression
                 lexExpression();
                 lexWhitespace();
             }
         }
-        //TODO// Control structures
     }
     else if (peek == '{') {
         // Discard the { character
@@ -231,7 +325,6 @@ void Lexer::lexRegularStatement() {
         lexExpression();
         lexWhitespace();
     }
-    lexPostStatement();
 }
 
 void Lexer::lexPostStatement() {

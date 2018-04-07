@@ -30,6 +30,7 @@ class Lexer {
 
         // Recursive Lexers
         void lexStatement();
+        void lexRawStatement();
         void lexRegularStatement();
         void lexClassStatement();
         void lexPostStatement();
