@@ -11,6 +11,7 @@
 FileTracker::FileTracker(const char* filename): fin(filename) {
     line = 0;
     newLine();
+    discardComments();
 }
 
 void FileTracker::eatWhitespace() {
@@ -31,6 +32,12 @@ int FileTracker::peek() {
 }
 
 int FileTracker::get() {
+    int ret = getRaw();
+    discardComments();
+    return ret;
+}
+
+int FileTracker::getRaw() {
     if (lin.peek() == SS_EOF) {
         if (fin.peek() == FS_EOF) {
             return FileTracker::eof();
@@ -91,6 +98,35 @@ unsigned int FileTracker::getLine() {
 
 unsigned int FileTracker::getColumn() {
     return column;
+}
+
+void FileTracker::discardComments() {
+    if (lin.peek() != '/') return;
+
+    // Discard the / character for now
+    getRaw();
+
+    if (lin.peek() == '/') {
+        // Line comment
+        // Just move to a new line
+        newLine();
+    }
+    else if (lin.peek() == '*') {
+        // Block comment
+
+        while (true) {
+            // Discard till (and including) a * character
+            while (getRaw() != '*');
+            if (lin.peek() == '/') {
+                getRaw();
+                break;
+            }
+        }
+    }
+    else {
+        // Put the / character back in the stream
+        lin.unget();
+    }
 }
 
 void FileTracker::newLine() {

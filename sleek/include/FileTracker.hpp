@@ -13,6 +13,7 @@ class FileTracker {
 
         int peek();
         int get();
+        int getRaw();
 
         void bufferIdentifier();
         void clearBuffer();
@@ -39,6 +40,7 @@ class FileTracker {
         unsigned int line;
         unsigned int column;
 
+        void discardComments();
         void newLine();
 };
 
