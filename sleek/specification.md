@@ -7,7 +7,7 @@ If you want a more human readable guide to using sleek, please check the documen
 Context Free Grammar
 --------------------
 
-The following is the context free grammar for sleek in Bachus-Naur form.
+The following is the context free grammar for sleek in Backus-Naur form.
 ```
 <program> ::= <block>
 
