@@ -223,6 +223,10 @@ void Lexer::lexRegularStatement() {
                 in.get();
                 lexWhitespace();
 
+                // Statements in the head are part of the same scope as the body
+                sym = sym->newScope();
+                scopeLevel += 1;
+
                 for (int i = 0; i < 3; ++i) {
                     // Disallow closing blocks
                     if (in.peek() == '}') {
@@ -237,7 +241,7 @@ void Lexer::lexRegularStatement() {
                     // Disallow any statements that open a scope
                     if (tokQueue.back().type == Token::Type::OPENING_BLOCK) {
                         // ERROR: no opening blocks in if statements
-                        std::cerr << "Statments that open new scopes are not forbidden in for statements, ";
+                        std::cerr << "Statments that open new scopes are forbidden in for statements, ";
                         std::cerr << "at (" << in.getLine() << ", " << in.getColumn() << ")" << std::endl;
                         return;
                     }
@@ -264,7 +268,19 @@ void Lexer::lexRegularStatement() {
                 }
 
                 // Last we need a statement for the body
+                // Disallow clossing blocks
+                if (in.peek() == '}') {
+                    // ERROR
+                    std::cerr << "Unexpected '}' character, expected a statement ";
+                    std::cerr << "at (" << in.getLine() << ", " << in.getColumn() << ")" << std::endl;
+                    return;
+                }
                 lexRawStatement();
+
+                // We need to exit a scope here regardless of what the previous
+                // statement was.
+                scopeLevel -= 1;
+                sym = sym->exitScope();
             }
             else {
                 // It's just an expression
