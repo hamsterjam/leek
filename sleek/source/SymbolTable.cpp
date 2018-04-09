@@ -154,7 +154,7 @@ Symbol& SymbolTable::get(std::string& key) {
 
     if (!ret) {
         // Symbol does not exist in this scope, make a new one
-        data[key] = Symbol(false);
+        data.emplace(key, false);
         ret = &data[key];
     }
 
@@ -172,8 +172,8 @@ Symbol& SymbolTable::define(std::string& key) {
     }
 
     // Define the new symbol
+    data.emplace(key, true);
     Symbol& ret = data[key];
-    ret = Symbol(true);
 
     // Alias all variables in children scopes to ret (link forward references)
     aliasAllForwardRefs(key, ret);
