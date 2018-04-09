@@ -978,9 +978,7 @@ void Lexer::lexUnaryOperator() {
             ret.stringVal[1] = 0;
             break;
         default:
-            std::cerr << "Invalid unary operator ";
-            std::cerr << "at (" << lineNumber << ", " << colNumber << ")" << std::endl;
-            return;
+            throw Error("Invalid unary operator", lineNumber, colNumber);
     }
 
     // Discard the character
@@ -1033,9 +1031,7 @@ void Lexer::lexBinaryOperator() {
             }
             // Else fall through to default (error)
         default:
-            std::cerr << "Invalid Binary Operator ";
-            std::cerr << "at (" << lineNumber << ", " << colNumber << ")" << std::endl;
-            return;
+            throw Error("Invalid binary operator", lineNumber, colNumber);
     }
 
     int i = 0;
@@ -1137,7 +1133,7 @@ void Lexer::lexNumber() {
 
     if (!isNumber(in.peek())) {
         // ERROR: invalid number
-        throw Error("Invalid number", in.getLine(), in.getColumn());
+        throw Error("Invalid number", lineNumber, colNumber);
     }
 
     int base = 10;
@@ -1168,7 +1164,7 @@ void Lexer::lexNumber() {
                     std::string msg = "Invalid number: unrecognised base specifier \"";
                     msg += specifier;
                     msg += "\"";
-                    throw Error(msg.c_str(), in.getLine(), in.getColumn());
+                    throw Error(msg.c_str(), lineNumber, colNumber);
                 }
             }
         }
@@ -1186,7 +1182,7 @@ void Lexer::lexNumber() {
 
     if (retVal > 0xffff) {
         // ERROR number too big
-        throw Error("Number is bigger than 16 bits", in.getLine(), in.getColumn());
+        throw Error("Number is bigger than 16 bits", lineNumber, colNumber);
     }
 
     Token ret;
