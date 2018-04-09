@@ -65,6 +65,7 @@ void Lexer::lexAll() {
 
 void Lexer::lexStatement() {
     lexRawStatement();
+    if (tokQueue.back().type == Token::Type::END_OF_FILE) return;
     lexPostStatement();
 }
 
@@ -327,9 +328,6 @@ void Lexer::lexRegularStatement() {
         Token eof;
         eof.type = Token::Type::END_OF_FILE;
         tokQueue.push(eof);
-
-        // No need to do anything else
-        return;
     }
     else {
         // Just treat it as an expression
