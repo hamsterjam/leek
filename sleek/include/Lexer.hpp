@@ -28,6 +28,8 @@ class Lexer {
         unsigned int scopeLevel;
         bool inClassBlock;
 
+        unsigned int errorCount;
+
         // Recursive Lexers
         void lexStatement();
         void lexRawStatement();

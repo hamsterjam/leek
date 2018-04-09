@@ -1,5 +1,6 @@
 #include "Lexer.hpp"
 #include "SymbolTable.hpp"
+#include "Error.hpp"
 #include "helper.hpp"
 
 #include <queue>
@@ -17,6 +18,8 @@ Lexer::Lexer(const char* filename, SymbolTable& sym) : in(filename) {
     lexingParamList = false;
     lexingArgList   = false;
 
+    errorCount = 0;
+
     lexWhitespace();
 }
 
@@ -26,7 +29,13 @@ Token Lexer::peek() {
 
 Token Lexer::get() {
     while (tokQueue.size() < 1) {
-        lexStatement();
+        try {
+            lexStatement();
+        }
+        catch (Error e) {
+            e.print();
+            errorCount += 1;
+        }
         lexWhitespace();
     }
     Token ret = tokQueue.front();
@@ -40,7 +49,13 @@ void Lexer::operator>>(Token& out) {
 
 void Lexer::lexAll() {
     do {
-        lexStatement();
+        try {
+            lexStatement();
+        }
+        catch (Error e) {
+            e.print();
+            errorCount += 1;
+        }
     } while (tokQueue.back().type != Token::Type::END_OF_FILE);
 }
 
@@ -81,10 +96,8 @@ void Lexer::lexClassStatement() {
         // Finish the class de
         if (scopeLevel == 0) {
             // ERROR: Exiting global scope
-            // should be unreachable
-            std::cerr << "Unexpected '}' character, no matching '{' character ";
-            std::cerr << "at (" << in.getLine() << ", " << in.getColumn() << ")" << std::endl;
-            return;
+            // (should be unreachable)
+            throw Error("Unexpected '}' character, no matching '{' character", in.getLine(), in.getColumn());
         }
 
         // Discard the } character
@@ -134,9 +147,7 @@ void Lexer::lexAccessSpecifier() {
 
             default:
                 // ERROR: unrecognised access specifier
-                std::cerr << "Unknown access specifier '" << next << "' ";
-                std::cerr << "at (" << in.getLine() << ", " << in.getColumn() << ")" << std::endl;
-                return;
+                throw Error("Unknown access specifier", in.getLine(), in.getColumn());
         }
 
         lexWhitespace();
@@ -183,9 +194,7 @@ void Lexer::lexRegularStatement() {
                 // Specifically disallow a closing block here
                 if (in.peek() == '}') {
                     // ERROR
-                    std::cerr << "Unexpected '}' character, expected a statement ";
-                    std::cerr << "at (" << in.getLine() << ", " << in.getColumn() << ")" << std::endl;
-                    return;
+                    throw Error("Unexpected '}' character, expected a statement", in.getLine(), in.getColumn());
                 }
                 lexRawStatement();
                 lexWhitespace();
@@ -198,9 +207,7 @@ void Lexer::lexRegularStatement() {
                 // Specifically disallow a closing block here
                 if (in.peek() == '}') {
                     // ERROR
-                    std::cerr << "Unexpected '}' character, expected a statement ";
-                    std::cerr << "at (" << in.getLine() << ", " << in.getColumn() << ")" << std::endl;
-                    return;
+                    throw Error("Unexpected '}' character, expected a statement", in.getLine(), in.getColumn());
                 }
                 lexRawStatement();
                 lexWhitespace();
@@ -214,9 +221,7 @@ void Lexer::lexRegularStatement() {
 
                 if (in.peek() != '(') {
                     // ERROR: No for loop head
-                    std::cerr << "Malformed 'for' statement, expected '(' character at ";
-                    std::cerr << "at (" << in.getLine() << ", " << in.getColumn() << ")" << std::endl;
-                    return;
+                    throw Error("Malformed 'for' statement, expected '(' character at", in.getLine(), in.getColumn());
                 }
 
                 // Discard the ( character
@@ -231,9 +236,7 @@ void Lexer::lexRegularStatement() {
                     // Disallow closing blocks
                     if (in.peek() == '}') {
                         // ERROR
-                        std::cerr << "Unexpected '}' character, expected a statement ";
-                        std::cerr << "at (" << in.getLine() << ", " << in.getColumn() << ")" << std::endl;
-                        return;
+                        throw Error("Unexpected '}' character, expected a statement", in.getLine(), in.getColumn());
                     }
 
                     lexRawStatement();
@@ -241,9 +244,7 @@ void Lexer::lexRegularStatement() {
                     // Disallow any statements that open a scope
                     if (tokQueue.back().type == Token::Type::OPENING_BLOCK) {
                         // ERROR: no opening blocks in if statements
-                        std::cerr << "Statments that open new scopes are forbidden in for statements, ";
-                        std::cerr << "at (" << in.getLine() << ", " << in.getColumn() << ")" << std::endl;
-                        return;
+                        throw Error("Statments that open new scopes are forbidden in for statements,", in.getLine(), in.getColumn());
                     }
 
                     lexWhitespace();
@@ -253,9 +254,7 @@ void Lexer::lexRegularStatement() {
 
                     if (in.peek() != ';') {
                         // ERROR: no semicolon
-                        std::cerr << "Expected ';' character ";
-                        std::cerr << "at (" << in.getLine() << ", " << in.getColumn() << ")" << std::endl;
-                        return;
+                        throw Error("Expected ';' character", in.getLine(), in.getColumn());
                     }
 
                     // Discard the ; character
@@ -271,9 +270,7 @@ void Lexer::lexRegularStatement() {
                 // Disallow clossing blocks
                 if (in.peek() == '}') {
                     // ERROR
-                    std::cerr << "Unexpected '}' character, expected a statement ";
-                    std::cerr << "at (" << in.getLine() << ", " << in.getColumn() << ")" << std::endl;
-                    return;
+                    throw Error("Unexpected '}' character, expected a statement", in.getLine(), in.getColumn());
                 }
                 lexRawStatement();
 
@@ -303,9 +300,7 @@ void Lexer::lexRegularStatement() {
     else if (peek == '}') {
         if (scopeLevel == 0) {
             // ERROR: Exiting global scope
-            std::cerr << "Unexpected '}' character, no matching '{' character ";
-            std::cerr << "at (" << in.getLine() << ", " << in.getColumn() << ")" << std::endl;
-            return;
+            throw Error("Unexpected '}' character, no matching '{' character", in.getLine(), in.getColumn());
         }
         // Discard the } character
         in.get();
@@ -349,9 +344,7 @@ void Lexer::lexPostStatement() {
     if (lastType != Token::Type::OPENING_BLOCK && lastType != Token::Type::CLOSING_BLOCK) {
         if (in.peek() != ';') {
             // ERROR: Missing semicolon
-            std::cerr << "Expected ';' character ";
-            std::cerr << "at (" << in.getLine() << ", " << in.getColumn() << ")" << std::endl;
-            return;
+            throw Error("Expected ';' character", in.getLine(), in.getColumn());
         }
 
         // Discard the ; character
@@ -391,9 +384,7 @@ void Lexer::lexExpression() {
                 // Expect an opening block
                 if (in.peek() != '{') {
                     // ERROR: no opening block
-                    std::cerr << "No class definition, expected '{' character ";
-                    std::cerr << "at (" << in.getLine() << ", " << in.getColumn() << ")" << std::endl;
-                    return;
+                    throw Error("No class definition, expected '{' character", in.getLine(), in.getColumn());
                 }
 
                 // Discard the { character
@@ -465,9 +456,7 @@ void Lexer::lexExpression() {
 
             if (in.peek() != ')') {
                 // ERROR: missing closing paren
-                std::cerr << "Missing ')' character ";
-                std::cerr << "at (" << in.getLine() << ", " << in.getColumn() << ")" << std::endl;
-                return;
+                throw Error("Missing ')' character", in.getLine(), in.getColumn());
             }
 
             // Discard the ) character
@@ -505,9 +494,10 @@ void Lexer::lexExpression() {
 
     else {
         // ERROR: Unexpectd char
-        std::cerr << "Malformed expression, unexpected character '" << peek << "' ";
-        std::cerr << "at (" << in.getLine() << ", " << in.getColumn() << ")" << std::endl;
-        return;
+        std::string message = "Malformed expression, unexpected character '";
+        message += peek;
+        message += "',";
+        throw Error(message.c_str(), in.getLine(), in.getColumn());
     }
 
     lexPostExpression();
@@ -676,9 +666,7 @@ void Lexer::lexPostExpression() {
 
         if (in.peek() != ']') {
             // ERROR: missing closing bracket
-            std::cerr << "Missing ']' character ";
-            std::cerr << "at (" << in.getLine() << ", " << in.getColumn() << ")" << std::endl;
-            return;
+            throw Error("Missing ']' character", in.getLine(), in.getColumn());
         }
 
         // Discard the ] character
@@ -770,9 +758,7 @@ void Lexer::lexPostExpression() {
 
             if (in.peek() != ')') {
                 // ERROR: missing closing paren
-                std::cerr << "Missing ')' character ";
-                std::cerr << "at (" << in.getLine() << ", " << in.getColumn() << ")" << std::endl;
-                return;
+                throw Error("Missing ')' character", in.getLine(), in.getColumn());
             }
 
             // Discard the ) character
@@ -793,9 +779,7 @@ void Lexer::lexDefinition() {
 
     if (in.peek() != ':') {
         // ERROR: Missing colon
-        std::cerr << "Malformed definition, expected ':' character ";
-        std::cerr << "at (" << in.getLine() << ", " << in.getColumn() << ")" << std::endl;
-        return;
+        throw Error("Malformed definition, expected ':' character", in.getLine(), in.getColumn());
     }
 
     // Discard the : character. Don't touch that whitespace yo
@@ -935,9 +919,10 @@ void Lexer::lexFunctionExpressionFromList(bool compileTime) {
     if (tokQueue.back().type != closeType) {
         if (in.peek() != closeChar) {
             // ERROR: missing closing bracket
-            std::cerr << "Malformed function expression, unclosed param list. Expected '" << closeChar << "' character ";
-            std::cerr << "at (" << in.getLine() << ", " << in.getColumn() << ")" << std::endl;
-            return;
+            std::string msg = "Malformed function expression, unclosed param list. Expected '";
+            msg += closeChar;
+            msg += "' character";
+            throw Error(msg.c_str(), in.getLine(), in.getColumn());
         }
 
         // Discard the closeChar character
@@ -955,9 +940,7 @@ void Lexer::lexFunctionExpressionFromList(bool compileTime) {
 void Lexer::lexFunctionExpressionFromBlock(bool compileTime) {
     if (in.peek() != '{') {
         // ERROR: No function definition
-        std::cerr << "Malformed function expression, no function definition ";
-        std::cerr << "at (" << in.getLine() << ", " << in.getColumn() << ")" << std::endl;
-        return;
+        throw Error("Malformed function expression, no function definition", in.getLine(), in.getColumn());
     }
 
     // Discard the { character
@@ -1099,9 +1082,8 @@ void Lexer::lexIdentifier(bool definition) {
         }
         catch (std::out_of_range e) {
             // ERROR: Variable already exists
-            std::cerr << "Variable \"" << id << "\" redefined ";
-            std::cerr << "at (" << lineNumber << ", " << colNumber << ")" << std::endl;
-            return;
+            std::string msg = "Variable \"" + id + "\" redefined";
+            throw Error(msg.c_str(), lineNumber, colNumber);
         }
     }
     else {
@@ -1153,9 +1135,7 @@ void Lexer::lexNumber() {
 
     if (!isNumber(in.peek())) {
         // ERROR: invalid number
-        std::cerr << "Invalid number ";
-        std::cerr << "at (" << lineNumber << ", " << colNumber << ")" << std::endl;
-        return;
+        throw Error("Invalid number", in.getLine(), in.getColumn());
     }
 
     int base = 10;
@@ -1181,10 +1161,13 @@ void Lexer::lexNumber() {
                 case 'B':
                     base = 2;
                     break;
-                default:
-                    std::cerr << "Invalid number: unrecognised base specifier \"" << specifier << "\" ";
-                    std::cerr << "at (" << lineNumber << ", " << colNumber << ")" << std::endl;
-                    return;
+                default: {
+                    // ERROR unexpected base specifier
+                    std::string msg = "Invalid number: unrecognised base specifier \"";
+                    msg += specifier;
+                    msg += "\"";
+                    throw Error(msg.c_str(), in.getLine(), in.getColumn());
+                }
             }
         }
     }
@@ -1200,9 +1183,8 @@ void Lexer::lexNumber() {
     unsigned long retVal = std::stoul(numString, 0, base);
 
     if (retVal > 0xffff) {
-        std::cerr << "Number is bigger than 16 bits ";
-        std::cerr << "at (" << lineNumber << ", " << colNumber << ")" << std::endl;
-        return;
+        // ERROR number too big
+        throw Error("Number is bigger than 16 bits", in.getLine(), in.getColumn());
     }
 
     Token ret;
