@@ -15,6 +15,8 @@ class Lexer {
         Token get();
         void operator>>(Token& out);
 
+        unsigned int errorCount();
+
         void lexAll();
 
     private:
@@ -28,7 +30,7 @@ class Lexer {
         unsigned int scopeLevel;
         bool inClassBlock;
 
-        unsigned int errorCount;
+        unsigned int errors;
 
         // Recursive Lexers
         void lexStatement();

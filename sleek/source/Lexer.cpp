@@ -18,7 +18,7 @@ Lexer::Lexer(const char* filename, SymbolTable& sym) : in(filename) {
     lexingParamList = false;
     lexingArgList   = false;
 
-    errorCount = 0;
+    errors = 0;
 
     lexWhitespace();
 }
@@ -34,7 +34,7 @@ Token Lexer::get() {
         }
         catch (Error e) {
             e.print();
-            errorCount += 1;
+            errors += 1;
         }
         lexWhitespace();
     }
@@ -47,6 +47,10 @@ void Lexer::operator>>(Token& out) {
     out = get();
 }
 
+unsigned int Lexer::errorCount() {
+    return errors;
+}
+
 void Lexer::lexAll() {
     do {
         try {
@@ -54,7 +58,7 @@ void Lexer::lexAll() {
         }
         catch (Error e) {
             e.print();
-            errorCount += 1;
+            errors += 1;
         }
     } while (tokQueue.back().type != Token::Type::END_OF_FILE);
 }
