@@ -11,7 +11,13 @@ int main(int argc, char** argv) {
     lex.lexAll();
 
     if (lex.errorCount()) {
-        std::cout << "Aborting with " << lex.errorCount() << " lex errors" << std::endl;
+        std::cout << "Aborting with " << lex.errorCount() << " lex error";
+        if (lex.errorCount() == 1) {
+            std::cout << "." << std::endl;
+        }
+        else {
+            std::cout << "s." << std::endl;
+        }
     }
     else {
         std::cout << "Lexing complete with no errors." << std::endl;
