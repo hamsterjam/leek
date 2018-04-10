@@ -35,6 +35,8 @@ Token Lexer::get() {
         catch (Error e) {
             e.print();
             errors += 1;
+            lexingArgList = false;
+            lexingParamList = false;
         }
         lexWhitespace();
     }
@@ -59,6 +61,8 @@ void Lexer::lexAll() {
         catch (Error e) {
             e.print();
             errors += 1;
+            lexingArgList = false;
+            lexingParamList = false;
         }
     } while (tokQueue.back().type != Token::Type::END_OF_FILE);
 }
@@ -496,10 +500,15 @@ void Lexer::lexExpression() {
 
     else {
         // ERROR: Unexpectd char
-        std::string message = "Malformed expression, unexpected character '";
-        message += peek;
-        message += "',";
-        throw Error(message.c_str(), in.getLine(), in.getColumn());
+        //TODO// Make the error message show the unexpected character
+        unsigned int line = in.getLine();
+        unsigned int col  = in.getColumn();
+        // Remove the unexpected character so the next lex attempt doesnt fall
+        // back to here.
+        in.get();
+        lexWhitespace();
+
+        throw Error("Malformed expression, unexpected character", line, col);
     }
 
     lexPostExpression();
@@ -921,10 +930,8 @@ void Lexer::lexFunctionExpressionFromList(bool compileTime) {
     if (tokQueue.back().type != closeType) {
         if (in.peek() != closeChar) {
             // ERROR: missing closing bracket
-            std::string msg = "Malformed function expression, unclosed param list. Expected '";
-            msg += closeChar;
-            msg += "' character";
-            throw Error(msg.c_str(), in.getLine(), in.getColumn());
+            //TODO// Make the error message show the close character
+            throw Error("Malformed function expression, unclosed param list", in.getLine(), in.getColumn());
         }
 
         // Discard the closeChar character
@@ -1080,8 +1087,8 @@ void Lexer::lexIdentifier(bool definition) {
         }
         catch (std::out_of_range e) {
             // ERROR: Variable already exists
-            std::string msg = "Variable \"" + id + "\" redefined";
-            throw Error(msg.c_str(), lineNumber, colNumber);
+            //TODO// Make error message show variable being redefined
+            throw Error("Redefined variable", lineNumber, colNumber);
         }
     }
     else {
@@ -1161,10 +1168,11 @@ void Lexer::lexNumber() {
                     break;
                 default: {
                     // ERROR unexpected base specifier
+                    //TODO// Make it show the illegal base specifier
                     std::string msg = "Invalid number: unrecognised base specifier \"";
                     msg += specifier;
                     msg += "\"";
-                    throw Error(msg.c_str(), lineNumber, colNumber);
+                    throw Error("Malformed number, unrecognised base specifier", lineNumber, colNumber);
                 }
             }
         }
