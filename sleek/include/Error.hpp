@@ -5,8 +5,8 @@
 
 class Error {
     public:
-        Error(const char* msg, unsigned int line, unsigned int col);
-        Error(std::string& msg, unsigned int line, unsigned int col);
+        Error(const char*   msg, unsigned int line, unsigned int col);
+        Error(std::string&  msg, unsigned int line, unsigned int col);
         Error(std::string&& msg, unsigned int line, unsigned int col);
 
         // Copy constructor
