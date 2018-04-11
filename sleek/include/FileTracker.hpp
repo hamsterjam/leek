@@ -6,11 +6,19 @@
 #include <istream>
 #include <sstream>
 
+class Lexer;
+
 class FileTracker {
-    public:
-        FileTracker(const char* filename);
+    protected:
+        // These exist for testing, im aware of how easy it is to mistake this
+        // for the public constructor
+        friend Lexer;
+
         FileTracker(std::string&  in);
         FileTracker(std::string&& in);
+
+    public:
+        FileTracker(const char* filename);
 
         ~FileTracker();
 

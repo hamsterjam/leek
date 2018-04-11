@@ -11,10 +11,14 @@ class SymbolTable;
 class FileTracker;
 
 class Lexer {
-    public:
-        Lexer(const char* filename, SymbolTable& sym);
+    protected:
+        // These exist for testing, im aware of how easy it is to mistake this
+        // for the public constructor
         Lexer(std::string&  in, SymbolTable& sym);
         Lexer(std::string&& in, SymbolTable& sym);
+
+    public:
+        Lexer(const char* filename, SymbolTable& sym);
 
         Token peek();
         Token get();
