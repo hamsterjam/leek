@@ -5,12 +5,17 @@
 #include "FileTracker.hpp"
 
 #include <queue>
+#include <string>
 
 class SymbolTable;
+class FileTracker;
 
 class Lexer {
     public:
         Lexer(const char* filename, SymbolTable& sym);
+        Lexer(std::string&  in, SymbolTable& sym);
+        Lexer(std::string&& in, SymbolTable& sym);
+
         Token peek();
         Token get();
         void operator>>(Token& out);

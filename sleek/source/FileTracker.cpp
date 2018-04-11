@@ -8,10 +8,32 @@
 #define SS_EOF (std::stringstream::traits_type::eof())
 #define FS_EOF (std::ifstream::traits_type::eof())
 
-FileTracker::FileTracker(const char* filename): fin(filename) {
+FileTracker::FileTracker(const char* filename) {
+    fin = new std::fstream(filename);
+
     line = 0;
     newLine();
     discardComments();
+}
+
+FileTracker::FileTracker(std::string& in) {
+    fin = new std::stringstream(in);
+
+    line = 0;
+    newLine();
+    discardComments();
+}
+
+FileTracker::FileTracker(std::string&& in) {
+    fin = new std::stringstream(std::forward<std::string&&>(in));
+
+    line = 0;
+    newLine();
+    discardComments();
+}
+
+FileTracker::~FileTracker() {
+    if (fin) delete fin;
 }
 
 void FileTracker::eatWhitespace() {
@@ -22,7 +44,7 @@ void FileTracker::eatWhitespace() {
 
 int FileTracker::peek() {
     if (lin.peek() == SS_EOF) {
-        if (fin.peek() == FS_EOF) {
+        if (fin->peek() == FS_EOF) {
             return FileTracker::eof();
         }
         return '\n';
@@ -39,7 +61,7 @@ int FileTracker::get() {
 
 int FileTracker::getRaw() {
     if (lin.peek() == SS_EOF) {
-        if (fin.peek() == FS_EOF) {
+        if (fin->peek() == FS_EOF) {
             return FileTracker::eof();
         }
         newLine();
@@ -134,7 +156,7 @@ void FileTracker::newLine() {
     line += 1;
 
     std::string linestring;
-    std::getline(fin, linestring);
+    std::getline(*fin, linestring);
     std::stringstream newLine(std::move(linestring));
 
     lin = std::move(newLine);

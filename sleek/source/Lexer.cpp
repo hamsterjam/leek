@@ -23,6 +23,30 @@ Lexer::Lexer(const char* filename, SymbolTable& sym) : in(filename) {
     lexWhitespace();
 }
 
+Lexer::Lexer(std::string& in, SymbolTable& sym) : in(in) {
+    this->sym = &sym;
+    scopeLevel = 0;
+
+    lexingParamList = false;
+    lexingArgList   = false;
+
+    errors = 0;
+
+    lexWhitespace();
+}
+
+Lexer::Lexer(std::string&& in, SymbolTable& sym) : in(std::forward<std::string&&>(in)) {
+    this->sym = &sym;
+    scopeLevel = 0;
+
+    lexingParamList = false;
+    lexingArgList   = false;
+
+    errors = 0;
+
+    lexWhitespace();
+}
+
 Token Lexer::peek() {
     return tokQueue.front();
 }

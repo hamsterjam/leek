@@ -3,11 +3,16 @@
 
 #include <string>
 #include <fstream>
+#include <istream>
 #include <sstream>
 
 class FileTracker {
     public:
         FileTracker(const char* filename);
+        FileTracker(std::string&  in);
+        FileTracker(std::string&& in);
+
+        ~FileTracker();
 
         void eatWhitespace();
 
@@ -29,7 +34,7 @@ class FileTracker {
         static int eof();
 
     private:
-        std::ifstream     fin;
+        std::istream*     fin;
         std::stringstream lin;
 
         bool buffered;
