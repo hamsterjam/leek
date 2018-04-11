@@ -6,12 +6,16 @@
 #include <queue>
 #include <stdexcept>
 #include <sstream>
+#include <ostream>
 #include <string>
 #include <iostream>
 
 #include <cstring>
 
-Lexer::Lexer(const char* filename, SymbolTable& sym) : in(filename) {
+Lexer::Lexer(const char* filename, SymbolTable& sym) :
+    in(filename),
+    out(std::cerr)
+{
     this->sym = &sym;
     scopeLevel = 0;
 
@@ -23,7 +27,10 @@ Lexer::Lexer(const char* filename, SymbolTable& sym) : in(filename) {
     lexWhitespace();
 }
 
-Lexer::Lexer(std::string& in, SymbolTable& sym) : in(in) {
+Lexer::Lexer(std::string& in, SymbolTable& sym, std::ostream& err) :
+    in(in),
+    out(err)
+{
     this->sym = &sym;
     scopeLevel = 0;
 
@@ -35,7 +42,10 @@ Lexer::Lexer(std::string& in, SymbolTable& sym) : in(in) {
     lexWhitespace();
 }
 
-Lexer::Lexer(std::string&& in, SymbolTable& sym) : in(std::forward<std::string&&>(in)) {
+Lexer::Lexer(std::string&& in, SymbolTable& sym, std::ostream& err) :
+    in(std::forward<std::string&&>(in)),
+    out(err)
+{
     this->sym = &sym;
     scopeLevel = 0;
 
@@ -58,7 +68,7 @@ Token Lexer::get() {
         }
         catch (Error e) {
             errors += 1;
-            std::cerr << "LEX ERROR (" << errors << "): ";
+            out << "LEX ERROR (" << errors << "): ";
             e.print();
             lexingArgList = false;
             lexingParamList = false;
@@ -85,7 +95,7 @@ void Lexer::lexAll() {
         }
         catch (Error e) {
             errors += 1;
-            std::cerr << "LEX ERROR (" << errors << "): ";
+            out << "LEX ERROR (" << errors << "): ";
             e.print();
             lexingArgList = false;
             lexingParamList = false;
@@ -683,8 +693,8 @@ void Lexer::lexPostExpression() {
                 // token
                 if (tokQueue.back().type != Token::Type::CLOSING_ARG_LIST_CT) {
                     if (in.peek() != '>') {
-                        std::cerr << "Missing '>' character ";
-                        std::cerr << "at (" << in.getLine() << ", " << in.getColumn() << ")" << std::endl;
+                        out << "Missing '>' character ";
+                        out << "at (" << in.getLine() << ", " << in.getColumn() << ")" << std::endl;
                         return;
                     }
 

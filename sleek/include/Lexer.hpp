@@ -5,6 +5,7 @@
 #include "FileTracker.hpp"
 
 #include <queue>
+#include <ostream>
 #include <string>
 
 class SymbolTable;
@@ -12,10 +13,9 @@ class FileTracker;
 
 class Lexer {
     protected:
-        // These exist for testing, im aware of how easy it is to mistake this
-        // for the public constructor
-        Lexer(std::string&  in, SymbolTable& sym);
-        Lexer(std::string&& in, SymbolTable& sym);
+        // These are testing constructors, you probably don't want to call them
+        Lexer(std::string&  in, SymbolTable& sym, std::ostream& err);
+        Lexer(std::string&& in, SymbolTable& sym, std::ostream& err);
 
     public:
         Lexer(const char* filename, SymbolTable& sym);
@@ -32,6 +32,8 @@ class Lexer {
         std::queue<Token> tokQueue;
         FileTracker in;
         SymbolTable* sym;
+
+        std::ostream& out;
 
         bool lexingArgList;
         bool lexingParamList;
