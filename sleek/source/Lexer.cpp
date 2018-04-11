@@ -33,8 +33,9 @@ Token Lexer::get() {
             lexStatement();
         }
         catch (Error e) {
-            e.print();
             errors += 1;
+            std::cerr << "LEX ERROR (" << errors << "): ";
+            e.print();
             lexingArgList = false;
             lexingParamList = false;
         }
@@ -59,8 +60,9 @@ void Lexer::lexAll() {
             lexStatement();
         }
         catch (Error e) {
-            e.print();
             errors += 1;
+            std::cerr << "LEX ERROR (" << errors << "): ";
+            e.print();
             lexingArgList = false;
             lexingParamList = false;
         }
@@ -401,7 +403,7 @@ void Lexer::lexExpression() {
                 // Expect an opening block
                 if (in.peek() != '{') {
                     // ERROR: no opening block
-                    throw std::move(Error("No class definition, expected '{' character",
+                    throw std::move(Error("Missing class definition, expected '{' character",
                                 in.getLine(), in.getColumn()));
                 }
 
@@ -474,7 +476,7 @@ void Lexer::lexExpression() {
 
             if (in.peek() != ')') {
                 // ERROR: missing closing paren
-                throw std::move(Error("Missing ')' character",
+                throw std::move(Error("Unclosed parentheses, expected ')' character",
                             in.getLine(), in.getColumn()));
             }
 
@@ -513,15 +515,18 @@ void Lexer::lexExpression() {
 
     else {
         // ERROR: Unexpectd char
-        //TODO// Make the error message show the unexpected character
         unsigned int line = in.getLine();
         unsigned int col  = in.getColumn();
-        // Remove the unexpected character so the next lex attempt doesnt fall
-        // back to here.
-        in.get();
+
+        // Use get so the unexpected character is removed from the stream
+        // (so that it doesnt immediatly come back to this error)
+        std::string message("Malformed expression, unexpected '");
+        message += (char) in.get();
+        message += "' character";
+
         lexWhitespace();
 
-        throw std::move(Error("Malformed expression, unexpected character",
+        throw std::move(Error(std::move(message),
                     line, col));
     }
 
@@ -691,7 +696,7 @@ void Lexer::lexPostExpression() {
 
         if (in.peek() != ']') {
             // ERROR: missing closing bracket
-            throw std::move(Error("Missing ']' character",
+            throw std::move(Error("Unclosed indexing expression, expected ']' character",
                         in.getLine(), in.getColumn()));
         }
 
@@ -784,7 +789,7 @@ void Lexer::lexPostExpression() {
 
             if (in.peek() != ')') {
                 // ERROR: missing closing paren
-                throw std::move(Error("Missing ')' character",
+                throw std::move(Error("Unclosed arg list, expected ')' character",
                             in.getLine(), in.getColumn()));
             }
 
@@ -947,8 +952,11 @@ void Lexer::lexFunctionExpressionFromList(bool compileTime) {
     if (tokQueue.back().type != closeType) {
         if (in.peek() != closeChar) {
             // ERROR: missing closing bracket
-            //TODO// Make the error message show the close character
-            throw std::move(Error("Malformed function expression, unclosed param list",
+            std::string message("Unclosed param list, expected '");
+            message += closeChar;
+            message += "' character";
+
+            throw std::move(Error(std::move(message),
                         in.getLine(), in.getColumn()));
         }
 
@@ -967,7 +975,7 @@ void Lexer::lexFunctionExpressionFromList(bool compileTime) {
 void Lexer::lexFunctionExpressionFromBlock(bool compileTime) {
     if (in.peek() != '{') {
         // ERROR: No function definition
-        throw std::move(Error("Malformed function expression, no function definition",
+        throw std::move(Error("Missing function definition, expected '{' character",
                     in.getLine(), in.getColumn()));
     }
 
@@ -1108,8 +1116,11 @@ void Lexer::lexIdentifier(bool definition) {
         }
         catch (std::out_of_range e) {
             // ERROR: Variable already exists
-            //TODO// Make error message show variable being redefined
-            throw std::move(Error("Redefined variable",
+            std::string message("Variable \"");
+            message += id;
+            message += "\" redefined";
+
+            throw std::move(Error(std::move(message),
                         lineNumber, colNumber));
         }
     }
@@ -1160,11 +1171,14 @@ void Lexer::lexNumber() {
     unsigned int lineNumber = in.getLine();
     unsigned int colNumber  = in.getColumn();
 
+    // Assume that it is a number
+    /*
     if (!isNumber(in.peek())) {
         // ERROR: invalid number
         throw std::move(Error("Invalid number",
                     lineNumber, colNumber));
     }
+    */
 
     int base = 10;
     if (in.peek() == '0') {
@@ -1191,11 +1205,10 @@ void Lexer::lexNumber() {
                     break;
                 default: {
                     // ERROR unexpected base specifier
-                    //TODO// Make it show the illegal base specifier
-                    std::string msg = "Invalid number: unrecognised base specifier \"";
-                    msg += specifier;
-                    msg += "\"";
-                    throw std::move(Error("Malformed number, unrecognised base specifier",
+                    std::string message = "Unrecognised base specifier \"";
+                    message += specifier;
+                    message += "\"";
+                    throw std::move(Error(std::move(message),
                                 lineNumber, colNumber));
                 }
             }
