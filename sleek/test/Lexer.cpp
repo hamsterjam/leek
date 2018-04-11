@@ -1,9 +1,15 @@
 #include "Lexer.hpp"
+#include "Token.hpp"
 #include "SymbolTable.hpp"
 
 #include <iostream>
 #include <ostream>
+#include <sstream>
 #include <string>
+
+#define SS_EOF (std::stringstream::traits_type::eof())
+
+#define t(x) (Token::Type::x)
 
 class LexerTest : public Lexer {
     public:
@@ -11,38 +17,48 @@ class LexerTest : public Lexer {
             Lexer(std::forward<std::string&&>(in), sym, err)
         {
         }
+
+        bool matches(std::initializer_list<Token::Type> list) {
+            for (auto i : list) {
+                if (i != get().type) return false;
+            }
+            return true;
+        }
 };
-
-const char* test1 = R"(
-Vector := type<T : type> {
-    return class {
-        this :: (x : T, y : T) {
-            this.x = x;
-            this.y = y;
-        }
-
-        op+= :: (rhs : &Vector<T>) {
-            this.x = this.x + rhs.x;
-            this.y = this.y + rhs.y;
-        }
-
-        x : T;
-        y : T;
-    }
-}
-
-p := new Vector<int>(1, 2);
-q := new Vector<int>(3, 4);
-
-p += q; // p contains a Vector<int> with x = 4, y = 6
-)";
 
 int main(int argc, char** argv) {
     SymbolTable sym;
 
-    std::string src(test1);
-    LexerTest lex(std::move(src), sym, std::cerr);
-    lex.lexAll();
+    // First test things that should lex
+    {
+        // Basic definitions
+        std::cout << "Testing definition lexing...\t" << std::flush;
+
+        bool pass = true;
+
+        std::string source(R"(
+            foo : int = 2;
+            bar := 3;
+            baz : uint;
+        )");
+        SymbolTable sym;
+        std::stringstream err;
+
+        // Assert the token stream is correct
+        LexerTest lex(std::move(source), sym, err);
+        pass = pass && lex.matches({
+            t(IDENTIFIER), t(DEFINITION), t(KEYWORD), t(BINARY_OPERATOR), t(INTEGER), t(END_OF_STATEMENT),
+            t(IDENTIFIER), t(DEFINITION), t(BINARY_OPERATOR), t(INTEGER), t(END_OF_STATEMENT),
+            t(IDENTIFIER), t(DEFINITION), t(KEYWORD), t(END_OF_STATEMENT),
+            t(END_OF_FILE)
+        });
+
+        // Assert that there were no errors
+        pass = pass && err.peek() == SS_EOF;
+
+        if (pass) std::cout << "OK!"  << std::endl;
+        else      std::cout << "Fail" << std::endl;
+    }
 
     return 0;
 }

@@ -2,6 +2,7 @@
 #define LEEK_SLEEK_ERROR_H_DEFINED
 
 #include <string>
+#include <ostream>
 
 class Error {
     public:
@@ -15,6 +16,7 @@ class Error {
         Error(Error&& e);
 
         void print();
+        void print(std::ostream& out);
 
     private:
         std::string message;

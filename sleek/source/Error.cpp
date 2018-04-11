@@ -1,6 +1,7 @@
 #include "Error.hpp"
 
 #include <string>
+#include <ostream>
 #include <iostream>
 
 Error::Error(const char* msg, unsigned int line, unsigned int col) :
@@ -30,6 +31,10 @@ Error::Error(Error&& e) :
 }
 
 void Error::print() {
-    std::cerr << message << " ";
-    std::cerr << "at (" << line << ", " << col << ")" << std::endl;
+    print(std::cerr);
+}
+
+void Error::print(std::ostream& out) {
+    out << message << " ";
+    out << "at (" << line << ", " << col << ")" << std::endl;
 }

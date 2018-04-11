@@ -69,7 +69,7 @@ Token Lexer::get() {
         catch (Error e) {
             errors += 1;
             out << "LEX ERROR (" << errors << "): ";
-            e.print();
+            e.print(out);
             lexingArgList = false;
             lexingParamList = false;
         }
@@ -96,7 +96,7 @@ void Lexer::lexAll() {
         catch (Error e) {
             errors += 1;
             out << "LEX ERROR (" << errors << "): ";
-            e.print();
+            e.print(out);
             lexingArgList = false;
             lexingParamList = false;
         }
