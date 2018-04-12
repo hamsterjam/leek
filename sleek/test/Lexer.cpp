@@ -9,7 +9,10 @@
 
 #define SS_EOF (std::stringstream::traits_type::eof())
 
-#define assert(x) (pass = pass && (x))
+bool pass;
+#define startTest(msg) pass = true;std::cout<<(msg)<<"...\t"<<std::flush
+#define endTest() std::cout<<(pass?"OK!":"Fail")<<std::endl
+#define assert(x) pass = pass && (x)
 
 // Short token names
 const Token::Type ID     = Token::Type::IDENTIFIER;
@@ -61,9 +64,7 @@ int main(int argc, char** argv) {
     // First test things that should lex
     {
         // Basic definitions
-        std::cout << "Testing definition lexing...\t" << std::flush;
-
-        bool pass = true;
+        startTest("Testing definition lexing");
 
         std::string source(R"(
             foo : int = 2;
@@ -73,8 +74,9 @@ int main(int argc, char** argv) {
         SymbolTable sym;
         std::stringstream err;
 
-        // Assert the token stream is correct
         LexerTest lex(std::move(source), sym, err);
+
+        // Assert the token stream is correct
         assert(lex.matches({
             ID, DEF, KEY, OP2, INT, EOS,
             ID, DEF, OP2, INT, EOS,
@@ -86,8 +88,7 @@ int main(int argc, char** argv) {
         assert(err.peek() == SS_EOF);
         assert(lex.errorCount() == 0);
 
-        if (pass) std::cout << "OK!"  << std::endl;
-        else      std::cout << "Fail" << std::endl;
+        endTest();
     }
 
     return 0;
