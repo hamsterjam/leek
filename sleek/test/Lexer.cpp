@@ -10,6 +10,7 @@
 #define SS_EOF (std::stringstream::traits_type::eof())
 
 #define t(x) (Token::Type::x)
+#define assert(x) (pass = pass && (x))
 
 class LexerTest : public Lexer {
     public:
@@ -46,15 +47,16 @@ int main(int argc, char** argv) {
 
         // Assert the token stream is correct
         LexerTest lex(std::move(source), sym, err);
-        pass = pass && lex.matches({
+        assert(lex.matches({
             t(IDENTIFIER), t(DEFINITION), t(KEYWORD), t(BINARY_OPERATOR), t(INTEGER), t(END_OF_STATEMENT),
             t(IDENTIFIER), t(DEFINITION), t(BINARY_OPERATOR), t(INTEGER), t(END_OF_STATEMENT),
             t(IDENTIFIER), t(DEFINITION), t(KEYWORD), t(END_OF_STATEMENT),
             t(END_OF_FILE)
-        });
+        }));
 
         // Assert that there were no errors
-        pass = pass && err.peek() == SS_EOF;
+        assert(err.peek() == SS_EOF);
+        assert(lex.errorCount() == 0);
 
         if (pass) std::cout << "OK!"  << std::endl;
         else      std::cout << "Fail" << std::endl;
