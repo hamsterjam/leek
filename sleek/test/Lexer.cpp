@@ -63,8 +63,8 @@ int main(int argc, char** argv) {
     SymbolTable sym;
 
     // First test things that should lex
-    {
-        // Basic definitions
+
+    {   // Basic Definitions
         startTest("Testing definition lexing");
 
         std::string source(R"(
@@ -91,8 +91,7 @@ int main(int argc, char** argv) {
 
         endTest();
     }
-    {
-        // Reference linking
+    {   // Reference aliasing
         startTest("Testing reference aliasing");
 
         std::string source(R"(
@@ -112,7 +111,7 @@ int main(int argc, char** argv) {
         assert(err.peek() == SS_EOF);
         assert(lex.errorCount() == 0);
 
-        // Not interested in token types now, only that the reference match
+        // Not interested in token types now, only that the references match
         Variable* globalFoo = &lex.get().varVal->getValue();
 
         // Discard the EOS
