@@ -162,13 +162,10 @@ Symbol& SymbolTable::get(std::string& key) {
 }
 
 Symbol& SymbolTable::define(std::string& key) {
-    // Check this scope and all parent scopes for a variable of the same name
-    SymbolTable* curr = this;
-    while (curr) {
-        if (data.count(key)) {
-            throw std::out_of_range("SymbolTable::define");
-        }
-        curr = curr->parent;
+    // Check if we are redefining this variable. Don't check parent scopes, we
+    // allow shadowing of variables
+    if (data.count(key) && data[key].isDefinition()) {
+        throw std::out_of_range("SymbolTable::define");
     }
 
     // Define the new symbol

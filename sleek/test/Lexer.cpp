@@ -1,6 +1,7 @@
 #include "Lexer.hpp"
 #include "Token.hpp"
 #include "SymbolTable.hpp"
+#include "Variable.hpp"
 
 #include <iostream>
 #include <ostream>
@@ -87,6 +88,49 @@ int main(int argc, char** argv) {
         // Assert that there were no errors
         assert(err.peek() == SS_EOF);
         assert(lex.errorCount() == 0);
+
+        endTest();
+    }
+    {
+        // Reference linking
+        startTest("Testing reference aliasing");
+
+        std::string source(R"(
+            foo;
+            foo : int;
+            foo;
+            { foo : int; }
+            { foo; }
+        )");
+        SymbolTable sym;
+        std::stringstream err;
+
+        LexerTest lex(std::move(source), sym, err);
+        lex.lexAll();
+
+        // Assert that there were no errors
+        assert(err.peek() == SS_EOF);
+        assert(lex.errorCount() == 0);
+
+        // Not interested in token types now, only that the reference match
+        Variable* globalFoo = &lex.get().varVal->getValue();
+
+        // Discard the EOS
+        lex.get();
+        // Assert that the next ID has the same value object
+        assert(&lex.get().varVal->getValue() == globalFoo);
+        // Discard DEF, KEY, EOS
+        for (int i = 0; i < 3; ++i) lex.get();
+        // Assert that the next ID has the same value object
+        assert(&lex.get().varVal->getValue() == globalFoo);
+        // Discard EOS, OB
+        for (int i = 0; i < 2; ++i) lex.get();
+        // Assert that the next ID does NOT have the same value object
+        assert(&lex.get().varVal->getValue() != globalFoo);
+        // Discard DEF, KEY, EOS, CB, OB
+        for (int i = 0; i < 5; ++i) lex.get();
+        // Assert that the next ID has the same value object
+        assert(&lex.get().varVal->getValue() == globalFoo);
 
         endTest();
     }
