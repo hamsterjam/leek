@@ -11,7 +11,7 @@
 #define SS_EOF (std::stringstream::traits_type::eof())
 
 bool pass;
-#define startTest(msg) pass = true;std::cout<<(msg)<<"...\t"<<std::flush
+#define startTest(msg) pass = true;std::cout<<(msg)<<std::flush
 #define endTest() std::cout<<(pass?"OK!":"Fail")<<std::endl
 #define assert(x) pass = pass && (x)
 
@@ -65,7 +65,7 @@ int main(int argc, char** argv) {
     // First test things that should lex
 
     {   // Basic Definitions
-        startTest("Testing definition lexing");
+        startTest("Testing definition lexing\t");
 
         std::string source(R"(
             foo : int = 2;
@@ -92,7 +92,7 @@ int main(int argc, char** argv) {
         endTest();
     }
     {   // Reference aliasing
-        startTest("Testing reference aliasing");
+        startTest("Testing reference aliasing\t");
 
         std::string source(R"(
             foo;
@@ -130,6 +130,35 @@ int main(int argc, char** argv) {
         for (int i = 0; i < 5; ++i) lex.get();
         // Assert that the next ID has the same value object
         assert(&lex.get().varVal->getValue() == globalFoo);
+
+        endTest();
+    }
+    {   // Parens
+        startTest("Testing parentheses...\t\t");
+
+        std::string source(R"(
+            (a + b);
+            a + (b);
+            ((a + b));
+            a + ((b));
+        )");
+        SymbolTable sym;
+        std::stringstream err;
+
+        LexerTest lex(std::move(source), sym, err);
+
+        // Assert the tokens are correct
+        assert(lex.matches({
+            OP, ID, OP2, ID, CP, EOS,
+            ID, OP2, OP, ID, CP, EOS,
+            OP, OP, ID, OP2, ID, CP, CP, EOS,
+            ID, OP2, OP, OP, ID, CP, CP, EOS,
+            END
+        }));
+
+        // Assert no errors
+        assert(err.peek() == SS_EOF);
+        assert(lex.errorCount() == 0);
 
         endTest();
     }
