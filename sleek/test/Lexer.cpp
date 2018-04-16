@@ -64,7 +64,7 @@ int main(int argc, char** argv) {
 
     // First test things that should lex
 
-    {   // Basic Definitions
+    {   // Basic definitions
         startTest("Testing definition lexing\t");
 
         std::string source(R"(
@@ -153,6 +153,43 @@ int main(int argc, char** argv) {
             ID, OP2, OP, ID, CP, EOS,
             OP, OP, ID, OP2, ID, CP, CP, EOS,
             ID, OP2, OP, OP, ID, CP, CP, EOS,
+            END
+        }));
+
+        // Assert no errors
+        assert(err.peek() == SS_EOF);
+        assert(lex.errorCount() == 0);
+
+        endTest();
+    }
+    {   // Function definitions
+        startTest("Testing function definitions...\t");
+
+        std::string source(R"(
+            foo :: () {}
+            inc :: &int (x : &int) {
+                return x + 1;
+            }
+            bar :: <> {}
+            sub :: int <x : int, y : int = 1> {
+                return x - y;
+            }
+        )");
+        SymbolTable sym;
+        std::stringstream err;
+
+        LexerTest lex(std::move(source), sym, err);
+
+        // Assert tokens are right
+        assert(lex.matches({
+            ID, OVER, KEY, OPL, CPL, OB, CB,
+            ID, OVER, OP1, KEY, OPL, ID, DEF, OP1, KEY, CPL, OB,
+                KEY, ID, OP2, INT, EOS,
+            CB,
+            ID, OVER, KEY, OPL_CT, CPL_CT, OB, CB,
+            ID, OVER, KEY, OPL_CT, ID, DEF, KEY, COM, ID, DEF, KEY, OP2, INT, CPL_CT, OB,
+                KEY, ID, OP2, ID, EOS,
+            CB,
             END
         }));
 

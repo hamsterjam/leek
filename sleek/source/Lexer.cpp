@@ -492,6 +492,10 @@ void Lexer::lexExpression() {
                 isFunction = true;
             }
         }
+        else if (in.peek() == ')') {
+            // Must be an opening param list
+            isFunction = true;
+        }
 
         if (isFunction) {
             // This is a paramater list of a function
@@ -548,6 +552,11 @@ void Lexer::lexExpression() {
     }
 
     else {
+        // It's not an error if we are parsing a function expression!
+        if (lexingParamList && (peek == ')' || peek == ',')) {
+            // Just stop
+            return;
+        }
         // ERROR: Unexpectd char
         unsigned int line = in.getLine();
         unsigned int col  = in.getColumn();
