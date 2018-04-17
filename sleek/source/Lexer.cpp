@@ -849,7 +849,9 @@ void Lexer::lexPostExpression() {
 }
 
 void Lexer::lexDefinition() {
-    lexIdentifier(true);
+    // In the case of an overload operator, this identifier isnt actually
+    // lexed as a definition
+    if (!in.isBuffered()) in.bufferIdentifier();
     lexWhitespace();
 
     if (in.peek() != ':') {
@@ -862,6 +864,9 @@ void Lexer::lexDefinition() {
     in.get();
 
     if (in.peek() == ':') {
+        // Lex the buffered identifier (not as a definition)
+        lexIdentifier(false);
+
         Token defOp;
         defOp.type = Token::Type::OVERLOAD;
         tokQueue.push(defOp);
@@ -874,6 +879,8 @@ void Lexer::lexDefinition() {
         lexExpression();
     }
     else {
+        // Lex the buffered identifier (as a definition)
+        lexIdentifier(true);
         lexWhitespace();
 
         Token defOp;
