@@ -43,6 +43,8 @@ class Lexer {
 
         unsigned int errors;
 
+        void lexSomeTokens();
+
         // Recursive Lexers
         void lexStatement();
         void lexRawStatement();

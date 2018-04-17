@@ -58,23 +58,12 @@ Lexer::Lexer(std::string&& in, SymbolTable& sym, std::ostream& err) :
 }
 
 Token Lexer::peek() {
+    lexSomeTokens();
     return tokQueue.front();
 }
 
 Token Lexer::get() {
-    while (tokQueue.size() < 1) {
-        try {
-            lexStatement();
-        }
-        catch (Error e) {
-            errors += 1;
-            out << "LEX ERROR (" << errors << "): ";
-            e.print(out);
-            lexingArgList = false;
-            lexingParamList = false;
-        }
-        lexWhitespace();
-    }
+    lexSomeTokens();
     Token ret = tokQueue.front();
     tokQueue.pop();
     return ret;
@@ -101,6 +90,22 @@ void Lexer::lexAll() {
             lexingParamList = false;
         }
     } while (tokQueue.back().type != Token::Type::END_OF_FILE);
+}
+
+void Lexer::lexSomeTokens() {
+    while (tokQueue.size() < 1) {
+        try {
+            lexStatement();
+        }
+        catch (Error e) {
+            errors += 1;
+            out << "LEX ERROR (" << errors << "): ";
+            e.print(out);
+            lexingArgList = false;
+            lexingParamList = false;
+        }
+        lexWhitespace();
+    }
 }
 
 /*

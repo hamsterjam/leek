@@ -8,6 +8,8 @@
 #include <sstream>
 #include <string>
 
+#include <cstring>
+
 #define SS_EOF (std::stringstream::traits_type::eof())
 
 bool pass;
@@ -228,6 +230,107 @@ int main(int argc, char** argv) {
         }));
 
         // Assert there were no errors
+        assert(err.peek() == SS_EOF);
+        assert(lex.errorCount() == 0);
+
+        endTest();
+    }
+    {   // Unary operators
+        startTest("Testing unary operators...\t");
+
+        std::string source(R"(
+            &a;
+            -a;
+            !a;
+            const a;
+        )");
+        SymbolTable sym;
+        std::stringstream err;
+
+        LexerTest lex(std::move(source), sym, err);
+
+        auto nextIs = [&lex](const char* val) {
+            assert(lex.peek().type == OP1);
+            assert(!strncmp(lex.peek().stringVal, val, 8));
+            for (int i = 0; i < 3; ++i) lex.get();
+        };
+
+        nextIs("&");
+        nextIs("-");
+        nextIs("!");
+        nextIs("const");
+
+        // Assert no errors
+        assert(err.peek() == SS_EOF);
+        assert(lex.errorCount() == 0);
+
+        endTest();
+    }
+    {   // Binary operators
+        startTest("Testing binary operators...\t");
+
+        std::string source(R"(
+            A +  A -  A *  A /  A %  A;
+            A &  A |  A ^  A << A >> A;
+            A && A || A == A != A;
+            A <= A >= A >  A <  A;
+            A =  A;
+            A += A -= A *= A /= A %= A;
+            A &= A |= A ^= A;
+        )");
+        SymbolTable sym;
+        std::stringstream err;
+
+        LexerTest lex(std::move(source), sym, err);
+
+        auto nextIs = [&lex](const char* val){
+            lex.get();
+            assert(lex.peek().type == OP2);
+            assert(!strncmp(lex.get().stringVal, val, 8));
+        };
+
+        // Arithmetic
+        nextIs("+");
+        nextIs("-");
+        nextIs("*");
+        nextIs("/");
+        nextIs("%");
+        lex.get(); lex.get();
+        // Bitwise logic
+        nextIs("&");
+        nextIs("|");
+        nextIs("^");
+        nextIs("<<");
+        nextIs(">>");
+        lex.get(); lex.get();
+        // Bool logic
+        nextIs("&&");
+        nextIs("||");
+        nextIs("==");
+        nextIs("!=");
+        lex.get(); lex.get();
+        // Comparison
+        nextIs("<=");
+        nextIs(">=");
+        nextIs(">");
+        nextIs("<");
+        lex.get(); lex.get();
+        // Assignment
+        nextIs("=");
+        lex.get(); lex.get();
+        // Arithmetic assignment
+        nextIs("+=");
+        nextIs("-=");
+        nextIs("*=");
+        nextIs("/=");
+        nextIs("%=");
+        lex.get(); lex.get();
+        // Logic assignment
+        nextIs("&=");
+        nextIs("|=");
+        nextIs("^=");
+
+        // Assert no errors
         assert(err.peek() == SS_EOF);
         assert(lex.errorCount() == 0);
 
