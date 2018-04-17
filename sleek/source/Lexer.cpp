@@ -909,8 +909,21 @@ void Lexer::lexDefinition() {
 }
 
 void Lexer::lexArgList() {
+    //TODO// Make this non-recursive
+
     if (in.peek() == '>' || in.peek() == ')') {
         // Empty arg list, just immediatly end
+        return;
+    }
+    else if (in.peek() == ',') {
+        // Skipped argument
+        Token sep;
+        sep.type = Token::Type::COMMA;
+        tokQueue.push(sep);
+
+        in.get();
+        lexWhitespace();
+        lexArgList();
         return;
     }
 
