@@ -209,11 +209,12 @@ int main(int argc, char** argv) {
             foo<1,  , 3>;
             <>{}<>;
             (){}();
+            foo(1 + 2, bar(20) - 6);
         )");
         SymbolTable sym;
         std::stringstream err;
 
-        LexerTest lex(std::move(source), sym, err);
+        LexerTest lex(std::move(source), sym, std::cerr);
 
         // Assert we have correct tokens
         assert(lex.matches({
@@ -222,6 +223,7 @@ int main(int argc, char** argv) {
             ID, OAL_CT, INT, COM, COM, INT, CAL_CT, EOS,
             KEY, OPL_CT, CPL_CT, OB, CB, OAL_CT, CAL_CT, EOS,
             KEY, OPL, CPL, OB, CB, OAL, CAL, EOS,
+            ID, OAL, INT, OP2, INT, COM, ID, OAL, INT, CAL, OP2, INT, CAL, EOS,
             END
         }));
 
