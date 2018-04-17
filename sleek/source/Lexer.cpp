@@ -843,6 +843,8 @@ void Lexer::lexPostExpression() {
             Token close;
             close.type = Token::Type::CLOSING_ARG_LIST;
             tokQueue.push(close);
+
+            lexPostExpression();
         }
     }
     // else do nothing. We allow an empty post expression
