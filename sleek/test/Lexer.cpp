@@ -12,10 +12,12 @@
 
 #define SS_EOF (std::stringstream::traits_type::eof())
 
-bool pass;
-#define startTest(msg) pass = true;std::cout<<(msg)<<std::flush
-#define endTest() std::cout<<(pass?"OK!":"Fail")<<std::endl
-#define assert(x) pass = pass && (x)
+int err_test;
+int err_total = 0;
+#define startTest(msg) err_test = 0; std::cout << (msg) << std::flush
+#define endTest() err_total += err_test; std::cout << (err_test ? "Fail" : "OK!") << std::endl
+#define assert(x) err_test += (x) ? 0 : 1;
+#define errors() err_total
 
 // Short token names
 const Token::Type ID     = Token::Type::IDENTIFIER;
@@ -337,5 +339,5 @@ int main(int argc, char** argv) {
         endTest();
     }
 
-    return 0;
+    return errors();
 }
