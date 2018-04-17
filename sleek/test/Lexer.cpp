@@ -63,9 +63,10 @@ int main(int argc, char** argv) {
     SymbolTable sym;
 
     // First test things that should lex
+    std::cout << "Things that should not result in lex errors:" << std::endl;
 
     {   // Basic definitions
-        startTest("Testing definition lexing\t");
+        startTest("Testing definition lexing...\t");
 
         std::string source(R"(
             foo : int = 2;
@@ -92,7 +93,7 @@ int main(int argc, char** argv) {
         endTest();
     }
     {   // Reference aliasing
-        startTest("Testing reference aliasing\t");
+        startTest("Testing reference aliasing...\t");
 
         std::string source(R"(
             foo;
@@ -170,7 +171,7 @@ int main(int argc, char** argv) {
             inc :: &int (x : &int) {
                 return x + 1;
             }
-            bar :: <> {}
+            foo :: <> {}
             sub :: int <x : int, y : int = 1> {
                 return x - y;
             }
@@ -194,6 +195,37 @@ int main(int argc, char** argv) {
         }));
 
         // Assert no errors
+        assert(err.peek() == SS_EOF);
+        assert(lex.errorCount() == 0);
+
+        endTest();
+    }
+    {   // Function calls
+        startTest("Testing function calls...\t");
+
+        std::string source(R"(
+            foo();
+            foo(1, 2, 3);
+            foo<1,  , 3>;
+            <>{}<>;
+            (){}();
+        )");
+        SymbolTable sym;
+        std::stringstream err;
+
+        LexerTest lex(std::move(source), sym, err);
+
+        // Assert we have correct tokens
+        assert(lex.matches({
+            ID, OAL, CAL, EOS,
+            ID, OAL, INT, COM, INT, COM, INT, CAL, EOS,
+            ID, OAL_CT, INT, COM, COM, INT, CAL_CT, EOS,
+            KEY, OPL_CT, CPL_CT, OB, CB, OAL_CT, CAL_CT, EOS,
+            KEY, OPL, CPL, OB, CB, OAL, CAL, EOS,
+            END
+        }));
+
+        // Assert there were no errors
         assert(err.peek() == SS_EOF);
         assert(lex.errorCount() == 0);
 
