@@ -103,6 +103,10 @@ int main(int argc, char** argv) {
         nextIs(16);
         nextIs(16);
 
+        // Assert no errors
+        assert(err.peek() == SS_EOF);
+        assert(lex.errorCount() == 0);
+
         endTest();
     }
     {   // Variablish keywords
