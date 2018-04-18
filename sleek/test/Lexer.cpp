@@ -105,6 +105,164 @@ int main(int argc, char** argv) {
 
         endTest();
     }
+    {   // Variablish keywords
+        startTest("Variablish keywords...\t\t\t");
+
+        std::string source(R"(
+            void;
+            int;
+            uint;
+            type;
+            func;
+        )");
+        SymbolTable sym;
+        std::stringstream err;
+
+        LexerTest lex(std::move(source), sym, err);
+
+        auto nextIs = [&lex](const char* val) {
+            assert(lex.peek().type == KEY);
+            assert(!strncmp(lex.get().stringVal, val, 8));
+            lex.get();
+        };
+
+        // Make sure the tokens are right
+        nextIs("void");
+        nextIs("int");
+        nextIs("uint");
+        nextIs("type");
+        nextIs("func");
+
+        // Assert no errors
+        assert(err.peek() == SS_EOF);
+        assert(lex.errorCount() == 0);
+
+        endTest();
+    }
+    {   // Unary operators
+        startTest("Unary operators...\t\t\t");
+
+        std::string source(R"(
+            &a;
+            -a;
+            !a;
+            const a;
+        )");
+        SymbolTable sym;
+        std::stringstream err;
+
+        LexerTest lex(std::move(source), sym, err);
+
+        auto nextIs = [&lex](const char* val) {
+            assert(lex.peek().type == OP1);
+            assert(!strncmp(lex.peek().stringVal, val, 8));
+            for (int i = 0; i < 3; ++i) lex.get();
+        };
+
+        nextIs("&");
+        nextIs("-");
+        nextIs("!");
+        nextIs("const");
+
+        // Assert no errors
+        assert(err.peek() == SS_EOF);
+        assert(lex.errorCount() == 0);
+
+        endTest();
+    }
+    {   // Binary operators
+        startTest("Binary operators...\t\t\t");
+
+        std::string source(R"(
+            A +  A -  A *  A /  A %  A;
+            A &  A |  A ^  A << A >> A;
+            A && A || A == A != A;
+            A <= A >= A >  A <  A;
+            A =  A;
+            A += A -= A *= A /= A %= A;
+            A &= A |= A ^= A;
+        )");
+        SymbolTable sym;
+        std::stringstream err;
+
+        LexerTest lex(std::move(source), sym, err);
+
+        auto nextIs = [&lex](const char* val){
+            lex.get();
+            assert(lex.peek().type == OP2);
+            assert(!strncmp(lex.get().stringVal, val, 8));
+        };
+
+        // Arithmetic
+        nextIs("+");
+        nextIs("-");
+        nextIs("*");
+        nextIs("/");
+        nextIs("%");
+        lex.get(); lex.get();
+        // Bitwise logic
+        nextIs("&");
+        nextIs("|");
+        nextIs("^");
+        nextIs("<<");
+        nextIs(">>");
+        lex.get(); lex.get();
+        // Bool logic
+        nextIs("&&");
+        nextIs("||");
+        nextIs("==");
+        nextIs("!=");
+        lex.get(); lex.get();
+        // Comparison
+        nextIs("<=");
+        nextIs(">=");
+        nextIs(">");
+        nextIs("<");
+        lex.get(); lex.get();
+        // Assignment
+        nextIs("=");
+        lex.get(); lex.get();
+        // Arithmetic assignment
+        nextIs("+=");
+        nextIs("-=");
+        nextIs("*=");
+        nextIs("/=");
+        nextIs("%=");
+        lex.get(); lex.get();
+        // Logic assignment
+        nextIs("&=");
+        nextIs("|=");
+        nextIs("^=");
+
+        // Assert no errors
+        assert(err.peek() == SS_EOF);
+        assert(lex.errorCount() == 0);
+
+        endTest();
+    }
+    {   // Ambiguous operator resolution
+        startTest("Ambiguous operator resolution...\t");
+
+        std::string source(R"(
+            a - - - (a - - - a);
+        )");
+        SymbolTable sym;
+        std::stringstream err;
+
+        LexerTest lex(std::move(source), sym, err);
+
+        // Assert the tokens are correct
+        assert(lex.matches({
+            ID, OP2, OP1, OP1, OP, ID, OP2, OP1, OP1, ID, CP, EOS,
+            END
+        }));
+
+        // Assert that there are no errors
+        assert(err.peek() == SS_EOF);
+        assert(lex.errorCount() == 0);
+
+        endTest();
+    }
     {   // Basic definitions
         startTest("Basic definition lexing...\t\t");
 
@@ -268,130 +426,6 @@ int main(int argc, char** argv) {
         }));
 
         // Assert there were no errors
-        assert(err.peek() == SS_EOF);
-        assert(lex.errorCount() == 0);
-
-        endTest();
-    }
-    {   // Unary operators
-        startTest("Unary operators...\t\t\t");
-
-        std::string source(R"(
-            &a;
-            -a;
-            !a;
-            const a;
-        )");
-        SymbolTable sym;
-        std::stringstream err;
-
-        LexerTest lex(std::move(source), sym, err);
-
-        auto nextIs = [&lex](const char* val) {
-            assert(lex.peek().type == OP1);
-            assert(!strncmp(lex.peek().stringVal, val, 8));
-            for (int i = 0; i < 3; ++i) lex.get();
-        };
-
-        nextIs("&");
-        nextIs("-");
-        nextIs("!");
-        nextIs("const");
-
-        // Assert no errors
-        assert(err.peek() == SS_EOF);
-        assert(lex.errorCount() == 0);
-
-        endTest();
-    }
-    {   // Binary operators
-        startTest("Binary operators...\t\t\t");
-
-        std::string source(R"(
-            A +  A -  A *  A /  A %  A;
-            A &  A |  A ^  A << A >> A;
-            A && A || A == A != A;
-            A <= A >= A >  A <  A;
-            A =  A;
-            A += A -= A *= A /= A %= A;
-            A &= A |= A ^= A;
-        )");
-        SymbolTable sym;
-        std::stringstream err;
-
-        LexerTest lex(std::move(source), sym, err);
-
-        auto nextIs = [&lex](const char* val){
-            lex.get();
-            assert(lex.peek().type == OP2);
-            assert(!strncmp(lex.get().stringVal, val, 8));
-        };
-
-        // Arithmetic
-        nextIs("+");
-        nextIs("-");
-        nextIs("*");
-        nextIs("/");
-        nextIs("%");
-        lex.get(); lex.get();
-        // Bitwise logic
-        nextIs("&");
-        nextIs("|");
-        nextIs("^");
-        nextIs("<<");
-        nextIs(">>");
-        lex.get(); lex.get();
-        // Bool logic
-        nextIs("&&");
-        nextIs("||");
-        nextIs("==");
-        nextIs("!=");
-        lex.get(); lex.get();
-        // Comparison
-        nextIs("<=");
-        nextIs(">=");
-        nextIs(">");
-        nextIs("<");
-        lex.get(); lex.get();
-        // Assignment
-        nextIs("=");
-        lex.get(); lex.get();
-        // Arithmetic assignment
-        nextIs("+=");
-        nextIs("-=");
-        nextIs("*=");
-        nextIs("/=");
-        nextIs("%=");
-        lex.get(); lex.get();
-        // Logic assignment
-        nextIs("&=");
-        nextIs("|=");
-        nextIs("^=");
-
-        // Assert no errors
-        assert(err.peek() == SS_EOF);
-        assert(lex.errorCount() == 0);
-
-        endTest();
-    }
-    {   // Ambiguous operator resolution
-        startTest("Ambiguous operator resolution...\t");
-
-        std::string source(R"(
-            a - - - (a - - - a);
-        )");
-        SymbolTable sym;
-        std::stringstream err;
-
-        LexerTest lex(std::move(source), sym, err);
-
-        // Assert the tokens are correct
-        assert(lex.matches({
-            ID, OP2, OP1, OP1, OP, ID, OP2, OP1, OP1, ID, CP, EOS,
-            END
-        }));
-
-        // Assert that there are no errors
         assert(err.peek() == SS_EOF);
         assert(lex.errorCount() == 0);
 
