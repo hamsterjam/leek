@@ -67,10 +67,10 @@ int main(int argc, char** argv) {
     SymbolTable sym;
 
     // First test things that should lex
-    std::cout << "Things that should not result in lex errors:" << std::endl;
+    std::cout << "Testing things that should not result in lex errors:" << std::endl;
 
     {   // Basic definitions
-        startTest("Testing definition lexing...\t");
+        startTest("Basic definition lexing...\t\t");
 
         std::string source(R"(
             foo : int = 2;
@@ -97,7 +97,7 @@ int main(int argc, char** argv) {
         endTest();
     }
     {   // Reference aliasing
-        startTest("Testing reference aliasing...\t");
+        startTest("Reference aliasing...\t\t\t");
 
         std::string source(R"(
             foo;
@@ -139,7 +139,7 @@ int main(int argc, char** argv) {
         endTest();
     }
     {   // Parens
-        startTest("Testing parentheses...\t\t");
+        startTest("Parenthesis pairing...\t\t\t");
 
         std::string source(R"(
             (a + b);
@@ -168,7 +168,7 @@ int main(int argc, char** argv) {
         endTest();
     }
     {   // Function definitions
-        startTest("Testing function definitions...\t");
+        startTest("Function definitions...\t\t\t");
 
         std::string source(R"(
             foo :: () {}
@@ -205,7 +205,7 @@ int main(int argc, char** argv) {
         endTest();
     }
     {   // Function calls
-        startTest("Testing function calls...\t");
+        startTest("Function calls...\t\t\t");
 
         std::string source(R"(
             foo();
@@ -238,7 +238,7 @@ int main(int argc, char** argv) {
         endTest();
     }
     {   // Unary operators
-        startTest("Testing unary operators...\t");
+        startTest("Unary operators...\t\t\t");
 
         std::string source(R"(
             &a;
@@ -269,7 +269,7 @@ int main(int argc, char** argv) {
         endTest();
     }
     {   // Binary operators
-        startTest("Testing binary operators...\t");
+        startTest("Binary operators...\t\t\t");
 
         std::string source(R"(
             A +  A -  A *  A /  A %  A;
@@ -333,6 +333,29 @@ int main(int argc, char** argv) {
         nextIs("^=");
 
         // Assert no errors
+        assert(err.peek() == SS_EOF);
+        assert(lex.errorCount() == 0);
+
+        endTest();
+    }
+    {   // Ambiguous operator resolution
+        startTest("Ambiguous operator resolution...\t");
+
+        std::string source(R"(
+            a - - - (a - - - a);
+        )");
+        SymbolTable sym;
+        std::stringstream err;
+
+        LexerTest lex(std::move(source), sym, err);
+
+        // Assert the tokens are correct
+        assert(lex.matches({
+            ID, OP2, OP1, OP1, OP, ID, OP2, OP1, OP1, ID, CP, EOS,
+            END
+        }));
+
+        // Assert that there are no errors
         assert(err.peek() == SS_EOF);
         assert(lex.errorCount() == 0);
 
