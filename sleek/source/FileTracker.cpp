@@ -11,6 +11,8 @@
 FileTracker::FileTracker(const char* filename) {
     fin = new std::fstream(filename);
 
+    clearBuffer();
+
     line = 0;
     newLine();
     discardComments();
@@ -19,6 +21,8 @@ FileTracker::FileTracker(const char* filename) {
 FileTracker::FileTracker(std::string& in) {
     fin = new std::stringstream(in);
 
+    clearBuffer();
+
     line = 0;
     newLine();
     discardComments();
@@ -26,6 +30,8 @@ FileTracker::FileTracker(std::string& in) {
 
 FileTracker::FileTracker(std::string&& in) {
     fin = new std::stringstream(std::forward<std::string&&>(in));
+
+    clearBuffer();
 
     line = 0;
     newLine();

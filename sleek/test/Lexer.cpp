@@ -9,15 +9,16 @@
 #include <string>
 
 #include <cstring>
+#include <cstdint>
 
 #define SS_EOF (std::stringstream::traits_type::eof())
 
-int err_test;
-int err_total = 0;
-#define startTest(msg) err_test = 0; std::cout << (msg) << std::flush
-#define endTest() err_total += err_test; std::cout << (err_test ? "Fail" : "OK!") << std::endl
-#define assert(x) err_test += (x) ? 0 : 1;
-#define errors() err_total
+int ERR_TEST;
+int ERR_TOTAL = 0;
+#define startTest(msg) ERR_TEST = 0; std::cout << (msg) << std::flush
+#define endTest() ERR_TOTAL += ERR_TEST; std::cout << (ERR_TEST ? "Fail" : "OK!") << std::endl
+#define assert(x) ERR_TEST += (x) ? 0 : 1;
+#define errors() ERR_TOTAL
 
 // Short token names
 const Token::Type ID     = Token::Type::IDENTIFIER;
@@ -69,6 +70,41 @@ int main(int argc, char** argv) {
     // First test things that should lex
     std::cout << "Testing things that should not result in lex errors:" << std::endl;
 
+    {   // Number lexing
+        startTest("Number lexing...\t\t\t");
+
+        std::string source(R"(
+            10;
+            0010;
+            0b10;
+            0B10;
+            0c10;
+            0C10;
+            0x10;
+            0X10;
+        )");
+        SymbolTable sym;
+        std::stringstream err;
+
+        LexerTest lex(std::move(source), sym, err);
+
+        auto nextIs = [&lex](uint16_t val) {
+            assert(lex.peek().type == INT);
+            assert(lex.get().intVal == val);
+            lex.get();
+        };
+
+        nextIs(10);
+        nextIs(10);
+        nextIs(2);
+        nextIs(2);
+        nextIs(8);
+        nextIs(8);
+        nextIs(16);
+        nextIs(16);
+
+        endTest();
+    }
     {   // Basic definitions
         startTest("Basic definition lexing...\t\t");
 
