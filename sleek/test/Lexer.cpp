@@ -555,6 +555,55 @@ int main(int argc, char** argv) {
 
         endTest();
     }
+    {   // Class definitions
+        startTest("Class definitions...\t\t\t");
+
+        std::string source(R"(
+            Foo := class {
+                        w : int = 1;
+                public  x : int;
+                private y : int;
+                nowrite z : int;
+
+                this  :: () {}
+                ~this :: () {}
+
+                        barW :: () {}
+                public  barX :: () {}
+                private barY :: () {}
+                nowrite barZ :: () {}
+            }
+        )");
+        SymbolTable sym;
+        std::stringstream err;
+
+        LexerTest lex(std::move(source), sym, err);
+
+        // Assert we have correct tokens
+        assert(lex.matches({
+            ID, DEF, OP2, KEY, OB,
+            ID, DEF, KEY, EOS, OP2, INT, EOS,
+            KEY, ID, DEF, KEY, EOS,
+            KEY, ID, DEF, KEY, EOS,
+            KEY, ID, DEF, KEY, EOS,
+
+            ID, OVER, KEY, OPL, CPL, OB, CB,
+            ID, OVER, KEY, OPL, CPL, OB, CB,
+
+            ID, OVER, KEY, OPL, CPL, OB, CB,
+            KEY, ID, OVER, KEY, OPL, CPL, OB, CB,
+            KEY, ID, OVER, KEY, OPL, CPL, OB, CB,
+            KEY, ID, OVER, KEY, OPL, CPL, OB, CB,
+            CB,
+            END
+        }));
+
+        // Assert no errors
+        assert(err.peek() == SS_EOF);
+        assert(lex.errorCount() == 0);
+
+        endTest();
+    }
 
     return errors();
 }
