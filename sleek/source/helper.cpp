@@ -41,6 +41,10 @@ bool isKeyword(std::string& test) {
     else if (test == "uint")   return true;
     else if (test == "type")   return true;
     else if (test == "func")   return true;
+    // Values
+    else if (test == "true")   return true;
+    else if (test == "false")  return true;
+    else if (test == "null")   return true;
 
     return false;
 }

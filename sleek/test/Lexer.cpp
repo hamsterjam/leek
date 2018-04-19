@@ -118,6 +118,9 @@ int main(int argc, char** argv) {
             uint;
             type;
             func;
+            true;
+            false;
+            null;
         )");
         SymbolTable sym;
         std::stringstream err;
@@ -136,6 +139,9 @@ int main(int argc, char** argv) {
         nextIs("uint");
         nextIs("type");
         nextIs("func");
+        nextIs("true");
+        nextIs("false");
+        nextIs("null");
 
         // Assert no errors
         assert(err.peek() == SS_EOF);
