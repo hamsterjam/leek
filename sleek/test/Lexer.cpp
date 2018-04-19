@@ -74,6 +74,7 @@ int main(int argc, char** argv) {
         startTest("Number lexing...\t\t\t");
 
         std::string source(R"(
+            0;
             10;
             0010;
             0b10;
@@ -94,6 +95,7 @@ int main(int argc, char** argv) {
             lex.get();
         };
 
+        nextIs(0);
         nextIs(10);
         nextIs(10);
         nextIs(2);
