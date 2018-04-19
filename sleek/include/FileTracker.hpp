@@ -31,7 +31,7 @@ class FileTracker {
         void bufferIdentifier();
         void clearBuffer();
         bool isBuffered();
-        std::string getBufferedIdentifier();
+        std::string& getBufferedIdentifier();
 
         unsigned int getBufferLine();
         unsigned int getBufferColumn();

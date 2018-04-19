@@ -582,7 +582,7 @@ int main(int argc, char** argv) {
         // Assert we have correct tokens
         assert(lex.matches({
             ID, DEF, OP2, KEY, OB,
-            ID, DEF, KEY, EOS, OP2, INT, EOS,
+            ID, DEF, KEY, OP2, INT, EOS,
             KEY, ID, DEF, KEY, EOS,
             KEY, ID, DEF, KEY, EOS,
             KEY, ID, DEF, KEY, EOS,

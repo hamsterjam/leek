@@ -108,7 +108,7 @@ bool FileTracker::isBuffered() {
     return buffered;
 }
 
-std::string FileTracker::getBufferedIdentifier() {
+std::string& FileTracker::getBufferedIdentifier() {
     return buffer;
 }
 

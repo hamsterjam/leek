@@ -88,6 +88,7 @@ void Lexer::lexAll() {
             e.print(out);
             lexingArgList = false;
             lexingParamList = false;
+            in.clearBuffer();
         }
     } while (tokQueue.back().type != Token::Type::END_OF_FILE);
 }
@@ -103,6 +104,7 @@ void Lexer::lexSomeTokens() {
             e.print(out);
             lexingArgList = false;
             lexingParamList = false;
+            in.clearBuffer();
         }
         lexWhitespace();
     }
@@ -136,10 +138,30 @@ void Lexer::lexClassStatement() {
         // It is either a definition or a visibility (and then a definition)
         in.bufferIdentifier();
         std::string id = in.getBufferedIdentifier();
-        if (id == "private" || id == "nowrite") {
+        if (id == "public" || id == "private" || id == "nowrite") {
             lexKeyword();
             lexWhitespace();
         }
+        lexDefinition();
+        lexWhitespace();
+    }
+    else if (peek == '~') {
+        // These are here incase of an error
+        unsigned int line = in.getLine();
+        unsigned int col  = in.getColumn();
+
+        // Remove the ~ character, then add it to the end of the id
+        in.get();
+        in.bufferIdentifier();
+        std::string& id = in.getBufferedIdentifier();
+        if (id != "this") {
+            // ERROR: bad identifier
+            std::string msg("Malformed definition, illegal identifier '");
+            msg += "~" + id + "'";
+            throw std::move(Error(std::move(msg),
+                        line, col));
+        }
+        id = "~" + id;
         lexDefinition();
         lexWhitespace();
     }
@@ -168,6 +190,23 @@ void Lexer::lexClassStatement() {
     }
     else if (peek == ';') {
         // Empty statement
+        in.get();
+        lexWhitespace();
+    }
+    else {
+        // ERROR: Unexpected character
+        unsigned int line = in.getLine();
+        unsigned int col  = in.getColumn();
+
+        // Remove unexpected char from stream so we don't inifnite loop
+        std::string message("Malformed class statement, unexpected '");
+        message += (char) in.get();
+        message += "' character";
+
+        lexWhitespace();
+
+        throw std::move(Error(std::move(message),
+                    line, col));
     }
 }
 
@@ -1138,8 +1177,6 @@ void Lexer::lexIdentifier(bool definition) {
         return;
     }
 
-    in.clearBuffer();
-
     if (id == "op") {
         // Operator identifier
         while (isOperatorChar(in.peek())) {
@@ -1169,6 +1206,7 @@ void Lexer::lexIdentifier(bool definition) {
     }
 
     tokQueue.push(ret);
+    in.clearBuffer();
 
     if (in.peek() == '.') {
         // This is a property acces
