@@ -131,19 +131,20 @@ void Lexer::lexClassStatement() {
     // Similar to a regular statement, but we only allow definitions (and we
     // have to support access specifiers)
 
-    if (in.peek() == '[') {
-        lexAccessSpecifier();
-        lexWhitespace();
-    }
-
     int peek = in.peek();
     if (isLetter(peek)) {
-        // Then it *must* be a definition (if not its a lex error)
+        // It is either a definition or a visibility (and then a definition)
+        in.bufferIdentifier();
+        std::string id = in.getBufferedIdentifier();
+        if (id == "private" || id == "nowrite") {
+            lexKeyword();
+            lexWhitespace();
+        }
         lexDefinition();
         lexWhitespace();
     }
     else if (peek == '}') {
-        // Finish the class de
+        // Finish the class definition
         if (scopeLevel == 0) {
             // ERROR: Exiting global scope
             // (should be unreachable)
@@ -168,53 +169,6 @@ void Lexer::lexClassStatement() {
     else if (peek == ';') {
         // Empty statement
     }
-}
-
-void Lexer::lexAccessSpecifier() {
-    // As always, assume that this *is* an access specifier
-
-    // Discard the [ character
-    in.get();
-    lexWhitespace();
-
-    // Push the opening token
-    Token open;
-    open.type = Token::Type::OPENING_ACCESS_SPECIFIER;
-    tokQueue.push(open);
-
-    // Loop till the specifier ends
-    while (in.peek() != ']') {
-        char next = in.get();
-
-        Token tok;
-        tok.type = Token::Type::KEYWORD;
-
-        switch (next) {
-            case 'R':
-            case 'W':
-                tok.stringVal[0] = next;
-                tok.stringVal[1] = 0;
-                break;
-
-            default:
-                // ERROR: unrecognised access specifier
-                throw std::move(Error("Unknown access specifier",
-                            in.getLine(), in.getColumn()));
-        }
-
-        lexWhitespace();
-
-        tokQueue.push(tok);
-    }
-
-    // Discard the ] character
-    in.get();
-    lexWhitespace();
-
-    // Push a closing token
-    Token close;
-    close.type = Token::Type::CLOSING_ACCESS_SPECIFIER;
-    tokQueue.push(close);
 }
 
 void Lexer::lexRegularStatement() {

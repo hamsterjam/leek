@@ -27,6 +27,9 @@ bool isKeyword(std::string& test) {
     if      (test == "class")  return true;
     else if (test == "defer")  return true;
     else if (test == "new")    return true;
+    // Visibilities
+    else if (test == "private")return true;
+    else if (test == "nowrite")return true;
     // Control statements
     else if (test == "return") return true;
     else if (test == "if")     return true;
