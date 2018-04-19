@@ -231,7 +231,12 @@ void Lexer::lexRegularStatement() {
         }
         else {
             std::string id = in.getBufferedIdentifier();
-            if (id == "defer" || id == "return") {
+            if (id == "break" || id == "pass") {
+                // These are expected to be the entire statement
+                lexKeyword();
+                lexWhitespace();
+            }
+            else if (id == "defer" || id == "return") {
                 // Still an expression, but we need to push a keyword token
                 lexKeyword();
                 lexExpression();

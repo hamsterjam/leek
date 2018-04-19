@@ -123,6 +123,10 @@ int main(int argc, char** argv) {
             true;
             false;
             null;
+
+            // These actually are required to be statementish
+            pass;
+            break;
         )");
         SymbolTable sym;
         std::stringstream err;
@@ -144,6 +148,10 @@ int main(int argc, char** argv) {
         nextIs("true");
         nextIs("false");
         nextIs("null");
+
+        // Statementish keywords
+        nextIs("pass");
+        nextIs("break");
 
         // Assert no errors
         assert(err.peek() == SS_EOF);

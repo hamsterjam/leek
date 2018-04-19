@@ -35,6 +35,9 @@ bool isKeyword(std::string& test) {
     else if (test == "while")  return true;
     else if (test == "do")     return true;
     else if (test == "for")    return true;
+    // Loop flow control
+    else if (test == "break")  return true;
+    else if (test == "pass")   return true;
     // Types
     else if (test == "void")   return true;
     else if (test == "int")    return true;
