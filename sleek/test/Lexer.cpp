@@ -143,6 +143,112 @@ int main(int argc, char** argv) {
 
         endTest();
     }
+    {   // Conditional control
+        startTest("Conditional control statements...\t");
+
+        std::string source(R"(
+            if cond {
+                foo();
+            }
+            elif a + b == c - d {
+                bar();
+            }
+            else
+                baz();
+        )");
+        SymbolTable sym;
+        std::stringstream err;
+
+        LexerTest lex(std::move(source), sym, err);
+
+        // Assert the tokens are correct
+        assert(lex.matches({
+            KEY, ID, OB,
+            ID, OAL, CAL, EOS,
+            CB,
+            KEY, ID, OP2, ID, OP2, ID, OP2, ID, OB,
+            ID, OAL, CAL, EOS,
+            CB,
+            KEY,
+            ID, OAL, CAL, EOS,
+            END
+        }));
+
+        // Assert no errors
+        assert(err.peek() == SS_EOF);
+        assert(lex.errorCount() == 0);
+
+        endTest();
+    }
+    {   // Loop control
+        startTest("Loop control statements...\t\t");
+
+        std::string source(R"(
+            i := 0;
+            while i < 5 {
+                foo(i);
+                i += 1;
+            }
+
+            i = 0;
+            do {
+                foo(i);
+                i += 1;
+            } while i <= 5;
+
+            for (i := 0; i < 5; i += 1)
+                foo(i);
+        )");
+        SymbolTable sym;
+        std::stringstream err;
+
+        LexerTest lex(std::move(source), sym, err);
+
+        // Get a reference to the first i so we can check scoping rules
+        Variable* globalI = &lex.peek().varVal->getValue();
+
+        // Check some tokens
+        assert(lex.matches({
+            ID, DEF, OP2, INT, EOS,
+            KEY, ID, OP2, INT, OB,
+            ID, OAL, ID, CAL, EOS
+        }));
+
+        // This i (in the while loop) should be the global i
+        assert(&lex.peek().varVal->getValue() == globalI);
+
+        // Check some more tokens
+        assert(lex.matches({
+            ID, OP2, INT, EOS,
+            CB,
+            ID, OP2, INT, EOS,
+            KEY, OB,
+            ID, OAL, ID, CAL, EOS
+        }));
+
+        // This i (in the do-while loop) should be the global i
+        assert(&lex.peek().varVal->getValue() == globalI);
+
+        // Check some more tokens
+        assert(lex.matches({
+            ID, OP2, INT, EOS,
+            CB, KEY, ID, OP2, INT, EOS,
+            KEY, ID, DEF, OP2, INT, EOS, ID, OP2, INT, EOS, ID, OP2, INT,
+            ID, OAL
+        }));
+
+        // This i should be localy scoped to the definition in the head
+        assert(&lex.peek().varVal->getValue() != globalI);
+
+        // Lex the rest of the tokens
+        assert(lex.matches({ID, CAL, EOS, END}));
+
+        // Assert we have no errors
+        assert(err.peek() == SS_EOF);
+        assert(lex.errorCount() == 0);
+
+        endTest();
+    }
     {   // Unary operators
         startTest("Unary operators...\t\t\t");
 

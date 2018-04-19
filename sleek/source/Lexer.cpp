@@ -324,6 +324,17 @@ void Lexer::lexRegularStatement() {
                     tokQueue.push(sep);
                 }
 
+                // Make sure we have a closing paren
+                if (in.peek() != ')') {
+                    // ERROR, unclosed for head
+                    throw std::move(Error("Malformed for statement, expected ')' character",
+                                in.getLine(), in.getColumn()));
+                }
+
+                // Discard the ) character
+                in.get();
+                lexWhitespace();
+
                 // Last we need a statement for the body
                 // Disallow clossing blocks
                 if (in.peek() == '}') {
@@ -918,11 +929,11 @@ void Lexer::lexDefinition() {
 void Lexer::lexArgList() {
     //TODO// Make this non-recursive
 
-    if (in.peek() == '>' || in.peek() == ')') {
+    if ((in.peek() == '>' || in.peek() == ')') && !in.isBuffered()) {
         // Empty arg list, just immediatly end
         return;
     }
-    else if (in.peek() == ',') {
+    else if (in.peek() == ',' && !in.isBuffered()) {
         // Skipped argument
         Token sep;
         sep.type = Token::Type::COMMA;
@@ -1251,6 +1262,8 @@ void Lexer::lexNumber() {
     */
 
     int base = 10;
+    std::stringstream buff;
+
     if (in.peek() == '0') {
         // Check the next symbol for the base
 
@@ -1259,33 +1272,30 @@ void Lexer::lexNumber() {
 
         // If the next char is a number, its not a base specifier
         if (!isNumber(in.peek())) {
-            char specifier = in.get();
+            char specifier = in.peek();
             switch (specifier) {
                 case 'x':
                 case 'X':
                     base = 16;
+                    in.get();
                     break;
                 case 'c':
                 case 'C':
                     base = 8;
+                    in.get();
                     break;
                 case 'b':
                 case 'B':
                     base = 2;
+                    in.get();
                     break;
-                default: {
-                    // ERROR unexpected base specifier
-                    std::string message = "Unrecognised base specifier \"";
-                    message += specifier;
-                    message += "\"";
-                    throw std::move(Error(std::move(message),
-                                lineNumber, colNumber));
-                }
+                default:
+                    // Assume it was just a 0
+                    buff << '0';
             }
         }
     }
 
-    std::stringstream buff;
     while (isHexNumber(in.peek())) {
         buff << (char) in.get();
     }
