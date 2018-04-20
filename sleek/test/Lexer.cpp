@@ -604,6 +604,40 @@ int main(int argc, char** argv) {
 
         endTest();
     }
+    {   // Object semantics
+        startTest("Object semantics...\t\t\t");
+
+        std::string source(R"(
+            foo := new Foo();
+
+            foo.memVar;
+            foo.memFunc();
+
+            bar : Bar;
+        )");
+        SymbolTable sym;
+        std::stringstream err;
+
+        LexerTest lex(std::move(source), sym, err);
+
+        // Assert the symbol stream is correct
+        assert(lex.matches({
+            ID, DEF, OP2, KEY, ID, OAL, CAL, EOS,
+
+            ID, PA, ID, EOS,
+            ID, PA, ID, OAL, CAL, EOS,
+
+            ID, DEF, ID, EOS,
+
+            END
+        }));
+
+        // Assert no errors
+        assert(err.peek() == SS_EOF);
+        assert(lex.errorCount() == 0);
+
+        endTest();
+    }
 
     return errors();
 }
