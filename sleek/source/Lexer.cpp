@@ -764,6 +764,8 @@ void Lexer::lexPostExpression() {
         Token close;
         close.type = Token::Type::CLOSING_INDEX_BRACKET;
         tokQueue.push(close);
+
+        lexPostExpression();
     }
     else if (peek == '(') {
         // Function call or expression

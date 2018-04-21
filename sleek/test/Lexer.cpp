@@ -456,6 +456,40 @@ int main(int argc, char** argv) {
 
         endTest();
     }
+    {   // Arrays
+        startTest("Array declaration and indexing...\t");
+
+        std::string source(R"(
+            foo : int[5];
+            foo[0] = 1;
+
+            bar : &int[5];
+            bar[0] = &foo[0];
+            bar[0] = 2;
+        )");
+        SymbolTable sym;
+        std::stringstream err;
+
+        LexerTest lex(std::move(source), sym, err);
+
+        // Assert that the tokens are correct
+        assert(lex.matches({
+            ID, DEF, KEY, OIB, INT, CIB, EOS,
+            ID, OIB, INT, CIB, OP2, INT, EOS,
+
+            ID, DEF, OP1, KEY, OIB, INT, CIB, EOS,
+            ID, OIB, INT, CIB, OP2, OP1, ID, OIB, INT, CIB, EOS,
+            ID, OIB, INT, CIB, OP2, INT, EOS,
+
+            END
+        }));
+
+        // Assert that there were no errors
+        assert(err.peek() == SS_EOF);
+        assert(lex.errorCount() == 0);
+
+        endTest();
+    }
     {   // Parens
         startTest("Parenthesis pairing...\t\t\t");
 
