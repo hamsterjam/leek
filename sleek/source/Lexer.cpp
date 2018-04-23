@@ -235,6 +235,12 @@ void Lexer::lexRegularStatement() {
                 lexExpression();
                 lexWhitespace();
             }
+            else if (id == "static") {
+                // Expect a definition, don't forget the keyword token though
+                lexKeyword();
+                lexDefinition();
+                lexWhitespace();
+            }
             else if (id == "if" || id == "elif" || id == "while") {
                 // Expect an expression (for the condition) and a statement
                 lexKeyword();

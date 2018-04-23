@@ -157,6 +157,47 @@ int main(int argc, char** argv) {
 
         endTest();
     }
+    {   // Statement prefixes
+        startTest("Statement prefix keywords...\t\t");
+
+        std::string source(R"(
+            // Note, don't write code like this
+            static foo := 1;
+
+            a := malloc<int>(1);
+            defer free(a);
+            a = foo;
+
+            foo += 1;
+
+            return a;
+        )");
+        SymbolTable sym;
+        std::stringstream err;
+
+        LexerTest lex(std::move(source), sym, err);
+
+        // Assert that the token stream is correct
+        assert(lex.matches({
+            KEY, ID, DEF, OP2, INT, EOS,
+
+            ID, DEF, OP2, ID, OAL_CT, KEY, CAL_CT, OAL, INT, CAL, EOS,
+            KEY, ID, OAL, ID, CAL, EOS,
+            ID, OP2, ID, EOS,
+
+            ID, OP2, INT, EOS,
+
+            KEY, ID, EOS,
+
+            END
+        }));
+
+        // Assert that there were no errors
+        assert(err.peek() == SS_EOF);
+        assert(lex.errorCount() == 0);
+
+        endTest();
+    }
     {   // Conditional control
         startTest("Conditional control statements...\t");
 
@@ -669,6 +710,52 @@ int main(int argc, char** argv) {
         // Assert no errors
         assert(err.peek() == SS_EOF);
         assert(lex.errorCount() == 0);
+
+        endTest();
+    }
+
+    std::cout << std::endl;
+    std::cout << "Testing things that explicitly should result in lex errors:" << std::endl;
+
+    {   // Defer definitions
+        startTest("Defering definitions...\t\t\t");
+
+        std::string source(R"(
+            defer a := 0;
+        )");
+        SymbolTable sym;
+        std::stringstream err;
+
+        LexerTest lex(std::move(source), sym, err);
+        lex.lexAll();
+
+        // Assert that there is at least one error
+        assert(err.peek() != SS_EOF);
+        assert(lex.errorCount() > 0);
+
+        endTest();
+    }
+    {   // New scopes in for statements
+        startTest("New scopes in for statements...\t\t");
+
+        std::string source(R"(
+            for (fn := () {
+                static i := false;
+                return !i;
+            }; fn();)
+            {
+                // Do something twice
+            }
+        )");
+        SymbolTable sym;
+        std::stringstream err;
+
+        LexerTest lex(std::move(source), sym, err);
+        lex.lexAll();
+
+        // Assert that there is at least one error
+        assert(err.peek() != SS_EOF);
+        assert(lex.errorCount() > 0);
 
         endTest();
     }
