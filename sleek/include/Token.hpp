@@ -6,6 +6,45 @@
 
 class Symbol;
 
+enum class Keyword {
+    NA,
+
+    CLASS,  DEFER,  STATIC, NEW,
+    // Visibilities
+    PUBLIC, PRIVATE,NOWRITE,
+    // Control statements
+    RETURN, IF,     ELSE,   ELIF,
+    WHILE,  DO,     FOR,
+    // Loop flow control
+    BREAK,  PASS,
+    // Types
+    VOID,   INT,    UINT,   TYPE,
+    FUNC,
+    // Values
+    TRUE,   FALSE,  NULL_REF
+};
+
+enum class UnaryOperator {
+    NA,
+
+    REFERENCE_TO,
+    NEGATIVE,
+    NOT,
+    CONST
+};
+
+enum class BinaryOperator {
+    NA,
+
+    ADD,      SUB,      MUL,     DIV,       MOD,
+    BIT_AND,  BIT_OR,   BIT_XOR, L_SHIFT,   R_SHIFT,
+    BOOL_AND, BOOL_OR,  EQUAL,   NOT_EQUAL,
+    COMP_LTE, COMP_GTE, COMP_LT, COMP_GT,
+    ASSIGN,
+    ASSIGN_ADD, ASSIGN_SUB, ASSIGN_MUL, ASSIGN_DIV, ASSIGN_MOD,
+    ASSIGN_AND, ASSIGN_OR,  ASSIGN_XOR
+};
+
 struct Token {
     enum class Type {
         IDENTIFIER,
@@ -37,9 +76,11 @@ struct Token {
 
     Type type;
     union {
-        char stringVal[8];
-        Symbol* varVal;
-        uint16_t intVal;
+        UnaryOperator  unaryOpVal;
+        BinaryOperator binaryOpVal;
+        Keyword        keywordVal;
+        Symbol*        symbolVal;
+        uint16_t       intVal;
     };
 };
 

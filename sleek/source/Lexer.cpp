@@ -452,12 +452,12 @@ void Lexer::lexExpression() {
         }
         else if (id.type == Token::Type::KEYWORD) {
             // Some keywords have special properties
-            if (!strncmp(id.stringVal, "new", 8)) {
+            if (id.keywordVal == Keyword::NEW) {
                 // Just lex an expression from here
                 lexExpression();
                 return;
             }
-            else if (!strncmp(id.stringVal, "class", 8)) {
+            else if (id.keywordVal == Keyword::CLASS) {
                 // Expect an opening block
                 if (in.peek() != '{') {
                     // ERROR: no opening block
@@ -554,8 +554,7 @@ void Lexer::lexExpression() {
     // The > is interpreted as a binary op, but it could actually be the end
     // of a param or arg list as well
     else if ((lexingParamList || lexingArgList) && tokQueue.back().type == Token::Type::BINARY_OPERATOR
-                                                && tokQueue.back().stringVal[0] == '>'
-                                                && tokQueue.back().stringVal[1] == 0)
+                                                && tokQueue.back().binaryOpVal == BinaryOperator::COMP_GT)
     {
         // The previous token wasn't a bin op
         if (lexingParamList) {
@@ -607,7 +606,7 @@ void Lexer::lexPostExpression() {
         lexBinaryOperator();
         lexWhitespace();
         // If it was a < operation...
-        if (tokQueue.back().stringVal[0] == '<' && tokQueue.back().stringVal[1] == 0) {
+        if (tokQueue.back().binaryOpVal == BinaryOperator::COMP_LT) {
             // It might be a function call instead of an operator, keep track
             // of the last token so we can change it later
             Token& unknown = tokQueue.back();
@@ -927,7 +926,7 @@ void Lexer::lexDefinition() {
 
             Token op;
             op.type = Token::Type::BINARY_OPERATOR;
-            strncpy(op.stringVal, "=", 8);
+            op.binaryOpVal = BinaryOperator::ASSIGN;
             tokQueue.push(op);
 
             // Get the value
@@ -1002,7 +1001,7 @@ void Lexer::lexParamList() {
 void Lexer::lexVoidFunctionExpression(bool compileTime) {
     Token retType;
     retType.type = Token::Type::KEYWORD;
-    strncpy(retType.stringVal, "void", 8);
+    retType.keywordVal = Keyword::VOID;
     tokQueue.push(retType);
 
     lexFunctionExpression(compileTime);
@@ -1097,10 +1096,13 @@ void Lexer::lexUnaryOperator() {
     char peek = in.peek();
     switch (peek) {
         case '&':
+            ret.unaryOpVal = UnaryOperator::REFERENCE_TO;
+            break;
         case '-':
+            ret.unaryOpVal = UnaryOperator::NEGATIVE;
+            break;
         case '!':
-            ret.stringVal[0] = peek;
-            ret.stringVal[1] = 0;
+            ret.unaryOpVal = UnaryOperator::NOT;
             break;
         default:
             throw std::move(Error("Invalid unary operator",
@@ -1162,10 +1164,7 @@ void Lexer::lexBinaryOperator() {
     }
 
     int i = 0;
-    for (; i < id.length(); ++i) {
-        ret.stringVal[i] = id[i];
-    }
-    ret.stringVal[i] = 0;
+    ret.binaryOpVal = stringToBinaryOperator(id);
 
     tokQueue.push(ret);
 }
@@ -1201,7 +1200,7 @@ void Lexer::lexIdentifier(bool definition) {
 
     if (definition) {
         try {
-            ret.varVal = &sym->define(id);
+            ret.symbolVal = &sym->define(id);
         }
         catch (std::out_of_range e) {
             // ERROR: Variable already exists
@@ -1214,7 +1213,7 @@ void Lexer::lexIdentifier(bool definition) {
         }
     }
     else {
-        ret.varVal = &sym->get(id);
+        ret.symbolVal = &sym->get(id);
     }
 
     tokQueue.push(ret);
@@ -1230,7 +1229,7 @@ void Lexer::lexIdentifier(bool definition) {
         in.get();
 
         SymbolTable* currSym = sym;
-        sym = ret.varVal->getScope();
+        sym = ret.symbolVal->getScope();
 
         lexIdentifier(false);
 
@@ -1241,20 +1240,23 @@ void Lexer::lexIdentifier(bool definition) {
 void Lexer::lexKeyword() {
     if (!in.isBuffered()) in.bufferIdentifier();
 
-    unsigned int lineNumber = in.getBufferLine();
-    unsigned int colNumber  = in.getBufferColumn();
-
     Token ret;
     ret.type = Token::Type::KEYWORD;
-    strncpy(ret.stringVal, in.getBufferedIdentifier().c_str(), 8);
+    ret.keywordVal = stringToKeyword(in.getBufferedIdentifier());
     tokQueue.push(ret);
 
     in.clearBuffer();
 }
 
 void Lexer::lexKeywordOperator() {
-    lexKeyword();
-    tokQueue.back().type = Token::Type::UNARY_OPERATOR;
+    if (!in.isBuffered()) in.bufferIdentifier();
+
+    Token ret;
+    ret.type = Token::Type::UNARY_OPERATOR;
+    ret.unaryOpVal = stringToKeywordOperator(in.getBufferedIdentifier());
+    tokQueue.push(ret);
+
+    in.clearBuffer();
 }
 
 void Lexer::lexNumber() {

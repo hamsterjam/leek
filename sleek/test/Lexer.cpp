@@ -131,25 +131,25 @@ int main(int argc, char** argv) {
 
         LexerTest lex(std::move(source), sym, err);
 
-        auto nextIs = [&lex](const char* val) {
+        auto nextIs = [&lex](Keyword val) {
             assert(lex.peek().type == KEY);
-            assert(!strncmp(lex.get().stringVal, val, 8));
+            assert(lex.get().keywordVal == val);
             lex.get();
         };
 
         // Make sure the tokens are right
-        nextIs("void");
-        nextIs("int");
-        nextIs("uint");
-        nextIs("type");
-        nextIs("func");
-        nextIs("true");
-        nextIs("false");
-        nextIs("null");
+        nextIs(Keyword::VOID);
+        nextIs(Keyword::INT);
+        nextIs(Keyword::UINT);
+        nextIs(Keyword::TYPE);
+        nextIs(Keyword::FUNC);
+        nextIs(Keyword::TRUE);
+        nextIs(Keyword::FALSE);
+        nextIs(Keyword::NULL_REF);
 
         // Statementish keywords
-        nextIs("pass");
-        nextIs("break");
+        nextIs(Keyword::PASS);
+        nextIs(Keyword::BREAK);
 
         // Assert no errors
         assert(err.peek() == SS_EOF);
@@ -260,7 +260,7 @@ int main(int argc, char** argv) {
         LexerTest lex(std::move(source), sym, err);
 
         // Get a reference to the first i so we can check scoping rules
-        Variable* globalI = &lex.peek().varVal->getValue();
+        Variable* globalI = &lex.peek().symbolVal->getValue();
 
         // Check some tokens
         assert(lex.matches({
@@ -270,7 +270,7 @@ int main(int argc, char** argv) {
         }));
 
         // This i (in the while loop) should be the global i
-        assert(&lex.peek().varVal->getValue() == globalI);
+        assert(&lex.peek().symbolVal->getValue() == globalI);
 
         // Check some more tokens
         assert(lex.matches({
@@ -282,7 +282,7 @@ int main(int argc, char** argv) {
         }));
 
         // This i (in the do-while loop) should be the global i
-        assert(&lex.peek().varVal->getValue() == globalI);
+        assert(&lex.peek().symbolVal->getValue() == globalI);
 
         // Check some more tokens
         assert(lex.matches({
@@ -293,7 +293,7 @@ int main(int argc, char** argv) {
         }));
 
         // This i should be localy scoped to the definition in the head
-        assert(&lex.peek().varVal->getValue() != globalI);
+        assert(&lex.peek().symbolVal->getValue() != globalI);
 
         // Lex the rest of the tokens
         assert(lex.matches({ID, CAL, EOS, END}));
@@ -318,16 +318,16 @@ int main(int argc, char** argv) {
 
         LexerTest lex(std::move(source), sym, err);
 
-        auto nextIs = [&lex](const char* val) {
+        auto nextIs = [&lex](UnaryOperator val) {
             assert(lex.peek().type == OP1);
-            assert(!strncmp(lex.peek().stringVal, val, 8));
+            assert(lex.peek().unaryOpVal == val);
             for (int i = 0; i < 3; ++i) lex.get();
         };
 
-        nextIs("&");
-        nextIs("-");
-        nextIs("!");
-        nextIs("const");
+        nextIs(UnaryOperator::REFERENCE_TO);
+        nextIs(UnaryOperator::NEGATIVE);
+        nextIs(UnaryOperator::NOT);
+        nextIs(UnaryOperator::CONST);
 
         // Assert no errors
         assert(err.peek() == SS_EOF);
@@ -352,52 +352,52 @@ int main(int argc, char** argv) {
 
         LexerTest lex(std::move(source), sym, err);
 
-        auto nextIs = [&lex](const char* val){
+        auto nextIs = [&lex](BinaryOperator val){
             lex.get();
             assert(lex.peek().type == OP2);
-            assert(!strncmp(lex.get().stringVal, val, 8));
+            assert(lex.get().binaryOpVal == val);
         };
 
         // Arithmetic
-        nextIs("+");
-        nextIs("-");
-        nextIs("*");
-        nextIs("/");
-        nextIs("%");
+        nextIs(BinaryOperator::ADD);
+        nextIs(BinaryOperator::SUB);
+        nextIs(BinaryOperator::MUL);
+        nextIs(BinaryOperator::DIV);
+        nextIs(BinaryOperator::MOD);
         lex.get(); lex.get();
         // Bitwise logic
-        nextIs("&");
-        nextIs("|");
-        nextIs("^");
-        nextIs("<<");
-        nextIs(">>");
+        nextIs(BinaryOperator::BIT_AND);
+        nextIs(BinaryOperator::BIT_OR);
+        nextIs(BinaryOperator::BIT_XOR);
+        nextIs(BinaryOperator::L_SHIFT);
+        nextIs(BinaryOperator::R_SHIFT);
         lex.get(); lex.get();
         // Bool logic
-        nextIs("&&");
-        nextIs("||");
-        nextIs("==");
-        nextIs("!=");
+        nextIs(BinaryOperator::BOOL_AND);
+        nextIs(BinaryOperator::BOOL_OR);
+        nextIs(BinaryOperator::EQUAL);
+        nextIs(BinaryOperator::NOT_EQUAL);
         lex.get(); lex.get();
         // Comparison
-        nextIs("<=");
-        nextIs(">=");
-        nextIs(">");
-        nextIs("<");
+        nextIs(BinaryOperator::COMP_LTE);
+        nextIs(BinaryOperator::COMP_GTE);
+        nextIs(BinaryOperator::COMP_GT);
+        nextIs(BinaryOperator::COMP_LT);
         lex.get(); lex.get();
         // Assignment
-        nextIs("=");
+        nextIs(BinaryOperator::ASSIGN);
         lex.get(); lex.get();
         // Arithmetic assignment
-        nextIs("+=");
-        nextIs("-=");
-        nextIs("*=");
-        nextIs("/=");
-        nextIs("%=");
+        nextIs(BinaryOperator::ASSIGN_ADD);
+        nextIs(BinaryOperator::ASSIGN_SUB);
+        nextIs(BinaryOperator::ASSIGN_MUL);
+        nextIs(BinaryOperator::ASSIGN_DIV);
+        nextIs(BinaryOperator::ASSIGN_MOD);
         lex.get(); lex.get();
         // Logic assignment
-        nextIs("&=");
-        nextIs("|=");
-        nextIs("^=");
+        nextIs(BinaryOperator::ASSIGN_AND);
+        nextIs(BinaryOperator::ASSIGN_OR);
+        nextIs(BinaryOperator::ASSIGN_XOR);
 
         // Assert no errors
         assert(err.peek() == SS_EOF);
@@ -476,24 +476,24 @@ int main(int argc, char** argv) {
         assert(lex.errorCount() == 0);
 
         // Not interested in token types now, only that the references match
-        Variable* globalFoo = &lex.get().varVal->getValue();
+        Variable* globalFoo = &lex.get().symbolVal->getValue();
 
         // Discard the EOS
         lex.get();
         // Assert that the next ID has the same value object
-        assert(&lex.get().varVal->getValue() == globalFoo);
+        assert(&lex.get().symbolVal->getValue() == globalFoo);
         // Discard DEF, KEY, EOS
         for (int i = 0; i < 3; ++i) lex.get();
         // Assert that the next ID has the same value object
-        assert(&lex.get().varVal->getValue() == globalFoo);
+        assert(&lex.get().symbolVal->getValue() == globalFoo);
         // Discard EOS, OB
         for (int i = 0; i < 2; ++i) lex.get();
         // Assert that the next ID does NOT have the same value object
-        assert(&lex.get().varVal->getValue() != globalFoo);
+        assert(&lex.get().symbolVal->getValue() != globalFoo);
         // Discard DEF, KEY, EOS, CB, OB
         for (int i = 0; i < 5; ++i) lex.get();
         // Assert that the next ID has the same value object
-        assert(&lex.get().varVal->getValue() == globalFoo);
+        assert(&lex.get().symbolVal->getValue() == globalFoo);
 
         endTest();
     }

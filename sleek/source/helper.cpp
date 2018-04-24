@@ -1,4 +1,5 @@
 #include "helper.hpp"
+#include "Token.hpp"
 #include <string>
 
 bool isNumber(char test) {
@@ -24,41 +25,81 @@ bool isUnaryOperatorChar(char test) {
 }
 
 bool isKeyword(std::string& test) {
-    if      (test == "class")  return true;
-    else if (test == "defer")  return true;
-    else if (test == "static") return true;
-    else if (test == "new")    return true;
-    // Visibilities
-    else if (test == "public") return true;
-    else if (test == "private")return true;
-    else if (test == "nowrite")return true;
-    // Control statements
-    else if (test == "return") return true;
-    else if (test == "if")     return true;
-    else if (test == "else")   return true;
-    else if (test == "elif")   return true;
-    else if (test == "while")  return true;
-    else if (test == "do")     return true;
-    else if (test == "for")    return true;
-    // Loop flow control
-    else if (test == "break")  return true;
-    else if (test == "pass")   return true;
-    // Types
-    else if (test == "void")   return true;
-    else if (test == "int")    return true;
-    else if (test == "uint")   return true;
-    else if (test == "type")   return true;
-    else if (test == "func")   return true;
-    // Values
-    else if (test == "true")   return true;
-    else if (test == "false")  return true;
-    else if (test == "null")   return true;
-
-    return false;
+    return stringToKeyword(test) != Keyword::NA;
 }
 
 bool isKeywordOperator(std::string& test) {
-    if      (test == "const")  return true;
+    return stringToKeywordOperator(test) != UnaryOperator::NA;
+}
 
-    return false;
+Keyword stringToKeyword(std::string& val) {
+    if (val == "class")   return Keyword::CLASS;
+    if (val == "defer")   return Keyword::DEFER;
+    if (val == "static")  return Keyword::STATIC;
+    if (val == "new")     return Keyword::NEW;
+    // Visibilities
+    if (val == "public")  return Keyword::PUBLIC;
+    if (val == "private") return Keyword::PRIVATE;
+    if (val == "nowrite") return Keyword::NOWRITE;
+    // Control statements
+    if (val == "return")  return Keyword::RETURN;
+    if (val == "if")      return Keyword::IF;
+    if (val == "else")    return Keyword::ELSE;
+    if (val == "elif")    return Keyword::ELIF;
+    if (val == "while")   return Keyword::WHILE;
+    if (val == "do")      return Keyword::DO;
+    if (val == "for")     return Keyword::FOR;
+    // Loop flow control
+    if (val == "break")   return Keyword::BREAK;
+    if (val == "pass")    return Keyword::PASS;
+    // Types
+    if (val == "void")    return Keyword::VOID;
+    if (val == "int")     return Keyword::INT;
+    if (val == "uint")    return Keyword::UINT;
+    if (val == "type")    return Keyword::TYPE;
+    if (val == "func")    return Keyword::FUNC;
+    // Values
+    if (val == "true")    return Keyword::TRUE;
+    if (val == "false")   return Keyword::FALSE;
+    if (val == "null")    return Keyword::NULL_REF;
+
+    return Keyword::NA;
+}
+
+UnaryOperator stringToKeywordOperator(std::string& val) {
+    if (val == "const")   return UnaryOperator::CONST;
+
+    return UnaryOperator::NA;
+}
+
+BinaryOperator stringToBinaryOperator(std::string& val) {
+    if (val == "+")  return BinaryOperator::ADD;
+    if (val == "-")  return BinaryOperator::SUB;
+    if (val == "*")  return BinaryOperator::MUL;
+    if (val == "/")  return BinaryOperator::DIV;
+    if (val == "%")  return BinaryOperator::MOD;
+    if (val == "&")  return BinaryOperator::BIT_AND;
+    if (val == "|")  return BinaryOperator::BIT_OR;
+    if (val == "^")  return BinaryOperator::BIT_XOR;
+    if (val == "<<") return BinaryOperator::L_SHIFT;
+    if (val == ">>") return BinaryOperator::R_SHIFT;
+    if (val == "&&") return BinaryOperator::BOOL_AND;
+    if (val == "||") return BinaryOperator::BOOL_OR;
+    if (val == "==") return BinaryOperator::EQUAL;
+    if (val == "!=") return BinaryOperator::NOT_EQUAL;
+    if (val == "<=") return BinaryOperator::COMP_LTE;
+    if (val == ">=") return BinaryOperator::COMP_GTE;
+    if (val == "<")  return BinaryOperator::COMP_LT;
+    if (val == ">")  return BinaryOperator::COMP_GT;
+    if (val == "=")  return BinaryOperator::ASSIGN;
+    if (val == "+=") return BinaryOperator::ASSIGN_ADD;
+    if (val == "-=") return BinaryOperator::ASSIGN_SUB;
+    if (val == "*=") return BinaryOperator::ASSIGN_MUL;
+    if (val == "/=") return BinaryOperator::ASSIGN_DIV;
+    if (val == "%=") return BinaryOperator::ASSIGN_MOD;
+    if (val == "&=") return BinaryOperator::ASSIGN_AND;
+    if (val == "|=") return BinaryOperator::ASSIGN_OR;
+    if (val == "^=") return BinaryOperator::ASSIGN_XOR;
+
+    return BinaryOperator::NA;
 }
