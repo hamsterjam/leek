@@ -111,6 +111,10 @@ SymbolTable::SymbolTable() {
     isFunctionExpressionCT = false;
 
     isClassScope = false;
+
+    // Auto define this to prevent it being redefined
+    std::string key("this");
+    define(key);
 }
 
 SymbolTable::~SymbolTable() {

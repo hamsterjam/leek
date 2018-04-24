@@ -90,7 +90,8 @@ void Lexer::lexAll() {
             lexingParamList = false;
             in.clearBuffer();
         }
-    } while (tokQueue.back().type != Token::Type::END_OF_FILE);
+
+    } while (tokQueue.size() == 0 || tokQueue.back().type != Token::Type::END_OF_FILE);
 }
 
 void Lexer::lexSomeTokens() {
