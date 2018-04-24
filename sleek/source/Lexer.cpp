@@ -253,8 +253,10 @@ void Lexer::lexRegularStatement() {
                     throw std::move(Error("Unexpected '}' character, expected a statement",
                                 in.getLine(), in.getColumn()));
                 }
-                lexRawStatement();
-                lexWhitespace();
+                if (in.peek() != ';') {
+                    lexRawStatement();
+                    lexWhitespace();
+                }
             }
             else if (id == "do" || id == "else") {
                 // Expect a statement for the body, the condition will be lexed
@@ -397,6 +399,8 @@ void Lexer::lexRegularStatement() {
     }
     else if (peek == ';') {
         // Empty statement
+        in.get();
+        lexWhitespace();
     }
     else if (peek == FileTracker::eof()) {
         Token eof;
