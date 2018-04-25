@@ -713,6 +713,38 @@ int main(int argc, char** argv) {
 
         endTest();
     }
+    {   // Comments
+        startTest("Comments...\t\t\t\t");
+
+        std::string source(R"(
+            // Line comments
+
+            /*
+             * Block comments
+             */
+
+            /*
+             * /*
+             *  * /*
+             *  *  * The pyramid of doooooom!!!
+             *  *  */
+             *  */
+             */
+        )");
+        SymbolTable sym;
+        std::stringstream err;
+
+        LexerTest lex(std::move(source), sym, err);
+
+        // Should be no tokens
+        assert(lex.matches({END}));
+
+        // Assert that there were no errors
+        assert(err.peek() == SS_EOF);
+        assert(lex.errorCount() == 0);
+
+        endTest();
+    }
 
     std::cout << std::endl;
     std::cout << "Testing things that explicitly should result in lex errors:" << std::endl;

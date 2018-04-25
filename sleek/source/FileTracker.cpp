@@ -141,14 +141,12 @@ void FileTracker::discardComments() {
     }
     else if (lin.peek() == '*') {
         // Block comment
+        int depth = 1;
 
-        while (true) {
-            // Discard till (and including) a * character
-            while (getRaw() != '*');
-            if (lin.peek() == '/') {
-                getRaw();
-                break;
-            }
+        while (depth > 0) {
+            int next = getRaw();
+            if      (next == '/' && getRaw() == '*') depth += 1;
+            else if (next == '*' && getRaw() == '/') depth -= 1;
         }
     }
     else {
