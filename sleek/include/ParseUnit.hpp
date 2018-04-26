@@ -2,6 +2,7 @@
 #define LEEK_SLEEK_PARSE_UNIT_H_DEFINED
 
 #include "Token.hpp"
+#include "AsyncQueue.hpp"
 
 #include <deque>
 #include <set>
@@ -13,22 +14,15 @@
 
 class ParseUnit {
     public:
-        ParseUnit();
-
-        void bufferPush(Token tok);
-        Token bufferGet();
+        void push(Token val);
 
         // Async actions
         void generate();
         void join();
 
     private:
-        std::deque<Token>       iBuff;
-        std::mutex              iBuffAccess;
-        std::atomic<bool>       iBuffEmpty;
-        std::condition_variable iBuffPush;
+        AsyncQueue<Token> iBuff;
 
-        std::mutex waiting;
         std::thread th;
 };
 
