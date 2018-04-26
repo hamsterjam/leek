@@ -1,9 +1,6 @@
 #include "ParseUnit.hpp"
 #include "Token.hpp"
 
-#include <mutex>
-#include <condition_variable>
-#include <atomic>
 #include <thread>
 
 void ParseUnit::push(Token val) {
