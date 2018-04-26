@@ -14,7 +14,7 @@ void ParseUnit::generate() {
     auto routine = [this]() {
         Token next;
         do {
-            next = iBuff.pop();
+            next = iBuff.get();
         } while (next.type != Token::Type::END_OF_FILE);
     };
 

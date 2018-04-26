@@ -21,7 +21,7 @@ class AsyncQueue {
             pushed.notify_all();
         }
 
-        T pop() {
+        T get() {
             if (empty) {
                 std::unique_lock<std::mutex> lk(waiting);
                 while (empty) pushed.wait(lk);
