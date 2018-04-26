@@ -65,7 +65,7 @@ Token Lexer::peek() {
 Token Lexer::get() {
     lexSomeTokens();
     Token ret = tokQueue.front();
-    tokQueue.pop();
+    tokQueue.pop_front();
     return ret;
 }
 
@@ -184,7 +184,7 @@ void Lexer::lexClassStatement() {
 
         Token close;
         close.type = Token::Type::CLOSING_BLOCK;
-        tokQueue.push(close);
+        tokQueue.push_back(close);
 
         // This scope must be a class scope, so lex a post expression
         lexPostExpression();
@@ -328,7 +328,7 @@ void Lexer::lexRegularStatement() {
 
                     Token sep;
                     sep.type = Token::Type::END_OF_STATEMENT;
-                    tokQueue.push(sep);
+                    tokQueue.push_back(sep);
                 }
 
                 // Make sure we have a closing paren
@@ -372,7 +372,7 @@ void Lexer::lexRegularStatement() {
 
         Token open;
         open.type = Token::Type::OPENING_BLOCK;
-        tokQueue.push(open);
+        tokQueue.push_back(open);
     }
     else if (peek == '}') {
         if (scopeLevel == 0) {
@@ -392,7 +392,7 @@ void Lexer::lexRegularStatement() {
 
         Token close;
         close.type = Token::Type::CLOSING_BLOCK;
-        tokQueue.push(close);
+        tokQueue.push_back(close);
 
         if (wasFunction || wasClass) {
             lexPostExpression();
@@ -406,7 +406,7 @@ void Lexer::lexRegularStatement() {
     else if (peek == FileTracker::eof()) {
         Token eof;
         eof.type = Token::Type::END_OF_FILE;
-        tokQueue.push(eof);
+        tokQueue.push_back(eof);
     }
     else {
         // Just treat it as an expression
@@ -432,7 +432,7 @@ void Lexer::lexPostStatement() {
         // Push an end of statement token
         Token eos;
         eos.type = Token::Type::END_OF_STATEMENT;
-        tokQueue.push(eos);
+        tokQueue.push_back(eos);
     }
 }
 
@@ -472,7 +472,7 @@ void Lexer::lexExpression() {
 
                 Token open;
                 open.type = Token::Type::OPENING_BLOCK;
-                tokQueue.push(open);
+                tokQueue.push_back(open);
 
                 // Increase the scope
                 sym = sym->newScope();
@@ -533,7 +533,7 @@ void Lexer::lexExpression() {
             // This is just some parens
             Token open;
             open.type = Token::Type::OPENING_PAREN;
-            tokQueue.push(open);
+            tokQueue.push_back(open);
 
             lexExpression();
 
@@ -549,7 +549,7 @@ void Lexer::lexExpression() {
 
             Token close;
             close.type = Token::Type::CLOSING_PAREN;
-            tokQueue.push(close);
+            tokQueue.push_back(close);
         }
     }
     // The > is interpreted as a binary op, but it could actually be the end
@@ -644,7 +644,7 @@ void Lexer::lexPostExpression() {
 
                     Token close;
                     close.type = Token::Type::CLOSING_PARAM_LIST_CT;
-                    tokQueue.push(close);
+                    tokQueue.push_back(close);
 
                     // Increase the scope
                     sym = sym->newScope();
@@ -662,7 +662,7 @@ void Lexer::lexPostExpression() {
 
                     Token close;
                     close.type = Token::Type::CLOSING_ARG_LIST_CT;
-                    tokQueue.push(close);
+                    tokQueue.push_back(close);
 
                     // Lex another postExpression and stop
                     lexPostExpression();
@@ -704,7 +704,7 @@ void Lexer::lexPostExpression() {
 
                     Token sep;
                     sep.type = Token::Type::COMMA;
-                    tokQueue.push(sep);
+                    tokQueue.push_back(sep);
 
                     // Read the rest of the arg list
                     lexArgList();
@@ -737,7 +737,7 @@ void Lexer::lexPostExpression() {
 
                     Token close;
                     close.type = Token::Type::CLOSING_ARG_LIST_CT;
-                    tokQueue.push(close);
+                    tokQueue.push_back(close);
                 }
                 lexPostExpression();
             }
@@ -757,7 +757,7 @@ void Lexer::lexPostExpression() {
 
         Token open;
         open.type = Token::Type::OPENING_INDEX_BRACKET;
-        tokQueue.push(open);
+        tokQueue.push_back(open);
 
         lexExpression();
 
@@ -773,7 +773,7 @@ void Lexer::lexPostExpression() {
 
         Token close;
         close.type = Token::Type::CLOSING_INDEX_BRACKET;
-        tokQueue.push(close);
+        tokQueue.push_back(close);
 
         lexPostExpression();
     }
@@ -812,11 +812,11 @@ void Lexer::lexPostExpression() {
 
                 Token open;
                 open.type = Token::Type::OPENING_PARAM_LIST;
-                tokQueue.push(open);
+                tokQueue.push_back(open);
 
                 Token close;
                 close.type = Token::Type::CLOSING_PARAM_LIST;
-                tokQueue.push(close);
+                tokQueue.push_back(close);
 
                 // Increase the scope
                 sym = sym->newScope();
@@ -832,11 +832,11 @@ void Lexer::lexPostExpression() {
                 // It was an empty arg list
                 Token open;
                 open.type = Token::Type::OPENING_ARG_LIST;
-                tokQueue.push(open);
+                tokQueue.push_back(open);
 
                 Token close;
                 close.type = Token::Type::CLOSING_ARG_LIST;
-                tokQueue.push(close);
+                tokQueue.push_back(close);
 
                 // lex the post expression stuff again and then stop
                 lexPostExpression();
@@ -852,7 +852,7 @@ void Lexer::lexPostExpression() {
             // It's a function call
             Token open;
             open.type = Token::Type::OPENING_ARG_LIST;
-            tokQueue.push(open);
+            tokQueue.push_back(open);
 
             lexArgList();
 
@@ -868,7 +868,7 @@ void Lexer::lexPostExpression() {
 
             Token close;
             close.type = Token::Type::CLOSING_ARG_LIST;
-            tokQueue.push(close);
+            tokQueue.push_back(close);
 
             lexPostExpression();
         }
@@ -897,7 +897,7 @@ void Lexer::lexDefinition() {
 
         Token defOp;
         defOp.type = Token::Type::OVERLOAD;
-        tokQueue.push(defOp);
+        tokQueue.push_back(defOp);
 
         // Discard the additional ':'
         in.get();
@@ -913,7 +913,7 @@ void Lexer::lexDefinition() {
 
         Token defOp;
         defOp.type = Token::Type::DEFINITION;
-        tokQueue.push(defOp);
+        tokQueue.push_back(defOp);
 
         // Get the type (unless type is to be infered)
         if (in.peek() != '=') {
@@ -928,7 +928,7 @@ void Lexer::lexDefinition() {
             Token op;
             op.type = Token::Type::BINARY_OPERATOR;
             op.binaryOpVal = BinaryOperator::ASSIGN;
-            tokQueue.push(op);
+            tokQueue.push_back(op);
 
             // Get the value
             lexExpression();
@@ -947,7 +947,7 @@ void Lexer::lexArgList() {
         // Skipped argument
         Token sep;
         sep.type = Token::Type::COMMA;
-        tokQueue.push(sep);
+        tokQueue.push_back(sep);
 
         in.get();
         lexWhitespace();
@@ -962,7 +962,7 @@ void Lexer::lexArgList() {
     if (in.peek() == ',') {
         Token sep;
         sep.type = Token::Type::COMMA;
-        tokQueue.push(sep);
+        tokQueue.push_back(sep);
 
         // Discard the , character
         in.get();
@@ -984,7 +984,7 @@ void Lexer::lexParamList() {
     if (in.peek() == ',') {
         Token sep;
         sep.type = Token::Type::COMMA;
-        tokQueue.push(sep);
+        tokQueue.push_back(sep);
 
         // Discard the , character
         in.get();
@@ -1003,7 +1003,7 @@ void Lexer::lexVoidFunctionExpression(bool compileTime) {
     Token retType;
     retType.type = Token::Type::KEYWORD;
     retType.keywordVal = Keyword::VOID;
-    tokQueue.push(retType);
+    tokQueue.push_back(retType);
 
     lexFunctionExpression(compileTime);
 }
@@ -1020,7 +1020,7 @@ void Lexer::lexFunctionExpression(bool compileTime) {
     Token open;
     if (compileTime) open.type = Token::Type::OPENING_PARAM_LIST_CT;
     else             open.type = Token::Type::OPENING_PARAM_LIST;
-    tokQueue.push(open);
+    tokQueue.push_back(open);
 
     lexFunctionExpressionFromList(compileTime);
 }
@@ -1057,7 +1057,7 @@ void Lexer::lexFunctionExpressionFromList(bool compileTime) {
 
         Token close;
         close.type = closeType;
-        tokQueue.push(close);
+        tokQueue.push_back(close);
     }
 
     lexFunctionExpressionFromBlock(compileTime);
@@ -1076,7 +1076,7 @@ void Lexer::lexFunctionExpressionFromBlock(bool compileTime) {
 
     Token openBlock;
     openBlock.type = Token::Type::OPENING_BLOCK;
-    tokQueue.push(openBlock);
+    tokQueue.push_back(openBlock);
 }
 
 /*
@@ -1114,7 +1114,7 @@ void Lexer::lexUnaryOperator() {
     in.get();
     lexWhitespace();
 
-    tokQueue.push(ret);
+    tokQueue.push_back(ret);
 }
 
 void Lexer::lexBinaryOperator() {
@@ -1167,7 +1167,7 @@ void Lexer::lexBinaryOperator() {
     int i = 0;
     ret.binaryOpVal = stringToBinaryOperator(id);
 
-    tokQueue.push(ret);
+    tokQueue.push_back(ret);
 }
 
 void Lexer::lexIdentifier(bool definition) {
@@ -1217,14 +1217,14 @@ void Lexer::lexIdentifier(bool definition) {
         ret.symbolVal = &sym->get(id);
     }
 
-    tokQueue.push(ret);
+    tokQueue.push_back(ret);
     in.clearBuffer();
 
     if (in.peek() == '.') {
         // This is a property acces
         Token prop;
         prop.type = Token::Type::PROPERTY_ACCESS;
-        tokQueue.push(prop);
+        tokQueue.push_back(prop);
 
         // Discard the . character
         in.get();
@@ -1244,7 +1244,7 @@ void Lexer::lexKeyword() {
     Token ret;
     ret.type = Token::Type::KEYWORD;
     ret.keywordVal = stringToKeyword(in.getBufferedIdentifier());
-    tokQueue.push(ret);
+    tokQueue.push_back(ret);
 
     in.clearBuffer();
 }
@@ -1255,7 +1255,7 @@ void Lexer::lexKeywordOperator() {
     Token ret;
     ret.type = Token::Type::UNARY_OPERATOR;
     ret.unaryOpVal = stringToKeywordOperator(in.getBufferedIdentifier());
-    tokQueue.push(ret);
+    tokQueue.push_back(ret);
 
     in.clearBuffer();
 }
@@ -1327,5 +1327,5 @@ void Lexer::lexNumber() {
     ret.type = Token::Type::INTEGER;
     ret.intVal = retVal;
 
-    tokQueue.push(ret);
+    tokQueue.push_back(ret);
 }

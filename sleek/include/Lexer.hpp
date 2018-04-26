@@ -4,7 +4,7 @@
 #include "Token.hpp"
 #include "FileTracker.hpp"
 
-#include <queue>
+#include <deque>
 #include <ostream>
 #include <string>
 
@@ -29,7 +29,7 @@ class Lexer {
         void lexAll();
 
     private:
-        std::queue<Token> tokQueue;
+        std::deque<Token> tokQueue;
         FileTracker in;
         SymbolTable* sym;
 
