@@ -5,7 +5,7 @@
 #include "AsyncQueue.hpp"
 
 #include <deque>
-#include <set>
+#include <list>
 
 #include <thread>
 
@@ -19,6 +19,7 @@ class ParseUnit {
 
     private:
         AsyncQueue<Token> iBuff;
+        std::list<ParseUnit> children;
 
         std::thread th;
 };

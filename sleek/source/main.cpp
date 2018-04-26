@@ -1,4 +1,5 @@
 #include "Lexer.hpp"
+#include "ParseUnit.hpp"
 #include "SymbolTable.hpp"
 #include "Token.hpp"
 
@@ -6,12 +7,25 @@
 
 int main(int argc, char** argv) {
     SymbolTable sym;
-    Lexer lex("test", sym);
+    Lexer lex(argv[1], sym);
 
-    lex.lexAll();
+    ParseUnit globalPU;
+    globalPU.generate();
+
+    // Push a dummy token to the front so we dont discard the opening keyword
+    Token next;
+    next.type = Token::Type::KEYWORD;
+    next.keywordVal = Keyword::NA;
+    globalPU.push(next);
+    do {
+        next = lex.get();
+        globalPU.push(next);
+    } while (next.type != Token::Type::END_OF_FILE);
+
+    globalPU.join();
 
     if (lex.errorCount()) {
-        std::cout << "Aborting with " << lex.errorCount() << " lex error";
+        std::cout << "Found " << lex.errorCount() << " lex error";
         if (lex.errorCount() == 1) {
             std::cout << "." << std::endl;
         }
@@ -20,7 +34,7 @@ int main(int argc, char** argv) {
         }
     }
     else {
-        std::cout << "Lexing complete with no errors." << std::endl;
+        std::cout << "Complete with no lex errors." << std::endl;
     }
 
     return 0;
