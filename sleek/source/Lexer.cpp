@@ -882,6 +882,12 @@ void Lexer::lexDefinition() {
     if (!in.isBuffered()) in.bufferIdentifier();
     lexWhitespace();
 
+    // Save the position for error messages
+    unsigned int idLine = in.getBufferLine();
+    unsigned int idCol  = in.getBufferColumn();
+
+    std::string id = in.getBufferedIdentifier();
+
     if (in.peek() != ':') {
         // ERROR: Missing colon
         throw std::move(Error("Malformed definition, expected ':' character",
@@ -894,6 +900,14 @@ void Lexer::lexDefinition() {
     if (in.peek() == ':') {
         // Lex the buffered identifier (not as a definition)
         lexIdentifier(false);
+
+        if (tokQueue.back().type != Token::Type::IDENTIFIER) {
+            // ERROR: attempted to define a keyword
+            std::string msg("Attempted definition of '");
+            msg += id + "' keyword";
+            throw std::move(Error(std::move(msg),
+                        idLine, idCol));
+        }
 
         Token defOp;
         defOp.type = Token::Type::OVERLOAD;
@@ -910,6 +924,14 @@ void Lexer::lexDefinition() {
         // Lex the buffered identifier (as a definition)
         lexIdentifier(true);
         lexWhitespace();
+
+        if (tokQueue.back().type != Token::Type::IDENTIFIER) {
+            // ERROR: attempted to define a keyword
+            std::string msg("Attempted definition of '");
+            msg += id + "' keyword";
+            throw std::move(Error(std::move(msg),
+                        idLine, idCol));
+        }
 
         Token defOp;
         defOp.type = Token::Type::DEFINITION;
