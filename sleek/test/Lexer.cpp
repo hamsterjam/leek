@@ -809,6 +809,24 @@ int main(int argc, char** argv) {
 
         endTest();
     }
+    {   // Defining keywords
+        startTest("Definition of reserved keywords...\t");
+
+        std::string source(R"(
+            for := 2;
+        )");
+        SymbolTable sym;
+        std::stringstream err;
+
+        LexerTest lex(std::move(source), sym, err);
+        lex.lexAll();
+
+        // Assert that there was an error
+        assert(err.peek() != SS_EOF);
+        assert(lex.errorCount() > 0);
+
+        endTest();
+    }
 
     return errors();
 }
