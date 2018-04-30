@@ -6,8 +6,7 @@
 #include <iostream>
 
 int main(int argc, char** argv) {
-    SymbolTable sym;
-    Lexer lex(argv[1], sym);
+    Lexer lex(argv[1]);
 
     ParseUnit globalPU;
     globalPU.generate();

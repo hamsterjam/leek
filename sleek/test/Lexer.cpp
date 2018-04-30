@@ -49,8 +49,8 @@ const Token::Type END    = Token::Type::END_OF_FILE;
 
 class LexerTest : public Lexer {
     public:
-        LexerTest(std::string&& in, SymbolTable& sym, std::ostream& err):
-            Lexer(std::forward<std::string&&>(in), sym, err)
+        LexerTest(std::string&& in, std::ostream& err):
+            Lexer(std::forward<std::string&&>(in), err)
         {
         }
 
@@ -63,8 +63,6 @@ class LexerTest : public Lexer {
 };
 
 int main(int argc, char** argv) {
-    SymbolTable sym;
-
     // First test things that should lex
     std::cout << "Testing things that should not result in lex errors:" << std::endl;
 
@@ -82,10 +80,9 @@ int main(int argc, char** argv) {
             0x10;
             0X10;
         )");
-        SymbolTable sym;
         std::stringstream err;
 
-        LexerTest lex(std::move(source), sym, err);
+        LexerTest lex(std::move(source), err);
 
         auto nextIs = [&lex](uint16_t val) {
             assert(lex.peek().type == INT);
@@ -126,10 +123,9 @@ int main(int argc, char** argv) {
             pass;
             break;
         )");
-        SymbolTable sym;
         std::stringstream err;
 
-        LexerTest lex(std::move(source), sym, err);
+        LexerTest lex(std::move(source), err);
 
         auto nextIs = [&lex](Keyword val) {
             assert(lex.peek().type == KEY);
@@ -172,10 +168,9 @@ int main(int argc, char** argv) {
 
             return a;
         )");
-        SymbolTable sym;
         std::stringstream err;
 
-        LexerTest lex(std::move(source), sym, err);
+        LexerTest lex(std::move(source), err);
 
         // Assert that the token stream is correct
         assert(lex.matches({
@@ -211,10 +206,9 @@ int main(int argc, char** argv) {
             else
                 baz();
         )");
-        SymbolTable sym;
         std::stringstream err;
 
-        LexerTest lex(std::move(source), sym, err);
+        LexerTest lex(std::move(source), err);
 
         // Assert the tokens are correct
         assert(lex.matches({
@@ -254,10 +248,9 @@ int main(int argc, char** argv) {
             for (i := 0; i < 5; i += 1)
                 foo(i);
         )");
-        SymbolTable sym;
         std::stringstream err;
 
-        LexerTest lex(std::move(source), sym, err);
+        LexerTest lex(std::move(source), err);
 
         // Get a reference to the first i so we can check scoping rules
         Variable* globalI = &lex.peek().symbolVal->getValue();
@@ -313,10 +306,9 @@ int main(int argc, char** argv) {
             !a;
             const a;
         )");
-        SymbolTable sym;
         std::stringstream err;
 
-        LexerTest lex(std::move(source), sym, err);
+        LexerTest lex(std::move(source), err);
 
         auto nextIs = [&lex](UnaryOperator val) {
             assert(lex.peek().type == OP1);
@@ -347,10 +339,9 @@ int main(int argc, char** argv) {
             A += A -= A *= A /= A %= A;
             A &= A |= A ^= A;
         )");
-        SymbolTable sym;
         std::stringstream err;
 
-        LexerTest lex(std::move(source), sym, err);
+        LexerTest lex(std::move(source), err);
 
         auto nextIs = [&lex](BinaryOperator val){
             lex.get();
@@ -411,10 +402,9 @@ int main(int argc, char** argv) {
         std::string source(R"(
             a - - - (a - - - a);
         )");
-        SymbolTable sym;
         std::stringstream err;
 
-        LexerTest lex(std::move(source), sym, err);
+        LexerTest lex(std::move(source), err);
 
         // Assert the tokens are correct
         assert(lex.matches({
@@ -436,10 +426,9 @@ int main(int argc, char** argv) {
             bar := 3;
             baz : uint;
         )");
-        SymbolTable sym;
         std::stringstream err;
 
-        LexerTest lex(std::move(source), sym, err);
+        LexerTest lex(std::move(source), err);
 
         // Assert the token stream is correct
         assert(lex.matches({
@@ -465,10 +454,9 @@ int main(int argc, char** argv) {
             { foo : int; }
             { foo; }
         )");
-        SymbolTable sym;
         std::stringstream err;
 
-        LexerTest lex(std::move(source), sym, err);
+        LexerTest lex(std::move(source), err);
         lex.lexAll();
 
         // Assert that there were no errors
@@ -508,10 +496,9 @@ int main(int argc, char** argv) {
             bar[0] = &foo[0];
             bar[0] = 2;
         )");
-        SymbolTable sym;
         std::stringstream err;
 
-        LexerTest lex(std::move(source), sym, err);
+        LexerTest lex(std::move(source), err);
 
         // Assert that the tokens are correct
         assert(lex.matches({
@@ -540,10 +527,9 @@ int main(int argc, char** argv) {
             ((a + b));
             a + ((b));
         )");
-        SymbolTable sym;
         std::stringstream err;
 
-        LexerTest lex(std::move(source), sym, err);
+        LexerTest lex(std::move(source), err);
 
         // Assert the tokens are correct
         assert(lex.matches({
@@ -573,10 +559,9 @@ int main(int argc, char** argv) {
                 return x - y;
             }
         )");
-        SymbolTable sym;
         std::stringstream err;
 
-        LexerTest lex(std::move(source), sym, err);
+        LexerTest lex(std::move(source), err);
 
         // Assert tokens are right
         assert(lex.matches({
@@ -608,10 +593,9 @@ int main(int argc, char** argv) {
             (){}();
             foo(1 + 2, bar(20) - 6);
         )");
-        SymbolTable sym;
         std::stringstream err;
 
-        LexerTest lex(std::move(source), sym, std::cerr);
+        LexerTest lex(std::move(source), std::cerr);
 
         // Assert we have correct tokens
         assert(lex.matches({
@@ -649,10 +633,9 @@ int main(int argc, char** argv) {
                 nowrite barZ :: () {}
             }
         )");
-        SymbolTable sym;
         std::stringstream err;
 
-        LexerTest lex(std::move(source), sym, err);
+        LexerTest lex(std::move(source), err);
 
         // Assert we have correct tokens
         assert(lex.matches({
@@ -690,10 +673,9 @@ int main(int argc, char** argv) {
 
             bar : Bar;
         )");
-        SymbolTable sym;
         std::stringstream err;
 
-        LexerTest lex(std::move(source), sym, err);
+        LexerTest lex(std::move(source), err);
 
         // Assert the symbol stream is correct
         assert(lex.matches({
@@ -731,10 +713,9 @@ int main(int argc, char** argv) {
              *  */
              */
         )");
-        SymbolTable sym;
         std::stringstream err;
 
-        LexerTest lex(std::move(source), sym, err);
+        LexerTest lex(std::move(source), err);
 
         // Should be no tokens
         assert(lex.matches({END}));
@@ -755,10 +736,9 @@ int main(int argc, char** argv) {
         std::string source(R"(
             defer a := 0;
         )");
-        SymbolTable sym;
         std::stringstream err;
 
-        LexerTest lex(std::move(source), sym, err);
+        LexerTest lex(std::move(source), err);
         lex.lexAll();
 
         // Assert that there is at least one error
@@ -779,10 +759,9 @@ int main(int argc, char** argv) {
                 // Do something twice
             }
         )");
-        SymbolTable sym;
         std::stringstream err;
 
-        LexerTest lex(std::move(source), sym, err);
+        LexerTest lex(std::move(source), err);
         lex.lexAll();
 
         // Assert that there is at least one error
@@ -799,10 +778,9 @@ int main(int argc, char** argv) {
             foo : int;
             foo : uint;
         )");
-        SymbolTable sym;
         std::stringstream err;
 
-        LexerTest lex(std::move(source), sym, err);
+        LexerTest lex(std::move(source), err);
         lex.lexAll();
 
         // Assert there was an error
@@ -817,10 +795,9 @@ int main(int argc, char** argv) {
         std::string source(R"(
             this := 2;
         )");
-        SymbolTable sym;
         std::stringstream err;
 
-        LexerTest lex(std::move(source), sym, err);
+        LexerTest lex(std::move(source), err);
         lex.lexAll();
 
         // Assert that there was an error
@@ -835,10 +812,9 @@ int main(int argc, char** argv) {
         std::string source(R"(
             for := 2;
         )");
-        SymbolTable sym;
         std::stringstream err;
 
-        LexerTest lex(std::move(source), sym, err);
+        LexerTest lex(std::move(source), err);
         lex.lexAll();
 
         // Assert that there was an error

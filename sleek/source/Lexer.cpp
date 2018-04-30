@@ -12,11 +12,11 @@
 
 #include <cstring>
 
-Lexer::Lexer(const char* filename, SymbolTable& sym) :
+Lexer::Lexer(const char* filename) :
     in(filename),
     out(std::cerr)
 {
-    this->sym = &sym;
+    sym = &symRoot;
     scopeLevel = 0;
 
     lexingParamList = false;
@@ -27,11 +27,11 @@ Lexer::Lexer(const char* filename, SymbolTable& sym) :
     lexWhitespace();
 }
 
-Lexer::Lexer(std::string& in, SymbolTable& sym, std::ostream& err) :
+Lexer::Lexer(std::string& in, std::ostream& err) :
     in(in),
     out(err)
 {
-    this->sym = &sym;
+    sym = &symRoot;
     scopeLevel = 0;
 
     lexingParamList = false;
@@ -42,11 +42,11 @@ Lexer::Lexer(std::string& in, SymbolTable& sym, std::ostream& err) :
     lexWhitespace();
 }
 
-Lexer::Lexer(std::string&& in, SymbolTable& sym, std::ostream& err) :
+Lexer::Lexer(std::string&& in, std::ostream& err) :
     in(std::forward<std::string&&>(in)),
     out(err)
 {
-    this->sym = &sym;
+    sym = &symRoot;
     scopeLevel = 0;
 
     lexingParamList = false;

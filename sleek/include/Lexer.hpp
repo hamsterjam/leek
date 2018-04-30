@@ -3,22 +3,22 @@
 
 #include "Token.hpp"
 #include "FileTracker.hpp"
+#include "SymbolTable.hpp"
 
 #include <deque>
 #include <ostream>
 #include <string>
 
-class SymbolTable;
 class FileTracker;
 
 class Lexer {
     protected:
         // These are testing constructors, you probably don't want to call them
-        Lexer(std::string&  in, SymbolTable& sym, std::ostream& err);
-        Lexer(std::string&& in, SymbolTable& sym, std::ostream& err);
+        Lexer(std::string&  in, std::ostream& err);
+        Lexer(std::string&& in, std::ostream& err);
 
     public:
-        Lexer(const char* filename, SymbolTable& sym);
+        Lexer(const char* filename);
 
         Token peek();
         Token get();
@@ -31,6 +31,7 @@ class Lexer {
     private:
         std::deque<Token> tokQueue;
         FileTracker in;
+        SymbolTable  symRoot;
         SymbolTable* sym;
 
         std::ostream& out;
