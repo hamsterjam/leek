@@ -33,6 +33,12 @@ void ParseUnit::generate() {
 
             peek = iBuff.get();
         }
+        else if (peek.type == Token::Type::KEYWORD
+              && peek.keywordVal == Keyword::NA)
+        {
+            // This is a dummy token, just discard it
+            peek = iBuff.get();
+        }
 
         ParseUnit* pipe = NULL;
         unsigned int blockDepth = 0;
