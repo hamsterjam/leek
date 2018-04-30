@@ -1,5 +1,7 @@
 #include "ParseUnit.hpp"
 #include "Token.hpp"
+#include "Variable.hpp"
+#include "SymbolTable.hpp"
 
 #include <thread>
 
@@ -12,9 +14,25 @@ void ParseUnit::generate() {
         Token next;
         Token peek = iBuff.get();
 
+        Variable* var = NULL;
+
         // Need to decide what to do with the first few tokens
-        // For now, delete the first token if its an identifier
-        if (peek.type == Token::Type::IDENTIFIER) peek = iBuff.get();
+        if (peek.type == Token::Type::IDENTIFIER) {
+            next = peek;
+            peek = iBuff.get();
+
+            // This MUST be a definition (so it always has a value)
+            if (peek.type == Token::Type::DEFINITION) {
+                // It's a definition
+                var = &next.symbolVal->getValue();
+                var->use(*this);
+            }
+            else {
+                //TODO// It's an overload (will require working types)
+            }
+
+            peek = iBuff.get();
+        }
 
         ParseUnit* pipe = NULL;
         unsigned int blockDepth = 0;

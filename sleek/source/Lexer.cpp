@@ -903,7 +903,7 @@ void Lexer::lexDefinition() {
 
         if (tokQueue.back().type != Token::Type::IDENTIFIER) {
             // ERROR: attempted to define a keyword
-            std::string msg("Attempted definition of '");
+            std::string msg("Attempted overload of '");
             msg += id + "' keyword";
             throw std::move(Error(std::move(msg),
                         idLine, idCol));
