@@ -791,6 +791,26 @@ int main(int argc, char** argv) {
 
         endTest();
     }
+    {
+        // Redfinition of a variable
+        startTest("Redefinition of variables...\t\t");
+
+        std::string source(R"(
+            foo : int;
+            foo : uint;
+        )");
+        SymbolTable sym;
+        std::stringstream err;
+
+        LexerTest lex(std::move(source), sym, err);
+        lex.lexAll();
+
+        // Assert there was an error
+        assert(err.peek() != SS_EOF);
+        assert(lex.errorCount() > 0);
+
+        endTest();
+    }
     {   // Redefinition of this
         startTest("Redefinition of 'this'...\t\t");
 
