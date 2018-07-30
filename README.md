@@ -3,6 +3,8 @@ LEEK
 
 ### **L**ittle **E**ducational **E**lectronic **C**omputer
 
+This project has been move to GitLab, you can find the repo [here](https://gitlab.com/hamsterjam/leek).
+
 This is a project to design and implement a toy 16-but computation system from the hardware up.
 The aim is to implement a full computation platform (first as a virtual machine, maybe actual hardware eventually)
 and build up software for it to the point where I have a working system.
